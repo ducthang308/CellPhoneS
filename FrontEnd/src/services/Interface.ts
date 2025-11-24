@@ -126,3 +126,13 @@ export interface UploadedImage {
     type: "image" | "video";
     file: File;
 }
+
+export interface CartProduct {
+    id: number;
+    name: string;
+    price: number;
+    oldPrice?: number;
+    image: string;
+    quantity: number;
+    checked: boolean;
+}
