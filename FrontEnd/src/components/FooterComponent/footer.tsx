@@ -14,9 +14,9 @@ const footer = () => {
         <div className="footer">
             <div className="footer-information">
                 <div className="footer-about">
-                    <div className="footer-title">Về HUTH House</div>
+                    <div className="footer-title">Về 2T2H</div>
                     <ul className="footer-list">
-                        <li className="footer-item">
+                        <li className="item-about">
                             <a href='#' className='footer-item-link'>Giới thiệu</a>
                         </li>
                         <li className="item-about">
@@ -36,7 +36,7 @@ const footer = () => {
                 <div className="footer-service">
                     <div className="footer-title">Dành cho khách hàng</div>
                     <ul className="footer-list">
-                        <li className="footer-item">
+                        <li className="item-about">
                             <a href='#' className='footer-item-link'>Câu hỏi thường gặp</a>
                         </li>
                         <li className="item-about">
@@ -79,7 +79,7 @@ const footer = () => {
                     </div>
                 </div>
                 <div className="footer-social">
-                    <div className="footer-title">Theo dõi HUTH House</div>
+                    <div className="footer-title">Theo dõi 2T2H</div>
                     <ul className="list-social">
                         <li className="item-social">
                             <a href="" className="item-social-link">
@@ -112,9 +112,9 @@ const footer = () => {
 
             <div className="footer-copyright">
                 <div className="footer-address">
-                    <div className="footer-title">Apartment for rent by HUTH</div>
+                    <div className="footer-title">Phone for buy by 2T2H</div>
                     <div className="footer-text">49 Cao Thắng, phường Thanh Bình, quận Hải Châu, thành phố Đà Nẵng</div>
-                    <div className="footer-text">Tổng đài chăm sóc khách hàng: +84 325 043 590 hoắc +84 896 444 505 - Email: cskh.apartment.huth@gmail.com &#40;Mọi thắc mắc xin liện hệ ngay với chúng tôi&#41;</div>
+                    <div className="footer-text">Tổng đài chăm sóc khách hàng: +84 325 043 590 hoắc +84 896 444 505 - Email: cskh.phone.2t2h@gmail.com &#40;Mọi thắc mắc xin liện hệ ngay với chúng tôi&#41;</div>
                 </div>
 
                 <div className="copyright-logo">
