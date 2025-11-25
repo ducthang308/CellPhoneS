@@ -1,15 +1,42 @@
-import React from 'react'
-import Logo from "../../assets/img/logo.png"
+    import React from 'react'
+    import Logo from "../../assets/img/logo.png"
 
-import "./header.css"
-import { Tabs } from 'antd';
-import type { TabsProps } from 'antd';
-import { useNavigate } from 'react-router-dom';
+    import "./header.css"
+    import { Tabs } from 'antd';
+    import type { TabsProps } from 'antd';
+    import { useNavigate } from 'react-router-dom';
+    
+    const header = () => {
+        const navigative = useNavigate();
+        const handleTabChange = (key: string) => {
+            switch (key) {
+            case "1":
+                navigative("/Phone");
+                break;
+            case "2":
+                navigative("/Laptop");
+                break;
+            case "3":
+                navigative("/products/ipad");
+                break;
+            case "4":
+                navigative("/products/accessory");
+                break;
+            case "5":
+                navigative("/about");
+                break;
+            case "6":
+                navigative("/pricing");
+                break;
+            default:
+                navigative("/");
+            }
+    };
 
 const items: TabsProps['items'] = [
     {
         key: '1',
-        label: 'Điện thoại',
+        label: 'Điện thoại',    
     },
     {
         key: '2',
@@ -32,10 +59,7 @@ const items: TabsProps['items'] = [
         label: 'Bảng giá dịch vụ',
     },
 ];
-
-
-const header = () => {
-    const navigative = useNavigate();
+ 
     return (
         <div className="header">
             <div className="navbar-top">
@@ -65,22 +89,22 @@ const header = () => {
 
                 <div className="top-right">
                     <ul className="list-user-actions">
-                        <li className="list-user-item">
+                        <li className="list-user-item" onClick={() => navigative('/account')}>
                             <i className="fa-solid fa-heart"></i>
-                            <p className="list-user-item-text">Tin đã thích</p>
+                            <p className="list-user-item-text">Tài khoản</p>
                         </li>
-                        <li className="list-user-item" onClick={() => navigative('/history')} >
+                        <li className="list-user-item" onClick={() => navigative('/wish')} >
                             <i className="fa-solid fa-user-plus"></i>
-                            <p className="list-user-item-text">Đăng ký</p>
-                        </li>
-                        <li className="list-user-item" onClick={() => navigative('/login')} style={{ cursor: 'pointer' }}>
+                            <p className="list-user-item-text">Sản phẩm yêu thích</p>
+                        </li>      
+                        <li className="list-user-item" onClick={() => navigative('/AddListing')} style={{ cursor: 'pointer' }}>
                             <i className="fa-solid fa-right-to-bracket"></i>
-                            <p className="list-user-item-text">Đăng nhập</p>
-                        </li>
-                        <li className="list-user-item list-user-item-button" onClick={() => navigative('/AddListing')} style={{ cursor: 'pointer' }}>
-                            <i className="fa-solid fa-pen-to-square"></i>
                             <p className="list-user-item-text">Đăng tin</p>
                         </li>
+                        <li className="list-user-item list-user-item-button" onClick={() => navigative('/login')} style={{ cursor: 'pointer' }}>
+                            <i className="fa-solid fa-pen-to-square"></i>
+                            <p className="list-user-item-text">Đăng nhập</p>
+                        </li>    
                     </ul>
                 </div>
             </div>
@@ -116,10 +140,20 @@ const header = () => {
                     </li>
                 </ul> */}
 
-                <Tabs className='list-category' defaultActiveKey="1" items={items} />
+                {/* <Tabs className='list-category' defaultActiveKey="1" items={items} /> */}
+
+                
+                <div className="navbar-bot">
+                    <Tabs
+                    className="list-category"
+                    defaultActiveKey="1"
+                    items={items}
+                    onChange={handleTabChange}
+                    />
+                </div>
             </div>
         </div>
     )
 }
 
-export default header
+export default header   
