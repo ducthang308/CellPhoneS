@@ -26,7 +26,7 @@
                 navigative("/about");
                 break;
             case "6":
-                navigative("/pricing");
+                navigative("/historyOrder");
                 break;
             default:
                 navigative("/");
@@ -56,7 +56,7 @@ const items: TabsProps['items'] = [
     },
     {
         key: '6',
-        label: 'Bảng giá dịch vụ',
+        label: 'Lịch sử mua hàng',
     },
 ];
  
@@ -90,12 +90,12 @@ const items: TabsProps['items'] = [
                 <div className="top-right">
                     <ul className="list-user-actions">
                         <li className="list-user-item" onClick={() => navigative('/account')}>
-                            <i className="fa-solid fa-heart"></i>
+                            <i className="fa-solid fa-user-plus"></i>
                             <p className="list-user-item-text">Tài khoản</p>
                         </li>
-                        <li className="list-user-item" onClick={() => navigative('/wish')} >
-                            <i className="fa-solid fa-user-plus"></i>
-                            <p className="list-user-item-text">Sản phẩm yêu thích</p>
+                        <li className="list-user-item" onClick={() => navigative('/cartShop')} >
+                            <i className="fa-solid fa-cart-shopping"></i>
+                            <p className="list-user-item-text">Giỏ hàng</p>
                         </li>      
                         <li className="list-user-item" onClick={() => navigative('/AddListing')} style={{ cursor: 'pointer' }}>
                             <i className="fa-solid fa-right-to-bracket"></i>
