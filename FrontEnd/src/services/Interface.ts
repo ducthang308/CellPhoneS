@@ -98,3 +98,4 @@ export interface IReview {
     video?: string;
     photo?: string;
 }
+
