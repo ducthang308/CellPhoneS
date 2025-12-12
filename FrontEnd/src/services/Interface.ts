@@ -1,7 +1,7 @@
 export interface LoginResponse {
     token: string;
-    id: number;
-    phone_number: string;
+    userId: number;
+    sdt: string;
     roles_id: number;
     address: string;
     full_name: string;
