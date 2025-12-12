@@ -50,21 +50,6 @@ export interface ISpecification {
     os?: string;
 }
 
-export interface IProduct {
-    productID: number;
-    name: string;
-    price: number;
-    stock_quantity: number;
-    image_url?: string;
-    description?: string;
-    created_at?: string;
-    updated_at?: string;
-
-    categoryID?: number;
-    brandID?: number;
-    specID?: number;
-}
-
 export interface CartProduct {
     id: number;
     name: string;
@@ -97,4 +82,39 @@ export interface IReview {
     comment?: string;
     video?: string;
     photo?: string;
+}
+
+export interface ProductImage {
+    id?: number;                     
+    img_index: number;             
+    url: string | null;
+    product_id?: number | null;      
+}
+
+export interface IProduct {
+    ProductID?: number;              
+    name: string | null;
+    price: number | null;            
+    Stock_Quantity?: number | null;  
+    Image_URL?: string | null;
+    description?: string | null;
+    Created_At?: string | null;      
+    Updated_At?: string | null;      
+    
+    // Foreign keys
+    BrandID?: number | null;
+    CategoryID?: number | null;
+    SupplierID?: number | null;
+    SpecID?: number | null;          
+    
+    // Sequelize/ORM fields (lowercase với underscore)
+    createdAt?: string | null;       
+    stockQuantity?: number | null;
+    updatedAt?: string | null;       
+    brand_id?: number | null;
+    category_id?: number | null;
+    spec_id?: number | null;         
+    
+    // Relation data (khi JOIN với bảng productimage)
+    productImages?: ProductImage[];
 }
