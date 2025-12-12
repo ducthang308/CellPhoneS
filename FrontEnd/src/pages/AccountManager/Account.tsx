@@ -1,6 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './Account.css';
-import { useAuth } from '../../context/AuthContext'; // ← QUAN TRỌNG NHẤT!
+
+interface User {
+  userId: number;
+  sdt: string;
+  FullName: string;
+  Email: string;
+  Address: string;
+  RoLeId: number;
+  GoogleId?: string | null;
+}
+
+const mockUser: User = {
+  userId: 1,
+  sdt: "0325043591",
+  FullName: "Huy Tún",
+  Email: "leta1101109@gmail.com",
+  Address: "123 Đường Láng, Đống Đa, Hà Nội",
+  RoLeId: 1,
+  GoogleId: null,
+};
 
 const AccountPage: React.FC = () => {
   const { user, loading } = useAuth(); // ← LẤY USER TỪ CONTEXT
@@ -39,6 +59,7 @@ const AccountPage: React.FC = () => {
   return (
     <div className="account-container">
       <div className="account-wrapper">
+        {/* Main content */}
         <main className="account-main">
           <h2 className="page-title">Thông tin tài khoản</h2>
 

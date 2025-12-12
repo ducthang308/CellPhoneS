@@ -1,102 +1,105 @@
-import { useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import './LoginPage.css';
-import Register from '../Register/Register';
-import { login } from '../../services/UserService';
-import { useAuth } from '../../context/AuthContext';
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import "./LoginPage.css";
+import Register from "../Register/Register";
+import { login } from "../../services/UserService";
+import { useAuth } from "../../context/AuthContext";
 
 const LoginPage = () => {
-const [sdt, setSdt] = useState('');
-const [password, setPassword] = useState('');
-const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-const navigate = useNavigate();
-const { login: saveUser } = useAuth(); 
+    const [phone, setPhone] = useState("");
+    const [password, setPassword] = useState("");
+    const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
-const handleLogin = async (e: React.FormEvent) => {
-e.preventDefault();
-try {
-    const data = await login(sdt, password);
+    const { setUser } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    saveUser(data);
+    const redirectTo = location.state?.redirectTo || "/";
 
-    alert('Đăng nhập thành công!');
-    navigate('/');
-} catch (err: any) {
-    console.error('Lỗi đăng nhập:', err);
-    alert(err.message || 'Đăng nhập thất bại');
-}
-};
-        return (
-            <div className="login-wrapper">
-                <div className="login-form">
-                    <div className="login-tabs">
-                        <span
-                            className={activeTab === 'login' ? 'active-tab' : 'inactive-tab'}
-                            onClick={() => setActiveTab('login')}
-                        >
-                            Đăng nhập
-                        </span>
-                        <span
-                            className={activeTab === 'register' ? 'active-tab' : 'inactive-tab'}
-                            onClick={() => setActiveTab('register')}
-                        >
-                            Đăng ký tài khoản
-                        </span>
-                    </div>
+    // ================= LOGIN =================
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const data = await login(phone, password);
 
-                    {activeTab === 'login' ? (
-                        <>
-                            <form onSubmit={handleLogin}>
-                                <input
-                                    type="text"
-                                    placeholder="Số điện thoại"
-                                    value={sdt}
-                                    onChange={(e) => setSdt(e.target.value)}
-                                    required
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="Mật khẩu"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                                <button type="submit" className="login-btn">
-                                    Đăng nhập
-                                </button>
-                            </form>
+            if (!data?.token) {
+                throw new Error("Token không hợp lệ");
+            }
 
-                            <a href="#" className="forgot-password">
-                                Quên mật khẩu?
-                            </a>
+            // 🔐 Lưu token
+            localStorage.setItem("accessToken", data.token);
 
-                            <div className="divider">
-                                <span>hoặc đăng nhập bằng</span>
-                            </div>
+            // 👤 Lưu user (không kèm token)
+            const { token, ...userInfo } = data;
+            localStorage.setItem("user", JSON.stringify(userInfo));
 
-                            <div className="social-login-button">
-                                <button className="google-btn">
-                                    <img
-                                        src="https://img.icons8.com/color/24/000000/google-logo.png"
-                                        alt="Google"
-                                    />
-                                    Google
-                                </button>
-                                <button  className="facebook-btn">
-                                    <img
-                                        src="https://img.icons8.com/color/24/000000/facebook-new.png"
-                                        alt="Facebook"
-                                    />
-                                    Facebook
-                                </button>
-                            </div>
-                        </>
-                    ) : (
-                        <Register />
-                    )}
-                </div>
-            </div>
-        );
+            // 🔥 CẬP NHẬT CONTEXT → Header đổi ngay
+            setUser(userInfo);
+
+            navigate(redirectTo, { replace: true });
+        } catch (err: any) {
+            console.error("Lỗi đăng nhập:", err);
+            alert(err.message || "Đăng nhập thất bại");
+        }
     };
 
-    export default LoginPage;
+    // ================= REGISTER SUCCESS =================
+    const handleRegisterSuccess = (registeredPhone: string) => {
+        // 👉 chuyển về tab login
+        setActiveTab("login");
+
+        // 👉 điền sẵn sdt/email cho user
+        setPhone(registeredPhone);
+
+        // 👉 clear password cho chắc
+        setPassword("");
+    };
+
+    return (
+        <div className="login-wrapper">
+            <div className="login-form">
+                <div className="login-tabs">
+                    <span
+                        className={activeTab === "login" ? "active-tab" : "inactive-tab"}
+                        onClick={() => setActiveTab("login")}
+                    >
+                        Đăng nhập
+                    </span>
+                    <span
+                        className={activeTab === "register" ? "active-tab" : "inactive-tab"}
+                        onClick={() => setActiveTab("register")}
+                    >
+                        Đăng ký tài khoản
+                    </span>
+                </div>
+
+                {activeTab === "login" ? (
+                    <form onSubmit={handleLogin}>
+                        <input
+                            type="text"
+                            placeholder="Số điện thoại"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="Mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button type="submit" className="login-btn">
+                            Đăng nhập
+                        </button>
+                    </form>
+                ) : (
+                    <Register onSuccess={handleRegisterSuccess} />
+                )}
+            </div>
+        </div>
+    );
+};
+  
+
+export default LoginPage;

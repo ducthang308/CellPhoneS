@@ -1,20 +1,23 @@
 export interface LoginResponse {
-    token: string;
     userId: number;
     sdt: string;
-    roles_id: number;
+    fullName: string;
+    email: string;
     address: string;
-    full_name: string;
-    status: boolean;
+    avatar: string | null;
+    role: number;
+    token: string;
 }
 
+
 export interface IRegisterRequest {
-    full_name: string;
-    phone_number: string;
-    password: string;
-    retype_pass: string;
-    roles_id: number;
+    sdt: string;
+    hoVaTen: string;
+    email: string;
+    diaChi: string;
+    matKhau: string;
 }
+
 
 export interface IRole {
     roleId: number;
@@ -22,16 +25,15 @@ export interface IRole {
 }
 
 export interface IUser {
-    userID: number;
-    sdt?: string;
+    userId: number;
+    sdt: string;
     fullName?: string;
     email?: string;
     address?: string;
-    avatar?: string;
-    password?: string;
-    googleId?: string;
-    roleId: number;
+    avatar?: string | null;
+    role: number;
 }
+
 
 export interface ICategory {
     categoryID: number;
@@ -50,15 +52,19 @@ export interface ISpecification {
     os?: string;
 }
 
-export interface CartProduct {
-    id: number;
-    name: string;
-    price: number;
-    oldPrice?: number;
-    image: string;
-    quantity: number;
-    checked: boolean;
+export interface CartDetail {
+    cartDetailsId: number;
+    cartId?: number;
+    product: IProduct;
 }
+
+export interface Cart {
+    cartId: number;
+    status: string;
+    userId?: number;
+    cartDetails?: CartDetail[];
+}
+
 
 export interface IOrder {
     orderID: number;
@@ -85,36 +91,30 @@ export interface IReview {
 }
 
 export interface ProductImage {
-    id?: number;                     
-    img_index: number;             
-    url: string | null;
-    product_id?: number | null;      
+    id: number;
+    url: string;
+    img_index: number;
+}
+
+export interface Specification {
+    specId: number;
+    screen: string;
+    cpu: string;
+    ram: string;
+    storage: string;
+    camera: string;
+    battery: string;
+    os: string;
 }
 
 export interface IProduct {
-    ProductID?: number;              
-    name: string | null;
-    price: number | null;            
-    Stock_Quantity?: number | null;  
-    Image_URL?: string | null;
-    description?: string | null;
-    Created_At?: string | null;      
-    Updated_At?: string | null;      
-    
-    // Foreign keys
-    BrandID?: number | null;
-    CategoryID?: number | null;
-    SupplierID?: number | null;
-    SpecID?: number | null;          
-    
-    // Sequelize/ORM fields (lowercase với underscore)
-    createdAt?: string | null;       
-    stockQuantity?: number | null;
-    updatedAt?: string | null;       
-    brand_id?: number | null;
-    category_id?: number | null;
-    spec_id?: number | null;         
-    
-    // Relation data (khi JOIN với bảng productimage)
+    productId: number;
+    name: string;
+    price: number;
+    stockQuantity: number;
+    description?: string;
+    brandId: number;
+    categoryId: number;
+    specification?: Specification | null;
     productImages?: ProductImage[];
 }
