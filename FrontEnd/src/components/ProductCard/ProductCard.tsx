@@ -7,7 +7,28 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
   const navigate = useNavigate();
 
   const handleViewDetail = () => {
-    navigate(`/product-detail/${product.productID}`); // ĐÃ SỬA ĐÚNG ID
+    navigate(`/product-detail/${product.ProductID}`); // ĐÃ SỬA ĐÚNG ID
+  };
+
+  const getProductImage = (): string => {
+    if (product.productImages && product.productImages.length > 0) {
+      return product.productImages[0].url || "/placeholder-image.jpg";
+    }
+    return "/placeholder-image.jpg";
+  };
+
+  const getStockQuantity = (): number => {
+    return product.Stock_Quantity ?? product.stockQuantity ?? 0;
+  };
+
+  const getUpdatedDate = (): string => {
+    const dateStr = product.Updated_At || product.updatedAt || new Date().toISOString();
+    return new Date(dateStr).toLocaleDateString("vi-VN");
+  };
+
+  const formatPrice = (): string => {
+    const price = product.price || 0;
+    return price.toLocaleString("vi-VN");
   };
 
   return (
@@ -20,8 +41,8 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
         {/* Hình ảnh */}
         <div className="product-thumb">
           <img
-            src={product.image_url || "/placeholder-image.jpg"}
-            alt={product.name}
+            src={getProductImage()}
+            alt={product.name || "Product Image"}
             className="product-img"
             loading="lazy"
           />
@@ -34,15 +55,15 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
 
           <div className="product-info">
             <p className="product-stock">
-              Còn lại: <span>{product.stock_quantity}</span>
+              Còn lại: <span>{getStockQuantity()}</span>
             </p>
             <p className="product-date">
-              Ngày đăng: {new Date(product.updated_at || Date.now()).toLocaleDateString("vi-VN")}
+              Ngày đăng: {getUpdatedDate()}
             </p>
           </div>
 
           <div className="product-price">
-            {product.price.toLocaleString("vi-VN")} ₫
+            {formatPrice()} ₫
           </div>
 
           <div className="product-actions">
