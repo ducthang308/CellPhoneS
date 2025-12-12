@@ -85,36 +85,36 @@ export interface IReview {
 }
 
 export interface ProductImage {
-    id?: number;                     
-    img_index: number;             
+    id?: number;
+    img_index: number;
     url: string | null;
-    product_id?: number | null;      
+    product_id?: number | null;
 }
 
 export interface IProduct {
-    ProductID?: number;              
+    productId?: number;
     name: string | null;
-    price: number | null;            
-    Stock_Quantity?: number | null;  
+    price: number;
+    Stock_Quantity?: number | null;
     Image_URL?: string | null;
     description?: string | null;
-    Created_At?: string | null;      
-    Updated_At?: string | null;      
-    
+    Created_At?: string | null;
+    Updated_At?: string | null;
+
     // Foreign keys
     BrandID?: number | null;
     CategoryID?: number | null;
     SupplierID?: number | null;
-    SpecID?: number | null;          
-    
+    SpecID?: number | null;
+
     // Sequelize/ORM fields (lowercase với underscore)
-    createdAt?: string | null;       
+    createdAt?: string | null;
     stockQuantity?: number | null;
-    updatedAt?: string | null;       
+    updatedAt?: string | null;
     brand_id?: number | null;
     category_id?: number | null;
-    spec_id?: number | null;         
-    
+    spec_id?: number | null;
+
     // Relation data (khi JOIN với bảng productimage)
     productImages?: ProductImage[];
 }

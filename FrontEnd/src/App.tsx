@@ -14,8 +14,7 @@ import AccountPage from './pages/AccountManager/Account.tsx';
 import Shopping_cardPage from './pages/WishlistPage/WishlistPage.tsx';
 
 import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
-import Cart from './pages/Cart/Cart.tsx';
-import Checkout from './pages/Payment/Checkout.tsx';  
+import Checkout from './pages/Payment/Checkout.tsx';
 import CartPage from './pages/CartPage/CartPage.tsx';
 import OrderHistoryPage from './pages/OrderHistory/OrderHistoryPage.tsx';
 import './Global.css'
@@ -37,7 +36,6 @@ function App() {
             <Route path="/account" element={<AccountPage />} />
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />
             <Route path="/product-detail/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
             <Route path="/check-out" element={<Checkout />} />
             <Route path="/cartShop" element={<CartPage />} />
           </Routes>
@@ -45,7 +43,7 @@ function App() {
         <Footer />
       </div>
     </Router>
-    )
+  )
 }
 
 export default App

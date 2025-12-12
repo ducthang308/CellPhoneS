@@ -22,30 +22,30 @@ const CartPage: React.FC = () => {
 
   const [cartItems, setCartItems] = useState<CartItem[]>([
     {
-      productID: 99,
+      ProductID: 99,
       name: "iPhone Air 1TB - Chính hãng Apple Việt Nam",
       price: 40990000,
-      stock_quantity: 10,
-      image_url: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
+      Stock_Quantity: 10,
+      Image_URL: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
       description: "Phiên bản: 1TB | Màu sắc: Đen Không Gian",
       quantity: 1,
     },
     {
-      productID: 19,
-      name: "iPhone 17 Pro Max 256GB",
-      price: 37490000,
-      stock_quantity: 5,
-      image_url: "https://via.placeholder.com/80x80/orange/fff?text=iP17",
-      description: "Phiên bản: 256GB | Màu sắc: Cam vũ trụ",
-      quantity: 2,
+      ProductID: 99,
+      name: "iPhone Air 1TB - Chính hãng Apple Việt Nam",
+      price: 40990000,
+      Stock_Quantity: 10,
+      Image_URL: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
+      description: "Phiên bản: 1TB | Màu sắc: Đen Không Gian",
+      quantity: 1,
     },
     {
-      productID: 88,
-      name: "MacBook Air M3 13 inch",
-      price: 28990000,
-      stock_quantity: 8,
-      image_url: "https://via.placeholder.com/80x80/silver/333?text=MacBook",
-      description: "Chip M3 | 8GB RAM | 256GB SSD",
+      ProductID: 99,
+      name: "iPhone Air 1TB - Chính hãng Apple Việt Nam",
+      price: 40990000,
+      Stock_Quantity: 10,
+      Image_URL: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
+      description: "Phiên bản: 1TB | Màu sắc: Đen Không Gian",
       quantity: 1,
     },
   ]);
@@ -53,7 +53,7 @@ const CartPage: React.FC = () => {
   const updateQuantity = (id: number, delta: number) => {
     setCartItems(prev =>
       prev.map(item =>
-        item.productID === id
+        item.ProductID === id
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item
       )
@@ -61,7 +61,7 @@ const CartPage: React.FC = () => {
   };
 
   const removeItem = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.productID !== id));
+    setCartItems(prev => prev.filter(item => item.ProductID !== id));
   };
 
   const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -72,14 +72,14 @@ const CartPage: React.FC = () => {
         <div className="cart-left">
           <div className="cart-header">
             <button className="back-btn" onClick={() => navigate(-1)}>
-                Quay lại
+              Quay lại
             </button>
             <h1>Giỏ hàng</h1>
           </div>
 
           {cartItems.map((item) => (
-            <div key={item.productID} className="cart-item">
-              <img src={item.image_url} alt={item.name} className="item-img" onClick={() => navigate(`/product-detail/${item.productID}`)} />
+            <div key={item.ProductID} className="cart-item">
+              <img src={item.Image_URL} alt={item.name} className="item-img" onClick={() => navigate(`/product-detail/${item.productID}`)} />
 
               <div className="item-details">
                 <h3 className="item-name">{item.name}</h3>
@@ -87,9 +87,9 @@ const CartPage: React.FC = () => {
 
                 <div className="quantity-and-price">
                   <div className="quantity-box">
-                    <button onClick={() => updateQuantity(item.productID, -1)}>-</button>
+                    <button onClick={() => updateQuantity(item.ProductID, -1)}>-</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.productID, 1)}>+</button>
+                    <button onClick={() => updateQuantity(item.ProductID, 1)}>+</button>
                   </div>
 
                   <div className="price-wrapper">
@@ -107,7 +107,7 @@ const CartPage: React.FC = () => {
 
               <button
                 className="remove-item-btn fa-solid fa-trash"
-                onClick={() => removeItem(item.productID)}
+                onClick={() => removeItem(item.ProductID)}
                 title="Xóa sản phẩm"
               >
               </button>
