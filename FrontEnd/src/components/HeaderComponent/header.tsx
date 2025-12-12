@@ -13,7 +13,6 @@ const Header = () => {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Tabs logic (giữ nguyên)
   const routeToKey: Record<string, string> = {
     "/Phone": "1",
     "/Laptop": "2",
@@ -67,15 +66,17 @@ const Header = () => {
           </div>
         </div>
 
-        {/* PHẦN PHẢI – ĐÃ FIX HOÀN HẢO */}
         <div className="top-right-wrapper">
           <ul className="list-user-actions">
+             <li className="list-user-item" onClick={() => navigate('/notification')}>
+              <i className="fa-solid fa-bell"></i>
+              <p className="list-user-item-text">Thông báo</p>
+            </li>
             <li className="list-user-item" onClick={() => navigate('/cartShop')}>
               <i className="fa-solid fa-cart-shopping"></i>
               <p className="list-user-item-text">Giỏ hàng</p>
             </li>
 
-            {/* NẾU ĐÃ ĐĂNG NHẬP */}
             {user ? (
               <li className="list-user-item user-avatar-item">
                 <div
@@ -83,11 +84,11 @@ const Header = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
                   <div className="avatar-circle">
-                    {user.phone_number.slice(-3)}
+                    {user.sdt.slice(-3)}
                   </div>
                   <div className="user-info">
                     <p className="greeting">Xin chào</p>
-                    <p className="phone">{user.phone_number}</p>
+                    <p className="phone">{user.sdt}</p>
                   </div>
                   <svg className={`arrow ${dropdownOpen ? 'rotated' : ''}`} viewBox="0 0 24 24">
                     <path d="M7 10l5 5 5-5z" />
@@ -102,14 +103,13 @@ const Header = () => {
             )}
           </ul>
 
-          {/* DROPDOWN BAY RA NGOÀI HOÀN TOÀN – KHÔNG ẢNH HƯỞNG LAYOUT */}
           {user && dropdownOpen && (
             <>
               <div className="dropdown-overlay" onClick={() => setDropdownOpen(false)} />
               <div className="user-dropdown">
                 <div className="dropdown-header">
                   <p>Tài khoản của tôi</p>
-                  <p className="phone-big">{user.phone_number}</p>
+                  <p className="phone-big">{user.sdt}</p>
                 </div>
                 <div className="dropdown-body">
                   <div className="dropdown-item" onClick={() => { navigate('/account'); setDropdownOpen(false); }}>

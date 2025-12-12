@@ -12,6 +12,7 @@ import LaptopPage from './pages/catalog/LaptopPage.tsx';
 import Home from './pages/Home/Home.tsx';
 import AccountPage from './pages/AccountManager/Account.tsx';
 import Shopping_cardPage from './pages/WishlistPage/WishlistPage.tsx';
+import NotificationsPage from './pages/Notification/NotificationPage.tsx';
 
 import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
 import Cart from './pages/Cart/Cart.tsx';
@@ -39,6 +40,7 @@ function App() {
             <Route path="/product-detail/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/check-out" element={<Checkout />} />
+            <Route path="/notification" element={<NotificationsPage />} />
             {/* <Route path="/cartShop" element={<CartPage />} /> */}
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
             

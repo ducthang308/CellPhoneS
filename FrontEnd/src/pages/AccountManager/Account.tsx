@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Account.css';
-
-interface User {
-  userId: number;
-  sdt: string;
-  FullName: string;
-  Email: string;
-  Address: string;
-  RoLeId: number;
-  GoogleId?: string | null;
-}
-
-// Mock data –  thay bằng API thật sau
-const mockUser: User = {
-  userId: 1,
-  sdt: "0325043591",
-  FullName: "Huy Tún",
-  Email: "leta1101109@gmail.com",
-  Address: "123 Đường Láng, Đống Đa, Hà Nội",
-  RoLeId: 1,
-  GoogleId: null,
-};
+import { useAuth } from '../../context/AuthContext'; // ← QUAN TRỌNG NHẤT!
 
 const AccountPage: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading } = useAuth(); // ← LẤY USER TỪ CONTEXT
   const [isEditing, setIsEditing] = useState(false);
 
   // Form state
@@ -32,29 +12,33 @@ const AccountPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
 
-  // Lấy thông tin user khi mount (thay bằng API thật)
   useEffect(() => {
-    // const fetchUser = async () => { ... }
-    const fetched = mockUser;
-    setUser(fetched);
-    setFullName(fetched.FullName);
-    setPhone(fetched.sdt);
-    setEmail(fetched.Email);
-    setAddress(fetched.Address);
-  }, []);
+    if (user) {
+      setFullName(user.fullName || '');
+      setPhone(user.sdt || '');
+      setEmail(user.email || 'Chưa cập nhật');
+      setAddress(user.address || '');
+    }
+  }, [user]);
 
-  const handleSave = () => {
-    // Gọi API PUT /users/{userId} ở đây
-    console.log('Đã lưu:', { fullName, phone, email, address });
+  const handleSave = async () => {
+    // Gọi API cập nhật ở đây (sẽ làm sau)
+    console.log('Đang lưu:', { fullName, phone, email, address });
     setIsEditing(false);
   };
 
-  if (!user) return <div>Đang tải...</div>;
+  // Nếu đang load hoặc chưa đăng nhập
+  if (loading || !user) {
+    return (
+      <div className="account-container">
+        <div className="loading">Đang tải thông tin tài khoản...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="account-container">
-      <div className="account-wrapper">   
-        {/* Main content */}
+      <div className="account-wrapper">
         <main className="account-main">
           <h2 className="page-title">Thông tin tài khoản</h2>
 
@@ -93,15 +77,7 @@ const AccountPage: React.FC = () => {
 
               <div className="info-item">
                 <label>Số điện thoại</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                ) : (
-                  <p>{phone || 'Chưa cập nhật'}</p>
-                )}
+                <p className="readonly-text">{phone}</p> {/* Không cho sửa số điện thoại */}
               </div>
 
               <div className="info-item">
@@ -110,8 +86,7 @@ const AccountPage: React.FC = () => {
                   <input
                     type="email"
                     value={email}
-                    readOnly
-                    className="readonly"
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 ) : (
                   <p>{email}</p>
@@ -141,11 +116,11 @@ const AccountPage: React.FC = () => {
             <div className="info-grid">
               <div className="info-item">
                 <label>Phương thức đăng nhập</label>
-                <p>{user.GoogleId ? 'Google' : 'Email & Mật khẩu'}</p>
+                <p>Email & Mật khẩu</p>
               </div>
               <div className="info-item">
                 <label>Vai trò</label>
-                <p>{user.RoLeId === 1 ? 'Quản trị viên' : 'Khách hàng'}</p>
+                <p>{user.role === 1 ? 'Quản trị viên' : 'Khách hàng'}</p>
               </div>
             </div>
           </div>

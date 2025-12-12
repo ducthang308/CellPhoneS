@@ -85,10 +85,10 @@ const ProductList: React.FC = () => {
               </div>
             ) : (
               <div className="product-grid-inner">
-               {products.map((product) => (
+               {products.map((item) => (
                 <ProductCard 
-                  key={product.ProductID} 
-                  product={product}
+                  key={item.ProductID} 
+                  product={item}
                 />
             ))}
               </div>

@@ -2,12 +2,17 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 type User = {
-  phone_number: string;
+  userId: number;
+  sdt: string;      
+  fullName: string;
+  role?: number;
+  address?: string;
+  email?: string;
 };
 
 type AuthContextType = {
   user: User | null;
-  login: (token: string) => void;
+  login: (data: any) => void;
   logout: () => void;
   loading: boolean;
 };
@@ -18,23 +23,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+ useEffect(() => {
+    const token = localStorage.getItem('token()');
+    const storedUser = localStorage.getItem('user');
+
+    if (token && storedUser) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ phone_number: payload.sub });
+        setUser(JSON.parse(storedUser));
       } catch (e) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (token: string) => {
-    localStorage.setItem('token', token);
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    setUser({ phone_number: payload.sub });
+const login = (data: any) => {
+    localStorage.setItem('token', data.token);
+
+    const userData = {
+      userId: data.userId,
+      sdt: data.sdt,                    
+      fullName: data.fullName || 'Người dùng'
+    };
+
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
   const logout = () => {
