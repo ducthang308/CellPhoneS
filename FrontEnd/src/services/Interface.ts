@@ -1,20 +1,23 @@
 export interface LoginResponse {
-    token: string;
-    id: number;
-    phone_number: string;
-    roles_id: number;
+    userId: number;
+    sdt: string;
+    fullName: string;
+    email: string;
     address: string;
-    full_name: string;
-    status: boolean;
+    avatar: string | null;
+    role: number;
+    token: string;
 }
 
+
 export interface IRegisterRequest {
-    full_name: string;
-    phone_number: string;
-    password: string;
-    retype_pass: string;
-    roles_id: number;
+    sdt: string;
+    hoVaTen: string;
+    email: string;
+    diaChi: string;
+    matKhau: string;
 }
+
 
 export interface IRole {
     roleId: number;
@@ -22,16 +25,15 @@ export interface IRole {
 }
 
 export interface IUser {
-    userID: number;
-    sdt?: string;
+    userId: number;
+    sdt: string;
     fullName?: string;
     email?: string;
     address?: string;
-    avatar?: string;
-    password?: string;
-    googleId?: string;
-    roleId: number;
+    avatar?: string | null;
+    role: number;
 }
+
 
 export interface ICategory {
     categoryID: number;

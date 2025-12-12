@@ -3,35 +3,56 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./LoginPage.css";
 import Register from "../Register/Register";
 import { login } from "../../services/UserService";
+import { useAuth } from "../../context/AuthContext";
 
 const LoginPage = () => {
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
+    const { setUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // 👉 lấy redirectTo nếu có
     const redirectTo = location.state?.redirectTo || "/";
 
+    // ================= LOGIN =================
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             const data = await login(phone, password);
 
-            if (data?.token) {
-                // 🔥 đồng bộ key
-                localStorage.setItem("accessToken", data.token);
-                localStorage.setItem("userId", data.id.toString());
-                localStorage.setItem("phone", data.phone_number);
-
-                navigate(redirectTo, { replace: true });
+            if (!data?.token) {
+                throw new Error("Token không hợp lệ");
             }
+
+            // 🔐 Lưu token
+            localStorage.setItem("accessToken", data.token);
+
+            // 👤 Lưu user (không kèm token)
+            const { token, ...userInfo } = data;
+            localStorage.setItem("user", JSON.stringify(userInfo));
+
+            // 🔥 CẬP NHẬT CONTEXT → Header đổi ngay
+            setUser(userInfo);
+
+            navigate(redirectTo, { replace: true });
         } catch (err: any) {
             console.error("Lỗi đăng nhập:", err);
             alert(err.message || "Đăng nhập thất bại");
         }
+    };
+
+    // ================= REGISTER SUCCESS =================
+    const handleRegisterSuccess = (registeredPhone: string) => {
+        // 👉 chuyển về tab login
+        setActiveTab("login");
+
+        // 👉 điền sẵn sdt/email cho user
+        setPhone(registeredPhone);
+
+        // 👉 clear password cho chắc
+        setPassword("");
     };
 
     return (
@@ -53,29 +74,27 @@ const LoginPage = () => {
                 </div>
 
                 {activeTab === "login" ? (
-                    <>
-                        <form onSubmit={handleLogin}>
-                            <input
-                                type="text"
-                                placeholder="Số điện thoại"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                required
-                            />
-                            <input
-                                type="password"
-                                placeholder="Mật khẩu"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <button type="submit" className="login-btn">
-                                Đăng nhập
-                            </button>
-                        </form>
-                    </>
+                    <form onSubmit={handleLogin}>
+                        <input
+                            type="text"
+                            placeholder="Số điện thoại"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="Mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button type="submit" className="login-btn">
+                            Đăng nhập
+                        </button>
+                    </form>
                 ) : (
-                    <Register />
+                    <Register onSuccess={handleRegisterSuccess} />
                 )}
             </div>
         </div>

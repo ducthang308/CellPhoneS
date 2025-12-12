@@ -11,7 +11,6 @@ interface User {
   GoogleId?: string | null;
 }
 
-// Mock data –  thay bằng API thật sau
 const mockUser: User = {
   userId: 1,
   sdt: "0325043591",
@@ -53,7 +52,7 @@ const AccountPage: React.FC = () => {
 
   return (
     <div className="account-container">
-      <div className="account-wrapper">   
+      <div className="account-wrapper">
         {/* Main content */}
         <main className="account-main">
           <h2 className="page-title">Thông tin tài khoản</h2>
