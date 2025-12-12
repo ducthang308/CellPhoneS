@@ -3,12 +3,19 @@ import type { LoginResponse } from './Interface';
 import axiosClient from './AxiosClient';
 import type { IRegisterRequest } from './Interface';
 
-export const login = async (phone_number: string, password: string): Promise<LoginResponse> => {
+export const login = async (
+    sdt: string,
+    passWord: string
+): Promise<LoginResponse> => {
     try {
-        const response = await axiosClient.post<LoginResponse>('/api/v1/user/login', {
-            phone_number,
-            password
-        });
+        const response = await axiosClient.post<LoginResponse>(
+            '/api/user/login',
+            {
+                sdt,
+                passWord,
+            }
+        );
+
         return response.data;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {
@@ -18,14 +25,15 @@ export const login = async (phone_number: string, password: string): Promise<Log
     }
 };
 
-export const register = async (userData: IRegisterRequest): Promise<IRegisterRequest> => {
+export const register = async (
+    userData: IRegisterRequest
+): Promise<void> => {
     try {
-        const response = await axiosClient.post<IRegisterRequest>('/api/user/register', userData);
-        return response.data;
-    } catch (error: any) {
-        if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data.message || 'Đăng ký thất bại');
+        await axiosClient.post("/api/user/register", userData);
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.message || "Đăng ký thất bại");
         }
-        throw new Error('Đăng ký thất bại');
+        throw new Error("Đăng ký thất bại");
     }
 };

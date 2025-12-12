@@ -27,7 +27,6 @@ const ProductList: React.FC = () => {
         return;
       }
 
-      // Defensive filter – loại product bẩn
       const safeProducts = data.filter(
         (p) => p && typeof p.productId === "number"
       );
@@ -36,7 +35,7 @@ const ProductList: React.FC = () => {
     } catch (err) {
       console.error(err);
       setError("Không thể tải danh sách sản phẩm");
-      setProducts([]); // FE không chết
+      setProducts([]);
     } finally {
       setLoading(false);
     }
