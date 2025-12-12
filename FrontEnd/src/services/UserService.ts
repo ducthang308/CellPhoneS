@@ -20,7 +20,7 @@ export const login = async (phone_number: string, password: string): Promise<Log
 
 export const register = async (userData: IRegisterRequest): Promise<IRegisterRequest> => {
     try {
-        const response = await axiosClient.post<IRegisterRequest>('/api/v1/user/register', userData);
+        const response = await axiosClient.post<IRegisterRequest>('/api/user/register', userData);
         return response.data;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {

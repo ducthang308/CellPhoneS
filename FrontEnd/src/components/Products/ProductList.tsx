@@ -1,71 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../ProductCard/ProductCard';
+import productService from '../../services/ProductService';
 import type { IProduct } from '../../services/Interface';
 import './ProductList.css';
-
-const mockProducts: IProduct[] = [ 
-  {
-    productID: 1,
-    name: "Tủ lạnh LG Inverter 519 lít GR-B209BL",
-    price: 11900000,
-    stock_quantity: 25,
-    image_url: "https://via.placeholder.com/300x300/4CAF50/white?text=Tủ+Lạnh+LG",
-    description: "Công nghệ Inverter tiết kiệm điện, làm lạnh đa chiều",
-    created_at: new Date().toISOString(),
-    updated_at: new Date("2025-11-10").toISOString(),
-  },
-  {
-    productID: 2,
-    name: "Máy giặt Samsung 10kg WW10T634DLX/SV",
-    price: 8990000,
-    stock_quantity: 18,
-    image_url: "https://via.placeholder.com/300x300/2196F3/white?text=Máy+Giặt",
-    description: "Công nghệ giặt bong bóng EcoBubble, tiết kiệm nước",
-    created_at: new Date().toISOString(),
-    updated_at: new Date("2025-11-15").toISOString(),
-  },
-  {
-    productID: 3,
-    name: "Tivi Samsung 55 inch 4K Crystal UHD",
-    price: 12990000,
-    stock_quantity: 32,
-    image_url: "https://via.placeholder.com/300x300/F44336/white?text=TV+Samsung",
-    description: "Hình ảnh sắc nét 4K, kết nối thông minh",
-    created_at: new Date().toISOString(),
-    updated_at: new Date("2025-11-12").toISOString(),
-  },
-  {
-    productID: 4,
-    name: "Điều hòa Panasonic Inverter 12000 BTU",
-    price: 10500000,
-    stock_quantity: 8,
-    image_url: "https://via.placeholder.com/300x300/9C27B0/white?text=Điều+Hòa",
-    description: "Làm lạnh nhanh, tiết kiệm điện, lọc không khí Nanoe",
-    created_at: new Date().toISOString(),
-    updated_at: new Date("2025-11-08").toISOString(),
-  },
-  {
-    productID: 6,
-    name: "Tủ lạnh LG Inverter 519 lít GR-B209BL",
-    price: 11900000,
-    stock_quantity: 25,
-    image_url: "https://via.placeholder.com/300x300/4CAF50/white?text=Tủ+Lạnh+LG",
-    description: "Công nghệ Inverter tiết kiệm điện, làm lạnh đa chiều",
-    created_at: new Date().toISOString(),
-    updated_at: new Date("2025-11-10").toISOString(),
-  }
-];
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sortBy , setSortBy] = useState<string>('');  
 
   useEffect(() => {
-    setTimeout(() => {
-      setProducts(mockProducts);
-      setLoading(false);
-    }, 800);
+    fetchProducts();
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await productService.getAllProducts();
+      setProducts(data);
+    } catch (err) {
+      setError('Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.');
+      console.error('Error loading products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSortBy(value);
+
+    let sortedProducts = [...products];
+    
+    switch (value) {
+      case 'newest':
+        sortedProducts.sort((a, b) => {
+          const dateA = new Date(a.Updated_At || a.updatedAt || 0).getTime();
+          const dateB = new Date(b.Updated_At || b.updatedAt || 0).getTime();
+          return dateB - dateA;
+        });
+        break;
+      case 'price-asc':
+        sortedProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case 'price-desc':
+        sortedProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case 'bestseller':
+        // Giả sử có trường salesCount để sắp xếp
+        break;
+      default:
+        break;
+    }
+    
+    setProducts(sortedProducts);
+  };
 
   return (
     <div className="product-list-page">
@@ -76,7 +67,7 @@ const ProductList: React.FC = () => {
           </div>
 
           <div className="filter-bar">
-            <select defaultValue="">
+            <select value={sortBy} onChange={handleSortChange} >
               <option value="" disabled>Sắp xếp theo</option>
               <option value="newest">Mới nhất</option>
               <option value="price-asc">Giá tăng dần</option>
@@ -87,14 +78,18 @@ const ProductList: React.FC = () => {
 
           {loading ? (
             <div className="loading">Đang tải sản phẩm...</div>
-          ) : (
-
+          ) : error ? (
+              <div className="error-state"> 
+                <p>{error}</p>
+                <button onClick={fetchProducts}>Thử lại</button>
+              </div>
+            ) : (
               <div className="product-grid-inner">
                {products.map((product) => (
-              <ProductCard 
-                key={product.productID} 
-                product={product}
-              />
+                <ProductCard 
+                  key={product.ProductID} 
+                  product={product}
+                />
             ))}
               </div>
           )}

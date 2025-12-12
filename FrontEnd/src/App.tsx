@@ -20,6 +20,7 @@ import CartPage from './pages/CartPage/CartPage.tsx';
 import OrderHistoryPage from './pages/OrderHistory/OrderHistoryPage.tsx';
 import './Global.css'
 
+localStorage.setItem("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwOTg3NjU0MzIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2NTUzODAwMCwiZXhwIjoxNzY1NTc0MDAwfQ.3Az5Y2FcRwkev21eeqxRsefSPhmBRg2Im6ARHhx7TfM");
 
 function App() {
   return (
