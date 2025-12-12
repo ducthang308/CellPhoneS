@@ -15,16 +15,28 @@ const ProductList: React.FC = () => {
   }, []);
 
   const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await productService.getAllProducts();
-      console.log("RAW API DATA:", data);
-      setProducts(data);
+    setLoading(true);
+    setError(null);
 
+    try {
+      const data = await productService.getAllProducts();
+
+      if (!Array.isArray(data)) {
+        console.warn("API trả về không phải array");
+        setProducts([]);
+        return;
+      }
+
+      // Defensive filter – loại product bẩn
+      const safeProducts = data.filter(
+        (p) => p && typeof p.productId === "number"
+      );
+
+      setProducts(safeProducts);
     } catch (err) {
-      setError("Không thể tải danh sách sản phẩm");
       console.error(err);
+      setError("Không thể tải danh sách sản phẩm");
+      setProducts([]); // FE không chết
     } finally {
       setLoading(false);
     }
@@ -37,18 +49,11 @@ const ProductList: React.FC = () => {
     const sorted = [...products];
 
     switch (value) {
-      case "newest":
-        sorted.sort(
-          (a, b) =>
-            new Date(b.updatedAt || b.Updated_At || 0).getTime() -
-            new Date(a.updatedAt || a.Updated_At || 0).getTime()
-        );
-        break;
       case "price-asc":
-        sorted.sort((a, b) => a.price - b.price);
+        sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
         break;
       case "price-desc":
-        sorted.sort((a, b) => b.price - a.price);
+        sorted.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
         break;
       default:
         break;
@@ -80,7 +85,6 @@ const ProductList: React.FC = () => {
             <option value="" disabled>
               Sắp xếp theo
             </option>
-            <option value="newest">Mới nhất</option>
             <option value="price-asc">Giá tăng dần</option>
             <option value="price-desc">Giá giảm dần</option>
           </select>
@@ -88,10 +92,7 @@ const ProductList: React.FC = () => {
 
         <div className="product-grid-inner">
           {products.map((product) => (
-            <ProductCard
-              key={product.productId}
-              product={product}
-            />
+            <ProductCard key={product.productId} product={product} />
           ))}
         </div>
 

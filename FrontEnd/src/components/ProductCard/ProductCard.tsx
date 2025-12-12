@@ -7,8 +7,14 @@ const PLACEHOLDER_IMG = "/placeholder-image.jpg";
 
 const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
   const navigate = useNavigate();
+  const [quantity, setQuantity] = useState(1);
 
-  const [quantity, setQuantity] = useState<number>(1);
+  // ===== Defensive values =====
+  const stock = Number(product.stockQuantity ?? 0);
+  const price = Number(product.price ?? 0);
+  const name = product.name ?? "Không tên";
+
+  const isOutOfStock = stock <= 0;
 
   const handleViewDetail = () => {
     if (!product.productId) return;
@@ -17,9 +23,7 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
 
   const increaseQty = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setQuantity((prev) =>
-      Math.min(prev + 1, getStockQuantity())
-    );
+    setQuantity((prev) => Math.min(prev + 1, stock || 1));
   };
 
   const decreaseQty = (e: React.MouseEvent) => {
@@ -28,41 +32,21 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
   };
 
   const getProductImage = (): string => {
-    if (product.productImages && product.productImages.length > 0) {
-      const sortedImages = [...product.productImages].sort(
-        (a, b) => a.img_index - b.img_index
-      );
-      return sortedImages[0].url || PLACEHOLDER_IMG;
+    if (!Array.isArray(product.productImages) || product.productImages.length === 0) {
+      return PLACEHOLDER_IMG;
     }
-    return product.Image_URL || PLACEHOLDER_IMG;
+
+    return (
+      product.productImages
+        .slice()
+        .sort((a, b) => (a.img_index ?? 0) - (b.img_index ?? 0))[0]
+        ?.url || PLACEHOLDER_IMG
+    );
   };
-
-  const getStockQuantity = (): number => {
-    return product.Stock_Quantity ?? product.stockQuantity ?? 5;
-  };
-
-  const getUpdatedDate = (): string => {
-    const dateStr =
-      product.Updated_At ||
-      product.updatedAt ||
-      product.Created_At ||
-      product.createdAt;
-
-    return dateStr
-      ? new Date(dateStr).toLocaleDateString("vi-VN")
-      : "";
-  };
-
-  const formatPrice = (): string => {
-    return product.price.toLocaleString("vi-VN");
-  };
-
-  const isOutOfStock = getStockQuantity() <= 0;
 
   return (
     <div
       className={`product-card-wrapper ${isOutOfStock ? "out-of-stock" : ""}`}
-      data-installment="Trả góp 0%"
       onClick={handleViewDetail}
       role="button"
       tabIndex={0}
@@ -72,7 +56,7 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
         <div className="product-thumb">
           <img
             src={getProductImage()}
-            alt={product.name || "Product Image"}
+            alt={name}
             className="product-img"
             loading="lazy"
           />
@@ -83,8 +67,8 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
         </div>
 
         <div className="product-body">
-          <div className="product-name" title={product.name || ""}>
-            {product.name}
+          <div className="product-name" title={name}>
+            {name}
           </div>
 
           {product.description && (
@@ -93,17 +77,12 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
 
           <div className="product-info">
             <p className="product-stock">
-              Còn lại: <span>{getStockQuantity()}</span>
+              Còn lại: <span>{stock}</span>
             </p>
-            {getUpdatedDate() && (
-              <p className="product-date">
-                Ngày đăng: {getUpdatedDate()}
-              </p>
-            )}
           </div>
 
           <div className="product-price">
-            {formatPrice()} ₫
+            {price.toLocaleString("vi-VN")} ₫
           </div>
 
           {!isOutOfStock && (

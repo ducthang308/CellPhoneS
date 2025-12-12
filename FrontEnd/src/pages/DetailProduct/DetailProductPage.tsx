@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import "../DetailProduct/DetailProductPage.css";
+import "./DetailProductPage.css";
 import productService from "../../services/ProductService";
 import type { IProduct, ProductImage } from "../../services/Interface";
 import IP from "../../assets/img/ip.png";
@@ -10,11 +10,10 @@ export default function ProductDetail() {
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<IProduct | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedStorage, setSelectedStorage] = useState<string>("1TB");
-  const [selectedColor, setSelectedColor] = useState<string>("Titan Sa Mạc");
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string>("");
+  const [selectedVersion, setSelectedVersion] = useState("1TB");
+  const [selectedColor, setSelectedColor] = useState("Titan Sa Mạc");
 
   useEffect(() => {
     if (!id || isNaN(Number(id))) {
@@ -24,19 +23,21 @@ export default function ProductDetail() {
 
     const fetchProduct = async () => {
       try {
-        setLoading(true);
         const data = await productService.getProductById(Number(id));
+        if (!data || !data.productId) {
+          setProduct(null);
+          return;
+        }
+
         setProduct(data);
 
-        if (data.productImages && data.productImages.length > 0) {
-          const firstImg = [...data.productImages]
+        if (data.productImages?.length) {
+          const firstImg = data.productImages
+            .slice()
             .sort((a, b) => a.img_index - b.img_index)[0]?.url;
-          setSelectedImage(firstImg || null);
-        } else {
-          setSelectedImage(data.Image_URL || null);
+          setSelectedImage(firstImg || "");
         }
-      } catch (error) {
-        console.error("Không tải được chi tiết sản phẩm", error);
+      } catch (e) {
         setProduct(null);
       } finally {
         setLoading(false);
@@ -47,27 +48,34 @@ export default function ProductDetail() {
   }, [id, navigate]);
 
   const images: ProductImage[] = useMemo(() => {
-    return [...(product?.productImages || [])].sort(
-      (a, b) => a.img_index - b.img_index
-    );
+    return product?.productImages
+      ? product.productImages.slice().sort((a, b) => a.img_index - b.img_index)
+      : [];
   }, [product?.productImages]);
 
-  if (loading) {
-    return <div className="loading">Đang tải sản phẩm...</div>;
-  }
+  if (loading) return <div className="loading">Đang tải sản phẩm...</div>;
+  if (!product) return <div className="error">Không tìm thấy sản phẩm</div>;
 
-  if (!product) {
-    return <div className="error-state">Không tìm thấy sản phẩm</div>;
-  }
+  const colors = [
+    { name: "Titan Sa Mạc", price: product.price },
+    { name: "Titan Đen", price: product.price },
+    { name: "Titan Trắng", price: product.price },
+    { name: "Titan Tự Nhiên", price: product.price },
+  ];
 
   return (
     <div className="product-container">
-      <h1 className="product-title">{product.name}</h1>
+      <h1 className="product-title">
+        {product.name} | Chính hãng VN/A
+      </h1>
 
       <div className="rating-row">
         <span className="star">★</span>
-        <span className="rating">4.9</span>
-        <span className="rating-count">(15 đánh giá)</span>
+        <span className="star">★</span>
+        <span className="star">★</span>
+        <span className="star">★</span>
+        <span className="star">★</span>
+        <span>4.9 (15 đánh giá)</span>
       </div>
 
       <div className="product-grid">
@@ -75,23 +83,20 @@ export default function ProductDetail() {
           <img
             src={selectedImage || IP}
             className="main-img"
-            alt={product.name || "product"}
+            alt={product.name}
           />
 
-          {images.length > 0 && (
-            <div className="thumb-list">
-              {images.map((img) => (
-                <img
-                  key={img.id}
-                  src={img.url || IP}
-                  className={`thumb ${selectedImage === img.url ? "active" : ""
-                    }`}
-                  onClick={() => setSelectedImage(img.url)}
-                  alt="thumb"
-                />
-              ))}
-            </div>
-          )}
+          <div className="thumb-list">
+            {images.map((img) => (
+              <img
+                key={img.id}
+                src={img.url}
+                className="thumb"
+                onClick={() => setSelectedImage(img.url)}
+                alt="thumb"
+              />
+            ))}
+          </div>
         </div>
 
         <div className="detail-box">
@@ -99,62 +104,47 @@ export default function ProductDetail() {
             <div className="price-main">
               {product.price.toLocaleString("vi-VN")}đ
             </div>
-            <div className="price-old">
-              {(product.price * 1.1).toLocaleString("vi-VN")}đ
-            </div>
+            <div className="price-old">48.990.000đ</div>
           </div>
 
-          <h3 className="section-title">Phiên bản</h3>
+          <div className="section-title">Phiên bản</div>
           <div className="options-row">
-            {["1TB", "512GB", "256GB"].map((opt) => (
+            {["1TB", "512GB", "256GB"].map((ver) => (
               <button
-                key={opt}
-                className={`option-btn ${selectedStorage === opt ? "active" : ""
-                  }`}
-                onClick={() => setSelectedStorage(opt)}
+                key={ver}
+                className={`option-btn ${selectedVersion === ver ? "active" : ""}`}
+                onClick={() => setSelectedVersion(ver)}
               >
-                {opt}
+                {ver}
               </button>
             ))}
           </div>
 
-          <h3 className="section-title">Màu sắc</h3>
+
+          <div className="section-title">Màu sắc</div>
           <div className="color-grid">
-            {[
-              "Titan Sa Mạc",
-              "Titan Đen",
-              "Titan Trắng",
-              "Titan Tự Nhiên",
-            ].map((color) => (
+            {colors.map((color) => (
               <button
-                key={color}
-                className={`color-btn ${selectedColor === color ? "active" : ""
+                key={color.name}
+                className={`color-btn ${selectedColor === color.name ? "active" : ""
                   }`}
-                onClick={() => setSelectedColor(color)}
+                onClick={() => setSelectedColor(color.name)}
               >
-                <img
-                  src={selectedImage || IP}
-                  className="color-img"
-                  alt={color}
-                />
+                <img src={IP} className="color-img" />
                 <div className="color-info">
-                  <p className="color-name">{color}</p>
-                  <p className="color-price">
-                    {product.price.toLocaleString("vi-VN")}đ
-                  </p>
+                  <span>{color.name}</span>
+                  <span className="color-price">
+                    {color.price.toLocaleString("vi-VN")}đ
+                  </span>
                 </div>
               </button>
             ))}
           </div>
 
+
           <div className="action-row">
             <button className="btn blue">Trả góp 0%</button>
-            <button
-              className="btn red"
-              onClick={() => navigate("/cartShop")}
-            >
-              Mua ngay
-            </button>
+            <button className="btn red">Mua ngay</button>
           </div>
 
           <button className="btn-outline">Liên hệ</button>
@@ -162,12 +152,15 @@ export default function ProductDetail() {
       </div>
 
       <div className="feature-box">
-        <h2 className="feature-title">TÍNH NĂNG NỔI BẬT</h2>
+        <div className="feature-title">TÍNH NĂNG NỔI BẬT</div>
         <ul className="feature-list">
-          <li>{product.description || "Màn hình Super Retina XDR"}</li>
-          <li>Chip xử lý mạnh mẽ</li>
-          <li>Camera cải tiến</li>
-          <li>Pin dung lượng lớn</li>
+          <li><strong>Battery:</strong> {product.specification?.battery}</li>
+          <li><strong>Camera:</strong> {product.specification?.camera}</li>
+          <li><strong>CPU:</strong> {product.specification?.cpu}</li>
+          <li><strong>OS:</strong> {product.specification?.os}</li>
+          <li><strong>RAM:</strong> {product.specification?.ram}</li>
+          <li><strong>Screen:</strong> {product.specification?.screen}</li>
+          <li><strong>Storage:</strong> {product.specification?.storage}</li>
         </ul>
       </div>
     </div>
