@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axiosClient from '../../services/AxiosClient';
-import LoadingSkeleton from '../../components/NotificationComponet/LoadingSkeleton';
 import './NotificationPage.css';
-
-// IMPORT THIẾU – QUAN TRỌNG NHẤT!!!
+import { useAuth } from '../../context/AuthContext';
+import LoadingSkeleton from '../../components/NotificationComponet/LoadingSkeleton';
 import { 
   Package, 
   Percent, 
@@ -13,78 +11,46 @@ import {
   Trash2 
 } from 'lucide-react';
 
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-  type: 'ORDER' | 'PROMOTION' | 'SYSTEM' | 'ACCOUNT';
-  isRead: boolean;
-  createdAt: string;
-}
+import { notificationService } from '../../services/NotificationService';
+import type { Notification } from '../../services/NotificationService';
 
 const NotificationsPage: React.FC = () => {
+  const { user: authUser, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // SỬA LỖI CÚ PHÁP: XÓA DẤU NGOẶC THỪA { Ở DÒNG NÀY
-  useEffect(() => {
-    // const fetchNotifications = async () => {
-    //   try {
-    //     const response = await axiosClient.get<{ data: Notification[] }>('/api/notifications');
-    //     setNotifications(response.data.data || []);
-    //   } catch (err: any) {
-    //     setError('Không thể tải thông báo');
-    //     console.error(err);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
+  const userId = authUser?.userId;
 
-    // fetchNotifications();
-    const fakeNotifications: Notification[] = [
-  {
-    id: 999,
-    title: "Đơn hàng #DH123456 đã giao thành công",
-    message: "Đơn hàng của bạn gồm iPhone 15 Pro Max 256GB Đen đã được giao đến 123 Nguyễn Trãi, Hà Nội lúc 14:30 hôm nay. Cảm ơn bạn đã mua sắm tại CellPhoneS!",
-    type: "ORDER",
-    isRead: false,
-    createdAt: "2025-12-13T14:30:00.000Z"
-  },
-  {
-    id: 998,
-    title: "Khuyến mãi cực sốc 24h",
-    message: "Giảm ngay 3.000.000đ cho tất cả MacBook Air M2 & M3. Chỉ áp dụng hôm nay 13/12!",
-    type: "PROMOTION",
-    isRead: false,
-    createdAt: "2025-12-13T09:00:00.000Z"
-  },
-  {
-    id: 997,
-    title: "Cập nhật thông tin tài khoản",
-    message: "Bạn vừa đổi mật khẩu thành công lúc 01:45 AM. Nếu không phải bạn thao tác, vui lòng liên hệ ngay hỗ trợ.",
-    type: "ACCOUNT",
-    isRead: true,
-    createdAt: "2025-12-13T01:45:00.000Z"
-  },
-  {
-    id: 996,
-    title: "Hệ thống bảo trì lúc 3h sáng mai",
-    message: "Hệ thống sẽ bảo trì từ 3:00 - 4:30 sáng ngày 14/12. Rất mong quý khách thông cảm!",
-    type: "SYSTEM",
-    isRead: false,
-    createdAt: "2025-12-12T20:00:00.000Z"
-  }
-];
-    setTimeout(() => {
-        setNotifications(fakeNotifications);
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      setError('Vui lòng đăng nhập để xem thông báo');
+      return;
+    }
+
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const data = await notificationService.getUserNotifications(userId);
+        setNotifications(data);
+      } catch (err: any) {
+        console.error('Lỗi tải thông báo:', err);
+        setError('Không thể tải thông báo. Vui lòng thử lại sau.');
+
+        // Tạm dùng fake data nếu muốn test giao diện khi API lỗi
+        // setNotifications(fakeNotifications);
+      } finally {
         setLoading(false);
-    }, 1500);
-  }, []);
+      }
+    };
+
+    fetchNotifications();
+  }, [userId]);
 
   const markAsRead = async (id: number) => {
     try {
-      await axiosClient.put(`/api/notifications/${id}/read`);
+      await notificationService.markAsRead(id);
       setNotifications(prev =>
         prev.map(notif => notif.id === id ? { ...notif, isRead: true } : notif)
       );
@@ -94,8 +60,9 @@ const NotificationsPage: React.FC = () => {
   };
 
   const markAllAsRead = async () => {
+    if (!userId) return;
     try {
-      await axiosClient.put('/api/notifications/read-all');
+      await notificationService.markAllAsRead(userId);
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (err) {
       console.error('Lỗi đánh dấu tất cả');
@@ -105,7 +72,7 @@ const NotificationsPage: React.FC = () => {
   const deleteNotification = async (id: number) => {
     if (!confirm('Xóa thông báo này?')) return;
     try {
-      await axiosClient.delete(`/api/notifications/${id}`);
+      await notificationService.deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
     } catch (err) {
       alert('Xóa thất bại');
@@ -117,7 +84,8 @@ const NotificationsPage: React.FC = () => {
       case 'ORDER': return <Package size={20} />;
       case 'PROMOTION': return <Percent size={20} />;
       case 'SYSTEM': return <Bell size={20} />;
-      case 'ACCOUNT': return <User size={20} />;
+      case 'ACCOUNT':
+      case 'PERSONAL': return <User size={20} />;
       default: return <Info size={20} />;
     }
   };
@@ -127,14 +95,18 @@ const NotificationsPage: React.FC = () => {
       case 'ORDER': return '#10b981';
       case 'PROMOTION': return '#f59e0b';
       case 'SYSTEM': return '#3b82f6';
+      case 'PERSONAL':
       case 'ACCOUNT': return '#8b5cf6';
       default: return '#6b7280';
     }
   };
 
-  if (loading) return <LoadingSkeleton />;
+  // Loading từ auth hoặc fetch
+  if (authLoading || loading) return <LoadingSkeleton />;
 
   if (error) return <div className="error-message">{error}</div>;
+
+  if (!authUser) return <div className="error-message">Vui lòng đăng nhập</div>;
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -163,16 +135,17 @@ const NotificationsPage: React.FC = () => {
                 className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
                 onClick={() => !notif.isRead && markAsRead(notif.id)}
               >
-                <div className="notification-icon" style={{ backgroundColor: getTypeColor(notif.type) }}>
-                  {getTypeIcon(notif.type)}
+                <div className="notification-icon" style={{ backgroundColor: getTypeColor(notif.notificationType) }}>
+                  {getTypeIcon(notif.notificationType)}
                 </div>
 
                 <div className="notification-content">
                   <h4>{notif.title}</h4>
-                  <p>{notif.message}</p>
-                  <span className="notification-time">
+                  <p>{notif.content}</p>
+                  {/* Nếu backend trả createdAt thì hiển thị */}
+                  {/* <span className="notification-time">
                     {new Date(notif.createdAt).toLocaleString('vi-VN')}
-                  </span>
+                  </span> */}
                 </div>
 
                 <div className="notification-actions">

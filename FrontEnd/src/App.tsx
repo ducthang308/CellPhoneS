@@ -40,6 +40,7 @@ function App() {
             <Route path="/check-out" element={<Checkout />} />
             <Route path="/cartShop" element={<CartPage />} />
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
+            <Route path="/notification" element={<NotificationsPage />} />
 
           </Routes>
         </main>
