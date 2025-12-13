@@ -183,7 +183,7 @@ const CartPage: React.FC = () => {
               defaultValue={user?.email}
             />
 
-            <button type="submit" className="btn-confirm">
+            <button type="submit" className="btn-confirm" onClick={() => navigate('/payment')}>
               XÁC NHẬN VÀ ĐẶT HÀNG
             </button>
           </form>

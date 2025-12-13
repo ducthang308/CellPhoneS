@@ -13,6 +13,8 @@ import Home from './pages/Home/Home.tsx';
 import AccountPage from './pages/AccountManager/Account.tsx';
 import Shopping_cardPage from './pages/WishlistPage/WishlistPage.tsx';
 import NotificationsPage from './pages/Notification/NotificationPage.tsx';
+import OrderPage from './pages/Order/OrderPage.tsx';
+import PaymentPage from './pages/Payment/PaymentPage.tsx';
 
 import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
 import Checkout from './pages/Payment/Checkout.tsx';
@@ -41,7 +43,7 @@ function App() {
             <Route path="/cartShop" element={<CartPage />} />
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
             <Route path="/notification" element={<NotificationsPage />} />
-
+            <Route path="/payment" element={<OrderPage />} />
           </Routes>
         </main>
         <Footer />

@@ -38,7 +38,7 @@ const Header = () => {
     const routes: Record<string, string> = {
       "1": "/Phone",
       "2": "/Laptop",
-      "3": "/products/ipad",
+      "3": "/test",
       "4": "/products/accessory",
       "5": "/about",
       "6": "/historyOrder",
