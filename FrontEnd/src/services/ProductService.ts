@@ -19,14 +19,9 @@ const productService = {
     }
   },
 
-  getProductById: async (id: number): Promise<IProduct | null> => {
-    try {
-      const response = await axiosClient.get(`/api/products/${id}`);
-      return normalizeProduct(response.data);
-    } catch (error) {
-      console.error(`getProductById ${id} failed`, error);
-      return null;
-    }
+  async getProductById(id: number): Promise<IProduct> {
+    const res = await axiosClient.get<IProduct>(`/api/products/${id}`);
+    return res.data;
   },
 
   async addToCart(productId: number) {

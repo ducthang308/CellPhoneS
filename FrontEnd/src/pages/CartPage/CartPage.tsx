@@ -1,71 +1,96 @@
-import React, { useState } from "react";
-import type { IProduct } from "../../services/Interface";
-import type { IUser } from "../../services/Interface";
-import "./CartPage.css";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./CartPage.css";
+
+import { useAuth } from "../../context/AuthContext";
+import cartDetailService from "../../services/CartDetailService";
+
+import type { IProduct, CartDetailResponse } from "../../services/Interface";
 
 interface CartItem extends IProduct {
   quantity: number;
+  cartDetailsId: number;
 }
 
 const CartPage: React.FC = () => {
-  const currentUser: IUser | null = {
-    userID: 1,
-    fullName: "Nguyễn Văn A",
-    sdt: "0901234567",
-    email: "nguyenvana@gmail.com",
-    address: "123 Đường Láng, Hà Nội",
-    roleId: 1,
-  };
-
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      ProductID: 99,
-      name: "iPhone Air 1TB - Chính hãng Apple Việt Nam",
-      price: 40990000,
-      Stock_Quantity: 10,
-      Image_URL: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
-      description: "Phiên bản: 1TB | Màu sắc: Đen Không Gian",
-      quantity: 1,
-    },
-    {
-      ProductID: 99,
-      name: "iPhone Air 1TB - Chính hãng Apple Việt Nam",
-      price: 40990000,
-      Stock_Quantity: 10,
-      Image_URL: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
-      description: "Phiên bản: 1TB | Màu sắc: Đen Không Gian",
-      quantity: 1,
-    },
-    {
-      ProductID: 99,
-      name: "iPhone Air 1TB - Chính hãng Apple Việt Nam",
-      price: 40990000,
-      Stock_Quantity: 10,
-      Image_URL: "https://via.placeholder.com/80x80/333/fff?text=iPhone+Air",
-      description: "Phiên bản: 1TB | Màu sắc: Đen Không Gian",
-      quantity: 1,
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems(prev =>
-      prev.map(item =>
-        item.ProductID === id
+  useEffect(() => {
+    const loadCart = async () => {
+      const cartIdStr = localStorage.getItem("cartId");
+
+      if (!cartIdStr) {
+        navigate("/login", { state: { redirectTo: "/cartShop" } });
+        return;
+      }
+
+      try {
+        const cartId = Number(cartIdStr);
+        if (Number.isNaN(cartId)) {
+          localStorage.removeItem("cartId");
+          navigate("/login");
+          return;
+        }
+
+        const details = await cartDetailService.getByCartId(cartId);
+
+        const items: CartItem[] = details.map(
+          (detail: CartDetailResponse) => ({
+            ...detail.product,
+            quantity: 1,
+            cartDetailsId: detail.cartDetailsId,
+          })
+        );
+
+        setCartItems(items);
+      } catch (err) {
+        console.error(err);
+        alert("Không thể tải giỏ hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [user, navigate]);
+
+  const updateQuantity = (productId: number, delta: number) => {
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.productId === productId
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item
       )
     );
   };
 
-  const removeItem = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.ProductID !== id));
+  const removeItem = async (cartDetailsId: number) => {
+    try {
+      await cartDetailService.delete(cartDetailsId);
+      setCartItems((prev) =>
+        prev.filter((item) => item.cartDetailsId !== cartDetailsId)
+      );
+    } catch {
+      alert("Không thể xoá sản phẩm");
+    }
   };
 
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = useMemo(
+    () =>
+      cartItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      ),
+    [cartItems]
+  );
 
+  if (loading) return <div className="loading">Đang tải giỏ hàng...</div>;
+
+  /* ================= UI ================= */
   return (
     <div className="cart-page">
       <div className="cart-container">
@@ -77,19 +102,29 @@ const CartPage: React.FC = () => {
             <h1>Giỏ hàng</h1>
           </div>
 
+          {cartItems.length === 0 && (
+            <p className="empty-cart">Giỏ hàng trống</p>
+          )}
+
           {cartItems.map((item) => (
-            <div key={item.ProductID} className="cart-item">
-              <img src={item.Image_URL} alt={item.name} className="item-img" onClick={() => navigate(`/product-detail/${item.productID}`)} />
+            <div key={item.cartDetailsId} className="cart-item">
+              <img
+                src={item.productImages?.[0]?.url || "/no-image.png"}
+                alt={item.name}
+              />
 
               <div className="item-details">
                 <h3 className="item-name">{item.name}</h3>
-                <div className="item-variant">{item.description}</div>
 
                 <div className="quantity-and-price">
                   <div className="quantity-box">
-                    <button onClick={() => updateQuantity(item.ProductID, -1)}>-</button>
+                    <button onClick={() => updateQuantity(item.productId, -1)}>
+                      -
+                    </button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.ProductID, 1)}>+</button>
+                    <button onClick={() => updateQuantity(item.productId, 1)}>
+                      +
+                    </button>
                   </div>
 
                   <div className="price-wrapper">
@@ -98,7 +133,8 @@ const CartPage: React.FC = () => {
                     </span>
                     {item.quantity > 1 && (
                       <div className="total-for-item">
-                        = {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
+                        ={" "}
+                        {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
                       </div>
                     )}
                   </div>
@@ -107,33 +143,14 @@ const CartPage: React.FC = () => {
 
               <button
                 className="remove-item-btn fa-solid fa-trash"
-                onClick={() => removeItem(item.ProductID)}
+                onClick={() => removeItem(item.cartDetailsId)}
                 title="Xóa sản phẩm"
-              >
-              </button>
+              />
             </div>
           ))}
 
-          {/* Khuyến mãi */}
-          <div className="promo-list">
-            <div className="promo">
-              <span className="tag km1">KM1</span>
-              <span>Trả góp thẻ tín dụng 0% lãi – 0 phí – Kỳ hạn tới 12 tháng – Giảm thêm tới 2,5 triệu</span>
-            </div>
-            <div className="promo">
-              <span className="tag km2">KM2</span>
-              <span>Giảm tới 600.000đ khi thanh toán qua ví ZaloPay</span>
-            </div>
-            <a href="#" className="more-promo">Xem thêm 19 khuyến mãi nữa</a>
-          </div>
-
-          {/* Tổng tiền */}
           <div className="cart-total">
             <div className="total-row">
-              <span>Tổng giá trị:</span>
-              <strong>{totalPrice.toLocaleString("vi-VN")} ₫</strong>
-            </div>
-            <div className="total-row final">
               <span>Tổng thanh toán:</span>
               <strong>{totalPrice.toLocaleString("vi-VN")} ₫</strong>
             </div>
@@ -142,49 +159,33 @@ const CartPage: React.FC = () => {
 
         <div className="cart-right">
           <h2>Thông tin đặt hàng</h2>
-          <p className="note">Bạn cần nhập đầy đủ các trường thông tin có dấu *</p>
 
-          <form className="checkout-form">
-            <input type="text" placeholder="Họ và tên *" defaultValue={currentUser?.fullName || ""} required />
-            <input type="text" placeholder="Số điện thoại *" defaultValue={currentUser?.sdt || ""} required />
-            <input type="email" placeholder="Email" defaultValue={currentUser?.email || ""} />
-
-            <div className="delivery-options">
-              <label>
-                <input type="radio" name="delivery" defaultChecked />
-                <span>Nhận hàng tại nhà</span>
-              </label>
-              <label>
-                <input type="radio" name="delivery" />
-                <span>Nhận hàng tại cửa hàng</span>
-              </label>
-            </div>
-
-            <div className="address-row">
-              <select required>
-                <option value="">Tỉnh/Thành phố *</option>
-                <option>Hà Nội</option>
-              </select>
-              <select required>
-                <option value="">Cửa hàng *</option>
-                <option>FPT Shop Cầu Giấy</option>
-              </select>
-            </div>
-
-            <textarea placeholder="Ghi chú (ví dụ: giao giờ hành chính)"></textarea>
-
-            <div className="voucher">
-              <input type="text" placeholder="Mã giảm giá (Nếu có)" />
-              <button type="button">Sử dụng</button>
-            </div>
+          <form className="checkout-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              alert("Chưa tích hợp đặt hàng");
+            }}>
+            <input
+              type="text"
+              placeholder="Họ và tên *"
+              defaultValue={user?.fullName}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Số điện thoại *"
+              defaultValue={user?.sdt}
+              required
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              defaultValue={user?.email}
+            />
 
             <button type="submit" className="btn-confirm">
               XÁC NHẬN VÀ ĐẶT HÀNG
             </button>
-
-            <p className="policy">
-              Quý khách có thể lựa chọn hình thức thanh toán sau khi đặt hàng.
-            </p>
           </form>
         </div>
       </div>
