@@ -26,7 +26,7 @@ const LoginPage = () => {
             }
 
             localStorage.setItem("accessToken", data.token);
-            localStorage.setItem("cardId", data.cartId.toString());
+            localStorage.setItem("cartId", data.cartId.toString());
             const { token, ...userInfo } = data;
             localStorage.setItem("user", JSON.stringify(userInfo));
 
@@ -90,5 +90,6 @@ const LoginPage = () => {
         </div>
     );
 };
+  
 
 export default LoginPage;

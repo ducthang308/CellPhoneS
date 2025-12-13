@@ -12,6 +12,9 @@ import LaptopPage from './pages/catalog/LaptopPage.tsx';
 import Home from './pages/Home/Home.tsx';
 import AccountPage from './pages/AccountManager/Account.tsx';
 import Shopping_cardPage from './pages/WishlistPage/WishlistPage.tsx';
+import NotificationsPage from './pages/Notification/NotificationPage.tsx';
+import OrderPage from './pages/Order/OrderPage.tsx';
+import PaymentPage from './pages/Payment/PaymentPage.tsx';
 
 import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
 import Checkout from './pages/Payment/Checkout.tsx';
@@ -31,7 +34,7 @@ function App() {
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterForm />} />
+            {/* <Route path="/register" element={<RegisterForm />} /> */}
             <Route path="/laptop" element={<LaptopPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />
@@ -39,7 +42,8 @@ function App() {
             <Route path="/check-out" element={<Checkout />} />
             <Route path="/cartShop" element={<CartPage />} />
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
-
+            <Route path="/notification" element={<NotificationsPage />} />
+            <Route path="/payment" element={<OrderPage />} />
           </Routes>
         </main>
         <Footer />

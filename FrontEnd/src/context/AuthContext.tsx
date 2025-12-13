@@ -34,6 +34,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("user");
     localStorage.removeItem("userId");
     localStorage.removeItem("role");
+    localStorage.removeItem("cartId");
+
     setUser(null);
   };
 

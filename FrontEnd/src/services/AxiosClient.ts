@@ -11,6 +11,16 @@ axiosClient.interceptors.request.use((config) => {
         config.headers?.set("Authorization", `Bearer ${token}`);
     }
 
+    // Không ép Content-Type khi gửi FormData
+    if (config.data instanceof FormData) {
+    // Xóa Content-Type để browser tự set boundary đúng
+    delete config.headers['Content-Type'];
+    // Hoặc: config.headers['Content-Type'] = undefined;
+    } else {
+    // Chỉ set json cho các request thông thường (POST/PUT json)
+    config.headers['Content-Type'] = 'application/json';
+    }
+
     return config;
 });
 
