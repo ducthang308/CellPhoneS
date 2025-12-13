@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CartPage.css";
+import orderService from "../../services/OrderService";
+import orderDetailService from "../../services/OrderDetailService";
 
 import { useAuth } from "../../context/AuthContext";
 import cartDetailService from "../../services/CartDetailService";
@@ -79,6 +81,48 @@ const CartPage: React.FC = () => {
     }
   };
 
+  const handleConfirmOrder = async () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        alert("Vui lòng đăng nhập");
+        navigate("/login");
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+
+      /* ================= 1️⃣ CREATE ORDER ================= */
+      const order = await orderService.create({
+        userID: user.userId,
+        status: "PENDING",
+        paymentStatus: "UNPAID",
+      });
+
+      const orderId = order.orderID;
+
+      /* ================= 2️⃣ CREATE ORDER DETAILS ================= */
+      for (const item of cartItems) {
+        await orderDetailService.create({
+          orderID: orderId,
+          productID: item.productId,
+          quantity: item.quantity,
+        });
+      }
+
+      /* ================= 3️⃣ CLEAR CART (OPTIONAL) ================= */
+      // Có thể gọi API xoá cart-detail hoặc giữ lại tuỳ logic
+      // localStorage.removeItem("cartId");
+
+      /* ================= 4️⃣ REDIRECT ================= */
+      navigate(`/order/${orderId}`);
+
+    } catch (err) {
+      console.error(err);
+      alert("Đặt hàng thất bại");
+    }
+  };
+
   const totalPrice = useMemo(
     () =>
       cartItems.reduce(
@@ -90,7 +134,6 @@ const CartPage: React.FC = () => {
 
   if (loading) return <div className="loading">Đang tải giỏ hàng...</div>;
 
-  /* ================= UI ================= */
   return (
     <div className="cart-page">
       <div className="cart-container">
@@ -183,7 +226,11 @@ const CartPage: React.FC = () => {
               defaultValue={user?.email}
             />
 
-            <button type="submit" className="btn-confirm" onClick={() => navigate('/payment')}>
+            <button
+              type="button"
+              className="btn-confirm"
+              onClick={handleConfirmOrder}
+            >
               XÁC NHẬN VÀ ĐẶT HÀNG
             </button>
           </form>
