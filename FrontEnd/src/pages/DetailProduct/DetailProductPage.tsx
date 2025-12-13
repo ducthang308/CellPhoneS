@@ -4,10 +4,16 @@ import "./DetailProductPage.css";
 import productService from "../../services/ProductService";
 import type { IProduct, ProductImage } from "../../services/Interface";
 import IP from "../../assets/img/ip.png";
+import { useAuth } from "../../context/AuthContext";
+import cartService from "../../services/CartService";
+import cartDetailService from "../../services/CartDetailService";
+
+
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +52,40 @@ export default function ProductDetail() {
 
     fetchProduct();
   }, [id, navigate]);
+
+  const handleBuyNow = async () => {
+    if (!user) {
+      alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      navigate("/login", {
+        state: { redirectTo: `/products/${id}` },
+      });
+      return;
+    }
+
+    const cartId = localStorage.getItem("cartId");
+
+    if (!cartId) {
+      alert("Phiên giỏ hàng không hợp lệ, vui lòng đăng nhập lại");
+      navigate("/login");
+      return;
+    }
+
+    if (!product) return;
+
+    try {
+      await cartDetailService.addToCart({
+        cartId: Number(cartId),
+        productId: product.productId,
+      });
+
+      alert("Đã thêm sản phẩm vào giỏ hàng");
+      navigate("/cartShop");
+    } catch (e) {
+      console.error(e);
+      alert("Không thể thêm sản phẩm vào giỏ hàng");
+    }
+  };
+
 
   const images: ProductImage[] = useMemo(() => {
     return product?.productImages
@@ -144,7 +184,9 @@ export default function ProductDetail() {
 
           <div className="action-row">
             <button className="btn blue">Trả góp 0%</button>
-            <button className="btn red">Mua ngay</button>
+            <button className="btn red" onClick={handleBuyNow}>
+              Mua ngay
+            </button>
           </div>
 
           <button className="btn-outline">Liên hệ</button>

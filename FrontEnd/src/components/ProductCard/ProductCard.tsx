@@ -98,7 +98,7 @@ const ProductCard: React.FC<{ product: IProduct }> = ({ product }) => {
               disabled={isOutOfStock}
               onClick={(e) => {
                 e.stopPropagation();
-                alert(`Đã thêm ${quantity} sản phẩm vào giỏ (tạm)`);
+                handleViewDetail();
               }}
             >
               Mua ngay
