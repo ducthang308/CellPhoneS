@@ -16,7 +16,6 @@ const LoginPage = () => {
 
     const redirectTo = location.state?.redirectTo || "/";
 
-    // ================= LOGIN =================
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -26,14 +25,11 @@ const LoginPage = () => {
                 throw new Error("Token không hợp lệ");
             }
 
-            // 🔐 Lưu token
             localStorage.setItem("accessToken", data.token);
-
-            // 👤 Lưu user (không kèm token)
+            localStorage.setItem("cardId", data.cartId.toString());
             const { token, ...userInfo } = data;
             localStorage.setItem("user", JSON.stringify(userInfo));
 
-            // 🔥 CẬP NHẬT CONTEXT → Header đổi ngay
             setUser(userInfo);
 
             navigate(redirectTo, { replace: true });
@@ -43,15 +39,9 @@ const LoginPage = () => {
         }
     };
 
-    // ================= REGISTER SUCCESS =================
     const handleRegisterSuccess = (registeredPhone: string) => {
-        // 👉 chuyển về tab login
         setActiveTab("login");
-
-        // 👉 điền sẵn sdt/email cho user
         setPhone(registeredPhone);
-
-        // 👉 clear password cho chắc
         setPassword("");
     };
 

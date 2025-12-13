@@ -7,6 +7,7 @@ export interface LoginResponse {
     avatar: string | null;
     role: number;
     token: string;
+    cartId: number;
 }
 
 
@@ -50,19 +51,6 @@ export interface ISpecification {
     camera?: string;
     battery?: string;
     os?: string;
-}
-
-export interface CartDetail {
-    cartDetailsId: number;
-    cartId?: number;
-    product: IProduct;
-}
-
-export interface Cart {
-    cartId: number;
-    status: string;
-    userId?: number;
-    cartDetails?: CartDetail[];
 }
 
 
@@ -118,3 +106,22 @@ export interface IProduct {
     specification?: Specification | null;
     productImages?: ProductImage[];
 }
+
+export interface CartDetailRequestDTO {
+    cartId: number;
+    productId: number;
+}
+
+export interface CartDetailResponse {
+    cartDetailsId: number;
+    cartId: number;
+    product: IProduct;
+}
+
+export interface CartDTO {
+    cartId: number;
+    userId: number;
+    status: string;
+}
+
+export type AddToCartRequest = CartDetailRequestDTO;
