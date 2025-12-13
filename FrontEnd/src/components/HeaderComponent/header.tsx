@@ -38,7 +38,7 @@ const Header = () => {
     const routes: Record<string, string> = {
       "1": "/Phone",
       "2": "/Laptop",
-      "3": "/products/ipad",
+      "3": "/test",
       "4": "/products/accessory",
       "5": "/about",
       "6": "/historyOrder",
@@ -88,6 +88,10 @@ const Header = () => {
 
         <div className="top-right-wrapper">
           <ul className="list-user-actions">
+             <li className="list-user-item" onClick={() => navigate('/notification')}>
+              <i className="fa-solid fa-bell"></i>
+              <p className="list-user-item-text">Thông báo</p>
+            </li>
             <li className="list-user-item" onClick={() => navigate('/cartShop')}>
               <i className="fa-solid fa-cart-shopping"></i>
               <p className="list-user-item-text">Giỏ hàng</p>
