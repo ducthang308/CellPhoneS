@@ -1,128 +1,169 @@
-import React from 'react';
-import { Link } from 'react-router-dom'; // Nếu dùng react-router-dom
-import './OrderPage.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import "./OrderPage.css";
+import orderService from "../../services/OrderService";
+import orderDetailService from "../../services/OrderDetailService";
+import productService from "../../services/ProductService";
+import { useAuth } from "../../context/AuthContext";
+import paymentService from "../../services/PaymentService";
+import type { IProduct } from "../../services/Interface";
+
+interface OrderDetailItem {
+  id: number;
+  quantity: number;
+  product: IProduct;
+}
 
 const OrderPage: React.FC = () => {
-  // Fake data
-  const orderData = {
-    product: {
-      imageUrl: "https://cdn.cellphones.com.vn/media/catalog/product/cache/1/image/300x300/9df78eab33525d08d6e5fb8d27136e95/c/a/cap-type-c-to-type-c-baseus-dynamic-series-fast-charging-data-cable-type-c-to-type-c-100w-1m-xanh-duong_3.jpg",
-      name: "Cáp Type-C to Type-C Baseus Dynamic 1M 100W siêu nhanh - Xanh dương",
-      originalPrice: 229000,
-      discountedPrice: 120000,
-      quantity: 2,
-    },
-    customer: {
-      fullName: "Tân Quang Huy",
-      membershipBadge: "S-NULL",
-      phone: "0896444505",
-      email: "tanquanghuy.2302@gmail.com",
-      subscribeNewsletter: false,
-    },
-    summary: {
-      quantity: 2,
-      subtotal: 458000,
-      shippingFee: 0,
-      directDiscount: 218000,
-      total: 240000,
-    },
+  const { orderId } = useParams<{ orderId: string }>();
+  const { user } = useAuth();
+
+  const [orderDetails, setOrderDetails] = useState<OrderDetailItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!orderId) return;
+
+    const loadOrder = async () => {
+      try {
+        const details = await orderDetailService.getByOrderId(Number(orderId));
+
+        const items: OrderDetailItem[] = await Promise.all(
+          details.map(async (d) => {
+            const product = await productService.getProductById(d.productId);
+
+            return {
+              id: d.id,
+              quantity: d.quantity,
+              product
+            };
+          })
+        );
+
+        setOrderDetails(items);
+      } catch (err) {
+        console.error(err);
+        alert("Không thể tải đơn hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrder();
+  }, [orderId]);
+
+  const handlePayPalPayment = async () => {
+    if (!orderId) return;
+
+    try {
+      const res = await paymentService.createPayPalPayment(Number(orderId));
+
+      if (res.approvalUrl) {
+        window.location.href = res.approvalUrl;
+      } else {
+        alert("Không lấy được link PayPal");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Thanh toán thất bại");
+    }
   };
 
-  const { product, customer, summary } = orderData;
+  const summary = useMemo(() => {
+    const subtotal = orderDetails.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
 
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
-  };
+    const discount = subtotal > 500000 ? 218000 : 0;
+
+    return {
+      quantity: orderDetails.reduce((sum, i) => sum + i.quantity, 0),
+      subtotal,
+      discount,
+      shipping: 0,
+      total: subtotal - discount,
+    };
+  }, [orderDetails]);
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("vi-VN").format(price) + "đ";
+
+  if (loading) return <div className="loading">Đang tải đơn hàng...</div>;
 
   return (
     <div className="order-page">
-      {/* Phần sản phẩm */}
-      <div className="product-section">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="product-image"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100?text=No+Image';
-          }}
-        />
-        <div className="product-info">
-          <h3 className="product-title">{product.name}</h3>
-          <div className="product-price">
-            <span className="discounted-price">{formatPrice(product.discountedPrice)}</span>
-            <span className="original-price">{formatPrice(product.originalPrice)}</span>
+      {/* ===== SẢN PHẨM ===== */}
+      {orderDetails.map((item) => (
+        <div key={item.id} className="product-section">
+          <img
+            src={item.product.productImages?.[0]?.url}
+            alt={item.product.name}
+            className="product-image"
+          />
+          <div className="product-info">
+            <h3 className="product-title">{item.product.name}</h3>
+            <div className="product-price">
+              <span className="discounted-price">
+                {formatPrice(item.product.price)}
+              </span>
+            </div>
+            <div className="quantity">Số lượng: {item.quantity}</div>
           </div>
-          <div className="quantity">Số lượng: {product.quantity}</div>
         </div>
-      </div>
+      ))}
 
-      {/* Phần thông tin khách hàng */}
+      {/* ===== THÔNG TIN KHÁCH HÀNG ===== */}
       <div className="customer-section">
         <h2 className="section-title">THÔNG TIN KHÁCH HÀNG</h2>
         <div className="customer-info">
           <div className="customer-name-row">
-            <span className="customer-name">{customer.fullName}</span>
-            {customer.membershipBadge && (
-              <span className="snull-badge">{customer.membershipBadge}</span>
-            )}
-            <span className="phone">{customer.phone}</span>
+            <span className="customer-name">{user?.fullName}</span>
+            <span className="phone">{user?.sdt}</span>
           </div>
           <div className="email-label">EMAIL</div>
-          <div className="email">{customer.email}</div>
-          <div className="note">
-            (*) Hóa đơn VAT sẽ được gửi qua email này
-          </div>
-          <div className="newsletter">
-            <input
-              type="checkbox"
-              id="newsletter"
-              checked={customer.subscribeNewsletter}
-              readOnly
-            />
-            <label htmlFor="newsletter">
-              Nhận email thông báo và ưu đãi từ CellphoneS
-            </label>
-          </div>
+          <div className="email">{user?.email}</div>
         </div>
       </div>
 
-      {/* Phần tóm tắt giá + Tổng tiền tạm tính + Nút Tiếp tục (gộp chung) */}
+      {/* ===== TỔNG TIỀN ===== */}
       <div className="price-summary-full">
-        <div className="summary-rows">
-          <div className="summary-row">
-            <span>Số lượng sản phẩm</span>
-            <span>{summary.quantity}</span>
-          </div>
-          <div className="summary-row">
-            <span>Tổng tiền hàng</span>
-            <span>{formatPrice(summary.subtotal)}</span>
-          </div>
-          <div className="summary-row">
-            <span>Phí vận chuyển</span>
-            <span className="free-shipping">Miễn phí</span>
-          </div>
-          <div className="summary-row discount">
-            <span>Giảm giá trực tiếp</span>
-            <span>-{formatPrice(summary.directDiscount)}</span>
-          </div>
-          <div className="total-row">
-            <span>Tổng tiền</span>
-            <span className="total-amount">{formatPrice(summary.total)}</span>
-          </div>
-          <div className="vat-note">
-            Đã gồm VAT nếu được làm tròn
-          </div>
+        <div className="summary-row">
+          <span>Số lượng sản phẩm</span>
+          <span>{summary.quantity}</span>
+        </div>
+        <div className="summary-row">
+          <span>Tổng tiền hàng</span>
+          <span>{formatPrice(summary.subtotal)}</span>
+        </div>
+        <div className="summary-row">
+          <span>Phí vận chuyển</span>
+          <span className="free-shipping">Miễn phí</span>
+        </div>
+        <div className="summary-row discount">
+          <span>Giảm giá trực tiếp</span>
+          <span>-{formatPrice(summary.discount)}</span>
+        </div>
+        <div className="total-row">
+          <span>Tổng tiền</span>
+          <span className="total-amount">
+            {formatPrice(summary.total)}
+          </span>
         </div>
 
-        {/* Tổng tiền tạm tính + Nút Tiếp tục */}
         <div className="final-action">
           <div className="final-total">
             <span>Tổng tiền tạm tính:</span>
-            <span className="final-amount">{formatPrice(summary.total)}</span>
+            <span className="final-amount">
+              {formatPrice(summary.total)}
+            </span>
           </div>
-          <Link to="/payment" className="continue-button">
+          <button
+            className="continue-button"
+            onClick={handlePayPalPayment}
+          >
             Thanh toán
-          </Link>
+          </button>
         </div>
       </div>
     </div>

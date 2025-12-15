@@ -43,7 +43,8 @@ function App() {
             <Route path="/cartShop" element={<CartPage />} />
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
             <Route path="/notification" element={<NotificationsPage />} />
-            <Route path="/payment" element={<OrderPage />} />
+            <Route path="/order/:orderId" element={<OrderPage />} />
+            <Route path="/payment/:orderId" element={<PaymentPage />} />
           </Routes>
         </main>
         <Footer />

@@ -125,3 +125,43 @@ export interface CartDTO {
 }
 
 export type AddToCartRequest = CartDetailRequestDTO;
+
+
+export interface CreateOrderRequest {
+    userID: number;
+    status: string;
+    paymentStatus: string;
+}
+
+export interface OrderResponse {
+    orderID: number;
+}
+
+export interface CreateOrderDetailRequest {
+    orderID: number;
+    productID: number;
+    quantity: number;
+}
+
+export interface OrderDetailResponse {
+    id: number;
+    orderId: number;
+    productId: number;
+    quantity: number;
+}
+
+export interface OrderDetailItem {
+    product: IProduct;
+    quantity: number;
+}
+
+export interface PayPalPaymentRequest {
+    localOrderId: string;
+    amount: number;
+    currency: string;
+    description: string;
+}
+
+export interface PayPalCreateResponse {
+    approvalUrl: string;
+}
