@@ -1,19 +1,19 @@
-import React from "react";
 import Sidebar from "../sidebar/Sidebar";
 import Header from "../headerAdmin/Header";
 import styles from "./style_frame.module.css";
+import { Outlet } from "react-router-dom";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout = () => {
   return (
-    <div className={styles["lo-main-wrapper"]}>
+    <div className={styles["lo-main-wrapper"]} >
       <Sidebar />
+
       <div className={styles["lo-main-content"]}>
         <Header />
-        <div className={styles["lo-container"]}>{children}
+
+        <div className={styles["lo-container"]} >
+          {/* 👇 ADMIN PAGE RENDER Ở ĐÂY */}
+          <Outlet />
         </div>
       </div>
     </div>

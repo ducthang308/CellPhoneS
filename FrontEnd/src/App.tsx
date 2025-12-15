@@ -1,8 +1,21 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import RequireRole from "./components/RequireRole";
+import UserLayout from "./components/layout/UserLayout";
+import Layout from "./components/layout/Layout";
+
+/* ===== USER ===== */
+import Home from "./pages/Home/Home";
+import LoginPage from "./pages/Login/LoginPage";
+import LaptopPage from "./pages/catalog/LaptopPage";
+import AccountPage from "./pages/AccountManager/Account";
+import Shopping_cardPage from "./pages/WishlistPage/WishlistPage";
+import ProductDetail from "./pages/DetailProduct/DetailProductPage";
+import CartPage from "./pages/CartPage/CartPage";
+import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
+import NotificationsPage from "./pages/Notification/NotificationPage";
+import OrderPage from "./pages/Order/OrderPage";
 
 /* ===== ADMIN ===== */
-import Layout from "./components/layout/Layout";
 import Category from "./Admin/category/category";
 import Addcategory from "./Admin/category/add_category";
 import UpdateDeleteCategory from "./Admin/category/update_delete_category";
@@ -25,85 +38,62 @@ import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_s
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
 import OrderStatusByTime from "./Admin/statistical/order_status_by_time";
 
-/* ===== USER ===== */
-import Header from "./components/HeaderComponent/header";
-import Footer from "./components/FooterComponent/footer";
-import LoginPage from "./pages/Login/LoginPage";
-import LaptopPage from "./pages/catalog/LaptopPage";
-import Home from "./pages/Home/Home";
-import AccountPage from "./pages/AccountManager/Account";
-import Shopping_cardPage from "./pages/WishlistPage/WishlistPage";
-import NotificationsPage from "./pages/Notification/NotificationPage";
-import OrderPage from "./pages/Order/OrderPage";
-import ProductDetail from "./pages/DetailProduct/DetailProductPage";
-import Checkout from "./pages/Payment/Checkout";
-import CartPage from "./pages/CartPage/CartPage";
-import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
-
 function App() {
   return (
     <Router>
       <Routes>
 
-        {/* ================= USER ROUTES ================= */}
-        <Route
-          path="/*"
-          element={
-            <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-              <Header />
-              <main style={{ flex: 1, width: "100%", paddingTop: 150 }}>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="login" element={<LoginPage />} />
-                  <Route path="laptop" element={<LaptopPage />} />
-                  <Route path="account" element={<AccountPage />} />
-                  <Route path="Shopping_card" element={<Shopping_cardPage />} />
-                  <Route path="product-detail/:id" element={<ProductDetail />} />
-                  <Route path="check-out" element={<Checkout />} />
-                  <Route path="cartShop" element={<CartPage />} />
-                  <Route path="historyOrder" element={<OrderHistoryPage />} />
-                  <Route path="notification" element={<NotificationsPage />} />
-                  <Route path="payment" element={<OrderPage />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
-          }
-        />
+        {/* ===== USER LAYOUT ===== */}
+        <Route element={<UserLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/laptop" element={<LaptopPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+          <Route path="/product-detail/:id" element={<ProductDetail />} />
+          <Route path="/cartShop" element={<CartPage />} />
+          <Route path="/historyOrder" element={<OrderHistoryPage />} />
+          <Route path="/notification" element={<NotificationsPage />} />
+          <Route path="/payment" element={<OrderPage />} />
+        </Route>
 
-        {/* ================= ADMIN ROUTES ================= */}
+        {/* ===== ADMIN LAYOUT ===== */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <RequireRole allow={[2]}>
-            <Layout>
-              <Routes>
-                <Route path="category" element={<Category />} />
-                <Route path="category/create" element={<Addcategory />} />
-                <Route path="category/edit/:idCategory" element={<UpdateDeleteCategory />} />
-                <Route path="products" element={<Product />} />
-                <Route path="products/create" element={<AddProduct />} />
-                <Route path="products/edit/:idProduct" element={<UpdateDeleteProduct />} />
-                <Route path="suppliers" element={<Supplier />} />
-                <Route path="manage_account" element={<AccountManagement />} />
-                <Route path="manage_notification" element={<NotificationManagement />} />
-                <Route path="notifications/:id" element={<NotificationDetailPage />} />
-                <Route path="order_approval" element={<PendingOrders />} />
-                <Route path="orders/:id" element={<OrderDetailPage />} />
-                <Route path="stock_management" element={<StockManagement />} />
-                <Route path="batches" element={<Batch />} />
-                <Route path="stockin_receipt" element={<StockinReceipt />} />
-                <Route path="stockout_receipt" element={<StockoutReceipt />} />
-                <Route path="sales_and_quantity" element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />} />
-                <Route path="product_value_over_time" element={<ProductValueOverTime />} />
-                <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
-                <Route path="inventory_quantity" element={<InventoryQuantity model={[]} danhSachNam={[]} />} />
-                <Route path="order_status_by_time" element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />} />
-              </Routes>
-            </Layout>
+              <Layout />
             </RequireRole>
           }
-        />
+        >
+          <Route path="category" element={<Category />} />
+          <Route path="category/create" element={<Addcategory />} />
+          <Route path="category/edit/:idCategory" element={<UpdateDeleteCategory />} />
+          <Route path="products" element={<Product />} />
+          <Route path="products/create" element={<AddProduct />} />
+          <Route path="products/edit/:idProduct" element={<UpdateDeleteProduct />} />
+          <Route path="suppliers" element={<Supplier />} />
+          <Route path="manage_account" element={<AccountManagement />} />
+          <Route path="manage_notification" element={<NotificationManagement />} />
+          <Route path="notifications/:id" element={<NotificationDetailPage />} />
+          <Route path="order_approval" element={<PendingOrders />} />
+          <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="stock_management" element={<StockManagement />} />
+          <Route path="batches" element={<Batch />} />
+          <Route path="stockin_receipt" element={<StockinReceipt />} />
+          <Route path="stockout_receipt" element={<StockoutReceipt />} />
+          <Route
+            path="sales_and_quantity"
+            element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />}
+          />
+          <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+          <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
+          <Route path="inventory_quantity" element={<InventoryQuantity model={[]} danhSachNam={[]} />} />
+          <Route
+            path="order_status_by_time"
+            element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />}
+          />
+        </Route>
 
       </Routes>
     </Router>

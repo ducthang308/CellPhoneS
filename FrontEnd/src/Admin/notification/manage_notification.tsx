@@ -110,7 +110,7 @@ const NotificationManagement = () => {
 
   /* ================= RENDER ================= */
   return (
-  <div className={styles["main-content"]}>
+  <div className={styles["main-content"]} >
     {/* HEADER */}
     <div className={styles.header}>
       <div className={`${styles["user-info"]} ${styles.dropdown}`}></div>

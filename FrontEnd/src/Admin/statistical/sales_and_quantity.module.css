@@ -7,6 +7,13 @@
         min-height: 100vh;
     }
 
+    
+    .main-content {
+        flex: 1;
+        padding: 20px 20px;
+        min-height: 100vh;
+    }
+
     .sidebar {
         width: 250px;
         background: white;

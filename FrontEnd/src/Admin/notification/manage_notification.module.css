@@ -5,6 +5,12 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+    .main-content {
+        flex: 1;
+        padding: 20px 20px;
+        min-height: 100vh;
+    }
+
 body {
     display: flex;
     background-color: #f5f7fa;

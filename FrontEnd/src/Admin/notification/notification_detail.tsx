@@ -60,7 +60,7 @@ Mong quý khách thông cảm.`,
 
   /* ================= RENDER ================= */
 return (
-  <div className={styles["main-content"]}>
+  <div className={styles["main-content"]} >
     <div className={styles.container}>
       <div className={styles.content}>
         {/* ===== HEADER ===== */}

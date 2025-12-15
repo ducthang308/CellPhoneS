@@ -10,7 +10,13 @@ const RequireRole = ({ allow, children }: RequireRoleProps) => {
   const roleId = Number(localStorage.getItem("role"));
 
   if (!roleId) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ redirectTo: location.pathname }}
+        replace
+      />
+    );
   }
 
   if (!allow.includes(roleId)) {
