@@ -1,55 +1,113 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import RequireRole from "./components/RequireRole";
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/HeaderComponent/header.tsx';
-import Footer from './components/FooterComponent/footer.tsx';
-import LoginPage from './pages/Login/LoginPage.tsx';
+/* ===== ADMIN ===== */
+import Layout from "./components/layout/Layout";
+import Category from "./Admin/category/category";
+import Addcategory from "./Admin/category/add_category";
+import UpdateDeleteCategory from "./Admin/category/update_delete_category";
+import Product from "./Admin/product/product";
+import AddProduct from "./Admin/product/add_product";
+import UpdateDeleteProduct from "./Admin/product/update_delete_product";
+import Supplier from "./Admin/supplier/supplier";
+import AccountManagement from "./Admin/account/manage_account";
+import NotificationManagement from "./Admin/notification/manage_notification";
+import NotificationDetailPage from "./Admin/notification/notification_detail";
+import PendingOrders from "./Admin/order/order_approval";
+import OrderDetailPage from "./Admin/order/order_approval_detail";
+import StockManagement from "./Admin/stock/manage_stock";
+import Batch from "./Admin/stock/batch";
+import StockinReceipt from "./Admin/stock/stockin_receipt";
+import StockoutReceipt from "./Admin/stock/stockout_receipt";
+import Sales_And_Quantity from "./Admin/statistical/sales_and_quantity";
+import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
+import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
+import InventoryQuantity from "./Admin/statistical/inventory_quantity";
+import OrderStatusByTime from "./Admin/statistical/order_status_by_time";
 
-import RegisterForm from './pages/Register/Register.tsx';
-import LaptopPage from './pages/catalog/LaptopPage.tsx';
-import Home from './pages/Home/Home.tsx';
-import AccountPage from './pages/AccountManager/Account.tsx';
-import Shopping_cardPage from './pages/WishlistPage/WishlistPage.tsx';
-import NotificationsPage from './pages/Notification/NotificationPage.tsx';
-import OrderPage from './pages/Order/OrderPage.tsx';
-import PaymentPage from './pages/Payment/PaymentPage.tsx';
-
-import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
-import Checkout from './pages/Payment/Checkout.tsx';
-import CartPage from './pages/CartPage/CartPage.tsx';
-import OrderHistoryPage from './pages/OrderHistory/OrderHistoryPage.tsx';
-import ProtectedRoute from './components/ProtectedRoute.tsx';
-import './Global.css'
-
-localStorage.setItem("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwOTg3NjU0MzIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2NTUzODAwMCwiZXhwIjoxNzY1NTc0MDAwfQ.3Az5Y2FcRwkev21eeqxRsefSPhmBRg2Im6ARHhx7TfM");
+/* ===== USER ===== */
+import Header from "./components/HeaderComponent/header";
+import Footer from "./components/FooterComponent/footer";
+import LoginPage from "./pages/Login/LoginPage";
+import LaptopPage from "./pages/catalog/LaptopPage";
+import Home from "./pages/Home/Home";
+import AccountPage from "./pages/AccountManager/Account";
+import Shopping_cardPage from "./pages/WishlistPage/WishlistPage";
+import NotificationsPage from "./pages/Notification/NotificationPage";
+import OrderPage from "./pages/Order/OrderPage";
+import ProductDetail from "./pages/DetailProduct/DetailProductPage";
+import Checkout from "./pages/Payment/Checkout";
+import CartPage from "./pages/CartPage/CartPage";
+import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
 
 function App() {
   return (
     <Router>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Header />
-        <main style={{ flex: 1, width: '100%', paddingTop: 150 }}>
-          <Routes>
-            <Route path='/' element={<Home />} />
-            <Route path="/login" element={<LoginPage />} />
-            {/* <Route path="/register" element={<RegisterForm />} /> */}
-            <Route path="/laptop" element={<LaptopPage />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/Shopping_card" element={<Shopping_cardPage />} />
-            <Route path="/product-detail/:id" element={<ProductDetail />} />
-            <Route path="/check-out" element={<Checkout />} />
-            <Route path="/cartShop" element={<CartPage />} />
-            <Route path="/historyOrder" element={<OrderHistoryPage />} />
-            <Route path="/notification" element={<NotificationsPage />} />
-            <Route path="/payment" element={<OrderPage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <Routes>
+
+        {/* ================= USER ROUTES ================= */}
+        <Route
+          path="/*"
+          element={
+            <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+              <Header />
+              <main style={{ flex: 1, width: "100%", paddingTop: 150 }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="login" element={<LoginPage />} />
+                  <Route path="laptop" element={<LaptopPage />} />
+                  <Route path="account" element={<AccountPage />} />
+                  <Route path="Shopping_card" element={<Shopping_cardPage />} />
+                  <Route path="product-detail/:id" element={<ProductDetail />} />
+                  <Route path="check-out" element={<Checkout />} />
+                  <Route path="cartShop" element={<CartPage />} />
+                  <Route path="historyOrder" element={<OrderHistoryPage />} />
+                  <Route path="notification" element={<NotificationsPage />} />
+                  <Route path="payment" element={<OrderPage />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          }
+        />
+
+        {/* ================= ADMIN ROUTES ================= */}
+        <Route
+          path="/admin/*"
+          element={
+            <RequireRole allow={[2]}>
+            <Layout>
+              <Routes>
+                <Route path="category" element={<Category />} />
+                <Route path="category/create" element={<Addcategory />} />
+                <Route path="category/edit/:idCategory" element={<UpdateDeleteCategory />} />
+                <Route path="products" element={<Product />} />
+                <Route path="products/create" element={<AddProduct />} />
+                <Route path="products/edit/:idProduct" element={<UpdateDeleteProduct />} />
+                <Route path="suppliers" element={<Supplier />} />
+                <Route path="manage_account" element={<AccountManagement />} />
+                <Route path="manage_notification" element={<NotificationManagement />} />
+                <Route path="notifications/:id" element={<NotificationDetailPage />} />
+                <Route path="order_approval" element={<PendingOrders />} />
+                <Route path="orders/:id" element={<OrderDetailPage />} />
+                <Route path="stock_management" element={<StockManagement />} />
+                <Route path="batches" element={<Batch />} />
+                <Route path="stockin_receipt" element={<StockinReceipt />} />
+                <Route path="stockout_receipt" element={<StockoutReceipt />} />
+                <Route path="sales_and_quantity" element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />} />
+                <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+                <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
+                <Route path="inventory_quantity" element={<InventoryQuantity model={[]} danhSachNam={[]} />} />
+                <Route path="order_status_by_time" element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />} />
+              </Routes>
+            </Layout>
+            </RequireRole>
+          }
+        />
+
+      </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

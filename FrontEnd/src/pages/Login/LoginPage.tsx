@@ -27,12 +27,13 @@ const LoginPage = () => {
 
             localStorage.setItem("accessToken", data.token);
             localStorage.setItem("cartId", data.cartId.toString());
+            localStorage.setItem("role", data.role.toString());
             const { token, ...userInfo } = data;
             localStorage.setItem("user", JSON.stringify(userInfo));
 
             setUser(userInfo);
 
-            navigate(redirectTo, { replace: true });
+            navigate(redirectTo, { replace: true });    
         } catch (err: any) {
             console.error("Lỗi đăng nhập:", err);
             alert(err.message || "Đăng nhập thất bại");
