@@ -17,42 +17,91 @@ import OrderPage from './pages/Order/OrderPage.tsx';
 import PaymentPage from './pages/Payment/PaymentPage.tsx';
 
 import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
-import Checkout from './pages/Payment/Checkout.tsx';
 import CartPage from './pages/CartPage/CartPage.tsx';
 import OrderHistoryPage from './pages/OrderHistory/OrderHistoryPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import ProductList from './components/Products/ProductList.tsx';
 import './Global.css'
 
-localStorage.setItem("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwOTg3NjU0MzIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2NTUzODAwMCwiZXhwIjoxNzY1NTc0MDAwfQ.3Az5Y2FcRwkev21eeqxRsefSPhmBRg2Im6ARHhx7TfM");
-
 function App() {
   return (
     <Router>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Header />
-        <main style={{ flex: 1, width: '100%', paddingTop: 150 }}>
-          <Routes>
-            <Route path='/' element={<Home />} />
-            <Route path="/login" element={<LoginPage />} />
-            {/* <Route path="/register" element={<RegisterForm />} /> */}
-            <Route path="/products" element={<ProductList />} />
-            <Route path="/laptop" element={<LaptopPage />} />
+      <Routes>
+
+        {/* ===== USER LAYOUT ===== */}
+        <Route element={<UserLayout />}>
+
+          {/* ===== PUBLIC USER ROUTES ===== */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/laptop" element={<LaptopPage />} />
+          <Route path="/product-detail/:id" element={<ProductDetail />} />
+
+          {/* ===== PROTECTED USER ROUTES ===== */}
+          <Route element={<ProtectedRoute />}>
             <Route path="/account" element={<AccountPage />} />
-            <Route path="/Shopping_card" element={<Shopping_cardPage />} />
-            <Route path="/product-detail/:id" element={<ProductDetail />} />
-            <Route path="/check-out" element={<Checkout />} />
             <Route path="/cartShop" element={<CartPage />} />
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
             <Route path="/notification" element={<NotificationsPage />} />
             <Route path="/order/:orderId" element={<OrderPage />} />
             <Route path="/payment/:orderId" element={<PaymentPage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+            <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+          </Route>
+
+        </Route>
+
+        {/* ===== ADMIN LAYOUT ===== */}
+        <Route
+          path="/admin"
+          element={
+            <RequireRole allow={[2]}>
+              <Layout />
+            </RequireRole>
+          }
+        >
+          <Route path="category" element={<Category />} />
+          <Route path="category/create" element={<Addcategory />} />
+          <Route path="category/edit/:id" element={<UpdateDeleteCategory />} />
+
+          <Route path="products" element={<Product />} />
+          <Route path="products/create" element={<AddProduct />} />
+          <Route path="products/edit/:idProduct" element={<UpdateDeleteProduct />} />
+
+          <Route path="suppliers" element={<Supplier />} />
+          <Route path="supplier/create" element={<SupplierForm />} />
+          <Route path="supplier/edit/:id" element={<SupplierEdit />} />
+
+          <Route path="manage_account" element={<AccountManagement />} />
+
+          <Route path="manage_notification" element={<NotificationManagement />} />
+          <Route path="notifications/:id" element={<NotificationDetailPage />} />
+
+          <Route path="order_approval" element={<PendingOrders />} />
+          <Route path="orders/:id" element={<OrderDetailPage />} />
+
+          <Route path="stock_management" element={<StockManagement />} />
+          <Route path="batches" element={<Batch />} />
+          <Route path="stockin_receipt" element={<StockinReceipt />} />
+          <Route path="stockout_receipt" element={<StockoutReceipt />} />
+
+          <Route
+            path="sales_and_quantity"
+            element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />}
+          />
+          <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+          <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
+          <Route path="inventory_quantity" element={<InventoryQuantity model={[]} danhSachNam={[]} />} />
+          <Route
+            path="order_status_by_time"
+            element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />}
+          />
+        </Route>
+
+      </Routes>
     </Router>
-  )
+  );
 }
+
 
 export default App

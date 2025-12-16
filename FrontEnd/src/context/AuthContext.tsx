@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { IUser } from "../services/Interface";
+import ProtectedRoute from "./ProtectedRoute";
+
 
 type AuthContextType = {
   user: IUser | null;
@@ -24,9 +26,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setUser(null);
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    authService.getMe()
+      .then(setUser)
+      .catch(() => {
+        localStorage.removeItem("accessToken");
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
+
 
   const logout = () => {
     localStorage.removeItem("accessToken");

@@ -1,24 +1,41 @@
 // src/components/ProtectedRoute.tsx
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute() {
   const { user, loading } = useAuth();
   const location = useLocation();
 
+  // 1️⃣ Đang restore auth (sau reload / PayPal redirect)
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl">
-        Đang tải...
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 18,
+        }}
+      >
+        Đang xác thực người dùng...
       </div>
     );
   }
 
+  // 2️⃣ Chưa đăng nhập
   if (!user) {
-    // Lưu lại trang người dùng đang muốn vào
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: location.pathname + location.search,
+        }}
+      />
+    );
   }
 
-  // QUAN TRỌNG: Dùng Outlet thay vì children
+  // 3️⃣ Đã đăng nhập → cho đi tiếp
   return <Outlet />;
 }
