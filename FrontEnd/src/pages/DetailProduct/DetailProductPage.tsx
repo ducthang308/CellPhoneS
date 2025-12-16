@@ -7,26 +7,26 @@ import IP from "../../assets/img/ip.png";
 import { useAuth } from "../../context/AuthContext";
 import cartService from "../../services/CartService";
 import cartDetailService from "../../services/CartDetailService";
-
-
-
+ 
+ 
+ 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-
+ 
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [selectedVersion, setSelectedVersion] = useState("1TB");
   const [selectedColor, setSelectedColor] = useState("Titan Sa Mạc");
-
+ 
   useEffect(() => {
     if (!id || isNaN(Number(id))) {
       navigate("/");
       return;
     }
-
+ 
     const fetchProduct = async () => {
       try {
         const data = await productService.getProductById(Number(id));
@@ -34,9 +34,9 @@ export default function ProductDetail() {
           setProduct(null);
           return;
         }
-
+ 
         setProduct(data);
-
+ 
         if (data.productImages?.length) {
           const firstImg = data.productImages
             .slice()
@@ -49,10 +49,10 @@ export default function ProductDetail() {
         setLoading(false);
       }
     };
-
+ 
     fetchProduct();
   }, [id, navigate]);
-
+ 
   const handleBuyNow = async () => {
     if (!user) {
       alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
@@ -61,23 +61,23 @@ export default function ProductDetail() {
       });
       return;
     }
-
+ 
     const cartId = localStorage.getItem("cartId");
-
+ 
     if (!cartId) {
       alert("Phiên giỏ hàng không hợp lệ, vui lòng đăng nhập lại");
       navigate("/login");
       return;
     }
-
+ 
     if (!product) return;
-
+ 
     try {
       await cartDetailService.addToCart({
         cartId: Number(cartId),
         productId: product.productId,
       });
-
+ 
       alert("Đã thêm sản phẩm vào giỏ hàng");
       navigate("/cartShop");
     } catch (e) {
@@ -85,30 +85,30 @@ export default function ProductDetail() {
       alert("Không thể thêm sản phẩm vào giỏ hàng");
     }
   };
-
-
+ 
+ 
   const images: ProductImage[] = useMemo(() => {
     return product?.productImages
       ? product.productImages.slice().sort((a, b) => a.img_index - b.img_index)
       : [];
   }, [product?.productImages]);
-
+ 
   if (loading) return <div className="loading">Đang tải sản phẩm...</div>;
   if (!product) return <div className="error">Không tìm thấy sản phẩm</div>;
-
+ 
   const colors = [
     { name: "Titan Sa Mạc", price: product.price },
     { name: "Titan Đen", price: product.price },
     { name: "Titan Trắng", price: product.price },
     { name: "Titan Tự Nhiên", price: product.price },
   ];
-
+ 
   return (
     <div className="product-container">
       <h1 className="product-title">
         {product.name} | Chính hãng VN/A
       </h1>
-
+ 
       <div className="rating-row">
         <span className="star">★</span>
         <span className="star">★</span>
@@ -117,7 +117,7 @@ export default function ProductDetail() {
         <span className="star">★</span>
         <span>4.9 (15 đánh giá)</span>
       </div>
-
+ 
       <div className="product-grid">
         <div className="image-box">
           <img
@@ -125,7 +125,7 @@ export default function ProductDetail() {
             className="main-img"
             alt={product.name}
           />
-
+ 
           <div className="thumb-list">
             {images.map((img) => (
               <img
@@ -138,7 +138,7 @@ export default function ProductDetail() {
             ))}
           </div>
         </div>
-
+ 
         <div className="detail-box">
           <div className="price-block">
             <div className="price-main">
@@ -146,7 +146,7 @@ export default function ProductDetail() {
             </div>
             <div className="price-old">48.990.000đ</div>
           </div>
-
+ 
           <div className="section-title">Phiên bản</div>
           <div className="options-row">
             {["1TB", "512GB", "256GB"].map((ver) => (
@@ -159,8 +159,8 @@ export default function ProductDetail() {
               </button>
             ))}
           </div>
-
-
+ 
+ 
           <div className="section-title">Màu sắc</div>
           <div className="color-grid">
             {colors.map((color) => (
@@ -180,19 +180,19 @@ export default function ProductDetail() {
               </button>
             ))}
           </div>
-
-
+ 
+ 
           <div className="action-row">
             <button className="btn blue">Trả góp 0%</button>
             <button className="btn red" onClick={handleBuyNow}>
               Mua ngay
             </button>
           </div>
-
+ 
           <button className="btn-outline">Liên hệ</button>
         </div>
       </div>
-
+ 
       <div className="feature-box">
         <div className="feature-title">TÍNH NĂNG NỔI BẬT</div>
         <ul className="feature-list">

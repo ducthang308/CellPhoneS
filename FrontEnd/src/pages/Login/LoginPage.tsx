@@ -14,8 +14,6 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const redirectTo = location.state?.redirectTo || "/";
-
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -27,12 +25,19 @@ const LoginPage = () => {
 
             localStorage.setItem("accessToken", data.token);
             localStorage.setItem("cartId", data.cartId.toString());
+            localStorage.setItem("role", data.role.toString());
+
             const { token, ...userInfo } = data;
             localStorage.setItem("user", JSON.stringify(userInfo));
 
             setUser(userInfo);
 
+            const redirectTo =
+                location.state?.redirectTo ||
+                (data.role === 2 ? "/Admin/category" : "/");
+
             navigate(redirectTo, { replace: true });
+
         } catch (err: any) {
             console.error("Lỗi đăng nhập:", err);
             alert(err.message || "Đăng nhập thất bại");

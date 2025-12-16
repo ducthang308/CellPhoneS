@@ -1,27 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import RequireRole from "./components/RequireRole";
+import UserLayout from "./components/layout/UserLayout";
+import Layout from "./components/layout/Layout";
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/HeaderComponent/header.tsx';
-import Footer from './components/FooterComponent/footer.tsx';
-import LoginPage from './pages/Login/LoginPage.tsx';
+/* ===== USER ===== */
+import Home from "./pages/Home/Home";
+import LoginPage from "./pages/Login/LoginPage";
+import LaptopPage from "./pages/catalog/LaptopPage";
+import AccountPage from "./pages/AccountManager/Account";
+import Shopping_cardPage from "./pages/WishlistPage/WishlistPage";
+import ProductDetail from "./pages/DetailProduct/DetailProductPage";
+import CartPage from "./pages/CartPage/CartPage";
+import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
+import NotificationsPage from "./pages/Notification/NotificationPage";
+import OrderPage from "./pages/Order/OrderPage";
 
-import RegisterForm from './pages/Register/Register.tsx';
-import LaptopPage from './pages/catalog/LaptopPage.tsx';
-import Home from './pages/Home/Home.tsx';
-import AccountPage from './pages/AccountManager/Account.tsx';
-import Shopping_cardPage from './pages/WishlistPage/WishlistPage.tsx';
-import NotificationsPage from './pages/Notification/NotificationPage.tsx';
-import OrderPage from './pages/Order/OrderPage.tsx';
+/* ===== ADMIN ===== */
+import Category from "./Admin/category/category";
+import Addcategory from "./Admin/category/add_category";
+import UpdateDeleteCategory from "./Admin/category/update_delete_category";
+
+import Product from "./Admin/product/product";
+import AddProduct from "./Admin/product/add_product";
+import UpdateDeleteProduct from "./Admin/product/update_delete_product";
 import PaymentPage from './pages/Payment/PaymentPage.tsx';
 
-import ProductDetail from './pages/DetailProduct/DetailProductPage.tsx';
-import CartPage from './pages/CartPage/CartPage.tsx';
-import OrderHistoryPage from './pages/OrderHistory/OrderHistoryPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import ProductList from './components/Products/ProductList.tsx';
 import './Global.css'
+
+import Supplier from "./Admin/supplier/supplier";
+import SupplierForm from "./Admin/supplier/add_supplier";
+import SupplierEdit from "./Admin/supplier/update_delete_supplier";
+
+import AccountManagement from "./Admin/account/manage_account";
+
+import NotificationManagement from "./Admin/notification/manage_notification";
+import NotificationDetailPage from "./Admin/notification/notification_detail";
+
+import PendingOrders from "./Admin/order/order_approval";
+import OrderDetailPage from "./Admin/order/order_approval_detail";
+
+import StockManagement from "./Admin/stock/manage_stock";
+import Batch from "./Admin/stock/batch";
+import StockinReceipt from "./Admin/stock/stockin_receipt";
+import StockoutReceipt from "./Admin/stock/stockout_receipt";
+
+import Sales_And_Quantity from "./Admin/statistical/sales_and_quantity";
+
+import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
+import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
+import InventoryQuantity from "./Admin/statistical/inventory_quantity";
+import OrderStatusByTime from "./Admin/statistical/order_status_by_time";
 
 function App() {
   return (
@@ -49,15 +79,27 @@ function App() {
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />
           </Route>
 
-        </Route>
+          <Route path='/' element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/products" element={<ProductList />} />
+          <Route path="/laptop" element={<LaptopPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+          <Route path="/product-detail/:id" element={<ProductDetail />} />
+          <Route path="/cartShop" element={<CartPage />} />
+          <Route path="/historyOrder" element={<OrderHistoryPage />} />
+          <Route path="/notification" element={<NotificationsPage />} />
+          <Route path="/order/:orderId" element={<OrderPage />} />
+          <Route path="/payment/:orderId" element={<PaymentPage />} />
+        </Route >
 
         {/* ===== ADMIN LAYOUT ===== */}
-        <Route
+        < Route
           path="/admin"
           element={
-            <RequireRole allow={[2]}>
+            < RequireRole allow={[2]} >
               <Layout />
-            </RequireRole>
+            </RequireRole >
           }
         >
           <Route path="category" element={<Category />} />
@@ -96,12 +138,11 @@ function App() {
             path="order_status_by_time"
             element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />}
           />
-        </Route>
+        </Route >
 
-      </Routes>
-    </Router>
+      </Routes >
+    </Router >
   );
 }
 
-
-export default App
+export default App;
