@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import ProductCard from "../ProductCard/ProductCard";
 import productService from "../../services/ProductService";
 import type { IProduct } from "../../services/Interface";
 import "./ProductList.css";
+import { useLocation } from "react-router-dom";
+
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -10,22 +12,25 @@ const ProductList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("");
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const location = useLocation();
 
-  const fetchProducts = async () => {
+  const query = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return {
+      keyword: params.get("keyword") || "",
+      categoryId:
+        params.get("categoryId") || params.get("category_id") || "",
+    };
+  }, [location.search]);
+
+
+  const fetchProducts = async (keyword?: string, categoryId?: string) => {
+    console.log("QUERY PARAM:", query);
     setLoading(true);
     setError(null);
 
     try {
-      const data = await productService.getAllProducts();
-
-      if (!Array.isArray(data)) {
-        console.warn("API trả về không phải array");
-        setProducts([]);
-        return;
-      }
+      const data = await productService.getAllProducts(keyword, categoryId);
 
       const safeProducts = data.filter(
         (p) => p && typeof p.productId === "number"
@@ -40,6 +45,10 @@ const ProductList: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProducts(query.keyword, query.categoryId);
+  }, [query.keyword, query.categoryId]);
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -62,15 +71,7 @@ const ProductList: React.FC = () => {
   };
 
   if (loading) return <div className="loading">Đang tải sản phẩm...</div>;
-
-  if (error)
-    return (
-      <div className="error-state">
-        <p>{error}</p>
-        <button onClick={fetchProducts}>Thử lại</button>
-      </div>
-    );
-
+  if (error) return <div className="error">{error}</div>;
   return (
     <div className="product-list-page">
       <div className="product-container">

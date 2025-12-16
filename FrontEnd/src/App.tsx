@@ -21,6 +21,7 @@ import Checkout from './pages/Payment/Checkout.tsx';
 import CartPage from './pages/CartPage/CartPage.tsx';
 import OrderHistoryPage from './pages/OrderHistory/OrderHistoryPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
+import ProductList from './components/Products/ProductList.tsx';
 import './Global.css'
 
 localStorage.setItem("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwOTg3NjU0MzIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2NTUzODAwMCwiZXhwIjoxNzY1NTc0MDAwfQ.3Az5Y2FcRwkev21eeqxRsefSPhmBRg2Im6ARHhx7TfM");
@@ -35,6 +36,7 @@ function App() {
             <Route path='/' element={<Home />} />
             <Route path="/login" element={<LoginPage />} />
             {/* <Route path="/register" element={<RegisterForm />} /> */}
+            <Route path="/products" element={<ProductList />} />
             <Route path="/laptop" element={<LaptopPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />

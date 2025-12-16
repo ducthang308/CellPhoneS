@@ -4,7 +4,7 @@ import axiosClient from './AxiosClient';
 
 export const GetCategory = async (): Promise<ICategory[]> => {
     try {
-        const response = await axiosClient.get<ICategory[]>("/api/v1/category");
+        const response = await axiosClient.get<ICategory[]>("/api/categories");
         return response.data;
     } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {
