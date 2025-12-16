@@ -1,10 +1,11 @@
 import axiosClient from './AxiosClient';
-import type { ICategory } from './Interface';
+import type { ISupplier } from './Interface';
 
-const categoryService = {
-  getAllCategories: async (): Promise<ICategory[]> => {
+const supplierService = {
+
+  getAllSuppliers: async (): Promise<ISupplier[]> => {
     try {
-      const res = await axiosClient.get('/api/categories');
+      const res = await axiosClient.get('/api/suppliers');
 
       if (!Array.isArray(res.data)) {
         console.warn('API không trả array, fallback []');
@@ -13,19 +14,17 @@ const categoryService = {
 
       return res.data;
     } catch (error) {
-      console.error('getAllCategories failed', error);
+      console.error('getAllSuppliers failed', error);
       return [];
     }
   },
 
-  async getCategoryById(id: number): Promise<ICategory> {
-    const res = await axiosClient.get<ICategory>(`/api/categories/${id}`);
+  async getSupplierById(id: number): Promise<ISupplier> {
+    const res = await axiosClient.get<ISupplier>(`/api/suppliers/${id}`);
     return res.data;
   },
 
-  async createCategory(
-    data: Omit<ICategory, 'categoryId'>
-  ): Promise<ICategory> {
+  async createSupplier(supplierName: string): Promise<ISupplier> {
     const token = localStorage.getItem('accessToken');
 
     if (!token) {
@@ -33,11 +32,8 @@ const categoryService = {
     }
 
     const res = await axiosClient.post(
-      '/api/categories',
-      {
-        categoryName: data.categoryName,
-        description: data.description ?? null,
-      },
+      '/api/suppliers',
+      { supplierName },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -48,10 +44,10 @@ const categoryService = {
     return res.data;
   },
 
-  async updateCategory(
+  async updateSupplier(
     id: number,
-    data: Omit<ICategory, 'categoryId'>
-  ): Promise<ICategory> {
+    supplierName: string
+  ): Promise<ISupplier> {
     const token = localStorage.getItem('accessToken');
 
     if (!token) {
@@ -59,11 +55,8 @@ const categoryService = {
     }
 
     const res = await axiosClient.put(
-      `/api/categories/${id}`,
-      {
-        categoryName: data.categoryName,
-        description: data.description ?? null,
-      },
+      `/api/suppliers/${id}`,
+      { supplierName },
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -74,14 +67,14 @@ const categoryService = {
     return res.data;
   },
 
-  async deleteCategory(id: number): Promise<boolean> {
+  async deleteSupplier(id: number): Promise<boolean> {
     const token = localStorage.getItem('accessToken');
 
     if (!token) {
       throw new Error('Chưa đăng nhập');
     }
 
-    await axiosClient.delete(`/api/categories/${id}`, {
+    await axiosClient.delete(`/api/suppliers/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -91,4 +84,4 @@ const categoryService = {
   },
 };
 
-export default categoryService;
+export default supplierService;

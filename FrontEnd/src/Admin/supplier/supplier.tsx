@@ -1,38 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./supplier.module.css";
-
-interface Supplier {
-  id: number;
-  name: string;
-}
+import supplierService from "../../services/supplierService";
+import type { ISupplier } from "../../services/Interface";
 
 const SupplierManagement: React.FC = () => {
-    const navigate = useNavigate();
-  // Giả lập data (thay bằng API call sau)
-  const [suppliers] = useState<Supplier[]>([
-    { id: 1, name: "Apple VN" },
-    { id: 2, name: "Samsung VN" },
-    { id: 3, name: "Asus Distributor" },
-  ]);
+  const navigate = useNavigate();
 
+  const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      setLoading(true);
+      try {
+        const data = await supplierService.getAllSuppliers();
+        setSuppliers(data);
+      } catch (error) {
+        console.error("Load suppliers failed", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuppliers();
+  }, []);
 
   const filteredSuppliers = suppliers.filter((s) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
+    s.supplierName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase().trim())
   );
 
   const handleRowClick = (id: number) => {
-    // chuyển trang edit sau khi có router
-    console.log(`Đi tới trang sửa nhà cung cấp có ID: ${id}`);
+    navigate(`/admin/supplier/edit/${id}`);
   };
 
-      const handleAddNew = () => {
-      navigate("/category/create"); };
+  const handleAddNew = () => {
+    navigate("/admin/supplier/create");
+  };
 
   return (
     <main className={styles["main-content"]}>
-      {/* Thanh tìm kiếm */}
       <div className={styles["search-bar"]}>
         <i className="fas fa-search"></i>
         <input
@@ -43,12 +53,10 @@ const SupplierManagement: React.FC = () => {
         />
       </div>
 
-      {/* Tiêu đề */}
       <div className={styles.Title}>
         <h1>QUẢN LÝ NHÀ CUNG CẤP</h1>
       </div>
 
-      {/* Nút chức năng */}
       <div className={styles["add-button"]}>
         <button className={styles["filter-btn"]}>
           Tất cả ({filteredSuppliers.length})
@@ -57,28 +65,43 @@ const SupplierManagement: React.FC = () => {
           className={styles["add"]}
           onClick={handleAddNew}
         >
-          Thêm mới&nbsp;&nbsp;&nbsp;<span className={styles["plus-sign"]}>+</span>
+          Thêm mới&nbsp;&nbsp;&nbsp;
+          <span className={styles["plus-sign"]}>+</span>
         </button>
       </div>
 
-      {/* Bảng dữ liệu */}
       <section className={styles["table-container"]}>
-        <table className={styles["product-table"]}>
-          <thead>
-            <tr>
-              <th>Mã nhà cung cấp</th>
-              <th>Tên nhà cung cấp</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredSuppliers.map((item) => (
-              <tr key={item.id} onClick={() => handleRowClick(item.id)}>
-                <td>{item.id}</td>
-                <td>{item.name}</td>
+        {loading ? (
+          <p>Đang tải dữ liệu...</p>
+        ) : (
+          <table className={styles["product-table"]}>
+            <thead>
+              <tr>
+                <th>Mã nhà cung cấp</th>
+                <th>Tên nhà cung cấp</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredSuppliers.length === 0 ? (
+                <tr>
+                  <td colSpan={2} style={{ textAlign: "center" }}>
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              ) : (
+                filteredSuppliers.map((item) => (
+                  <tr
+                    key={item.supplierId}
+                    onClick={() => handleRowClick(item.supplierId)}
+                  >
+                    <td>{item.supplierId}</td>
+                    <td>{item.supplierName}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </section>
     </main>
   );

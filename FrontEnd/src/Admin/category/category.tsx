@@ -1,90 +1,59 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./category.module.css";
 
-interface DanhMuc {
-  idCategory: number;
-  nameCategory: string;
-}
+import categoryService from "../../services/CategoryService";
+import type { ICategory } from "../../services/Interface";
 
 const DanhMucPage: React.FC = () => {
   const navigate = useNavigate();
+  const [category, setCategory] = useState<ICategory[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState(""); 
+  const [loading, setLoading] = useState(false);
+ 
+  useEffect(() => {
+    const fetchDanhMucs = async () => {
+      try {
+        setLoading(true);
+        const data = await categoryService.getAllCategories();
+        setCategory(data);
+      } catch (err : any) {
+        console.error("Fetch error:", err);
+        setError(err.message || "Không thể tải danh sách danh mục.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const [danhMucs] = useState<DanhMuc[]>([ 
-    { idCategory: 1, nameCategory: "Điện thoại" }, 
-    { idCategory: 2, nameCategory: "Laptop" }, 
-    { idCategory: 3, nameCategory: "Phụ kiện" }, ]); 
-    
-    const [search, setSearch] = useState(""); 
-    
-    const [error] = useState<string | null>(null); 
-    
-    const filteredDanhMucs = useMemo( 
-      () => danhMucs.filter((dm) => 
-      dm.nameCategory.toLowerCase().includes(search.toLowerCase()) ),
-      [search, danhMucs] ); 
+    fetchDanhMucs();
+  }, []);
 
-    const handleRowClick = (idCategory: number) => {
-      navigate(`/category/edit/${idCategory}`); }; 
-       
-    const handleAddNew = () => {
-      navigate("/category/create"); };
+  const filteredDanhMucs = useMemo(
+    () =>
+      category.filter((dm) =>
+        dm.categoryName
+          .toLowerCase()
+          .includes(search.toLowerCase().trim())
+      ),
+    [search, category]
+  );
 
-  // const [danhMucs, setDanhMucs] = useState<DanhMuc[]>([]);
-  // const [search, setSearch] = useState("");
-  // const [error, setError] = useState<string | null>(null);
-  // const [loading, setLoading] = useState(true);
+  const handleRowClick = (id: number) => {
+    navigate(`/admin/category/edit/${id}`);
+  };
 
-  // useEffect(() => {
-  //   const fetchDanhMucs = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       const response = await fetch("http://localhost:8080/api/category", {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //       });
+  const handleAddNew = () => {
+    navigate("/admin/category/create");
+  };
 
-  //       if (response.status === 403) {
-  //         throw new Error("Bạn không có quyền truy cập dữ liệu này 😢");
-  //       }
-
-  //       if (!response.ok) {
-  //         throw new Error(`Lỗi tải dữ liệu (${response.status})`);
-  //       }
-
-  //       const data: DanhMuc[] = await response.json();
-  //       setDanhMucs(data);
-  //     } catch (err: any) {
-  //       console.error("Fetch error:", err);
-  //       setError(err.message || "Không thể tải danh sách danh mục.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchDanhMucs();
-  // }, []);
-
-  // const filteredDanhMucs = useMemo(
-  //   () =>
-  //     danhMucs.filter((dm) =>
-  //       dm.nameCategory.toLowerCase().includes(search.toLowerCase())
-  //     ),
-  //   [search, danhMucs]
-  // );
-
-  // const handleRowClick = (id: number) => {
-  //   navigate(`/danhmucs/edit/${id}`);
-  // };
-
-  // const handleAddNew = () => {
-  //   navigate("/danhmucs/create");
-  // };
-
-  // if (loading)
-  //   return <p style={{ padding: "20px" }}>⏳ Đang tải dữ liệu danh mục...</p>;
+  if (loading) {
+    return (
+      <p style={{ padding: "20px" }}>
+        ⏳ Đang tải dữ liệu danh mục...
+      </p>
+    );
+  }
 
   return (
     <main className={styles["main-content"]}>
@@ -120,16 +89,18 @@ const DanhMucPage: React.FC = () => {
             <tr>
               <th>Mã danh mục</th>
               <th>Tên danh mục</th>
+              <th>Mô tả</th>
             </tr>
           </thead>
           <tbody>
             {filteredDanhMucs.map((dm) => (
               <tr
-                key={dm.idCategory}
-                onClick={() => handleRowClick(dm.idCategory)}
+                key={dm.categoryId}
+                onClick={() => handleRowClick(dm.categoryId)}
               >
-                <td>{dm.idCategory}</td>
-                <td>{dm.nameCategory}</td>
+                <td>{dm.categoryId}</td>
+                <td>{dm.categoryName}</td>
+                <td>{dm.description}</td>
               </tr>
             ))}
           </tbody>

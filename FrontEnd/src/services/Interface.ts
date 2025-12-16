@@ -37,7 +37,7 @@ export interface IUser {
 
 
 export interface ICategory {
-    categoryID: number;
+    categoryId: number;
     categoryName: string;
     description?: string;
 }
@@ -122,6 +122,11 @@ export interface CartDTO {
     cartId: number;
     userId: number;
     status: string;
+}
+
+export interface ISupplier{
+    supplierId: number;
+    supplierName: string;
 }
 
 export type AddToCartRequest = CartDetailRequestDTO;

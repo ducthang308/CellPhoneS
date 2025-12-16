@@ -19,20 +19,30 @@ import OrderPage from "./pages/Order/OrderPage";
 import Category from "./Admin/category/category";
 import Addcategory from "./Admin/category/add_category";
 import UpdateDeleteCategory from "./Admin/category/update_delete_category";
+
 import Product from "./Admin/product/product";
 import AddProduct from "./Admin/product/add_product";
 import UpdateDeleteProduct from "./Admin/product/update_delete_product";
+
 import Supplier from "./Admin/supplier/supplier";
+import SupplierForm from "./Admin/supplier/add_supplier";
+import SupplierEdit from "./Admin/supplier/update_delete_supplier";
+
 import AccountManagement from "./Admin/account/manage_account";
+
 import NotificationManagement from "./Admin/notification/manage_notification";
 import NotificationDetailPage from "./Admin/notification/notification_detail";
+
 import PendingOrders from "./Admin/order/order_approval";
 import OrderDetailPage from "./Admin/order/order_approval_detail";
+
 import StockManagement from "./Admin/stock/manage_stock";
 import Batch from "./Admin/stock/batch";
 import StockinReceipt from "./Admin/stock/stockin_receipt";
 import StockoutReceipt from "./Admin/stock/stockout_receipt";
+
 import Sales_And_Quantity from "./Admin/statistical/sales_and_quantity";
+
 import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
@@ -68,14 +78,21 @@ function App() {
         >
           <Route path="category" element={<Category />} />
           <Route path="category/create" element={<Addcategory />} />
-          <Route path="category/edit/:idCategory" element={<UpdateDeleteCategory />} />
+          <Route path="category/edit/:id" element={<UpdateDeleteCategory />} />
+
           <Route path="products" element={<Product />} />
           <Route path="products/create" element={<AddProduct />} />
           <Route path="products/edit/:idProduct" element={<UpdateDeleteProduct />} />
+
           <Route path="suppliers" element={<Supplier />} />
+          <Route path="supplier/create" element={<SupplierForm />} />
+          <Route path="supplier/edit/:id" element={<SupplierEdit />} />
+
           <Route path="manage_account" element={<AccountManagement />} />
+
           <Route path="manage_notification" element={<NotificationManagement />} />
           <Route path="notifications/:id" element={<NotificationDetailPage />} />
+
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="stock_management" element={<StockManagement />} />

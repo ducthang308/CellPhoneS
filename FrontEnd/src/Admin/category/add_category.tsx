@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./add_category.module.css";
+import categoryService from "../../services/CategoryService";
 
 const DanhMucForm: React.FC = () => {
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,25 +17,13 @@ const DanhMucForm: React.FC = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Bạn chưa đăng nhập!");
 
-      const response = await fetch("http://localhost:8080/api/category", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nameCategory: name
-        }),
-      });
+      await categoryService.createCategory({
+              categoryName: name.trim(),
+              description: description.trim() || undefined,
+            });
 
-      if (!response.ok) {
-        throw new Error(`Lỗi tạo danh mục: ${response.status}`);
-      }
-
-      navigate("/category");
+      navigate("/admin/category");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -57,6 +48,18 @@ const DanhMucForm: React.FC = () => {
           required
         />
       </div>
+
+        {/* Mô tả */}
+          <div className={styles["form-group"]}>
+            <label className={styles["form-label"]}>Mô tả</label>
+            <textarea
+              className={styles["form-input"]}
+              placeholder="Mô tả danh mục..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={loading}
+            />
+          </div>
 
       {error && (
         <div className={styles["error-message"]}>
