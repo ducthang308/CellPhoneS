@@ -4,49 +4,49 @@
   padding: 20px;
   font-family: Arial, sans-serif;
 }
-
+ 
 .product-title {
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 10px;
 }
-
+ 
 .rating-row {
   display: flex;
   gap: 5px;
   margin-bottom: 20px;
   align-items: center;
 }
-
+ 
 .star {
   color: #FFD700;
   font-size: 22px;
 }
-
+ 
 .product-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
-
+ 
 .image-box {
   border: 1px solid #ccc;
   border-radius: 12px;
   padding: 16px;
 }
-
+ 
 .main-img {
   width: 100%;
   border-radius: 12px;
 }
-
+ 
 .thumb-list {
   display: flex;
   gap: 8px;
   margin-top: 12px;
   overflow-x: auto;
 }
-
+ 
 .thumb {
   width: 70px;
   height: 70px;
@@ -55,40 +55,40 @@
   cursor: pointer;
   object-fit: cover;
 }
-
+ 
 .detail-box {
   border: 1px solid #ccc;
   border-radius: 12px;
   padding: 20px;
 }
-
+ 
 .price-block {
   margin-bottom: 16px;
 }
-
+ 
 .price-main {
   font-size: 30px;
   font-weight: bold;
   color: #e60000;
 }
-
+ 
 .price-old {
   text-decoration: line-through;
   color: gray;
 }
-
+ 
 .section-title {
   font-size: 18px;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 8px;
 }
-
+ 
 .options-row {
   display: flex;
   gap: 12px;
 }
-
+ 
 .option-btn {
   border: 1px solid #ccc;
   padding: 10px 18px;
@@ -96,19 +96,19 @@
   cursor: pointer;
   background: white;
 }
-
+ 
 .option-btn.active {
   border-color: #e60000;
   color: #e60000;
   font-weight: bold;
 }
-
+ 
 .color-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
+ 
 .color-btn {
   display: flex;
   gap: 10px;
@@ -118,31 +118,31 @@
   cursor: pointer;
   background: white;
 }
-
+ 
 .color-btn.active {
   border-color: #e60000;
 }
-
+ 
 .color-img {
   width: 45px;
 }
-
+ 
 .color-info {
   display: flex;
   flex-direction: column;
 }
-
+ 
 .color-price {
   color: #e60000;
   font-weight: bold;
 }
-
+ 
 .action-row {
   display: flex;
   gap: 12px;
   margin-top: 30px;
 }
-
+ 
 .btn {
   flex: 1;
   padding: 14px;
@@ -153,15 +153,15 @@
   color: white;
   font-size: 16px;
 }
-
+ 
 .btn.red {
   background: #e60000;
 }
-
+ 
 .btn.blue {
   background: #0066cc;
 }
-
+ 
 .btn-outline {
   width: 100%;
   margin-top: 12px;
@@ -174,20 +174,20 @@
   font-weight: bold;
   font-size: 16px;
 }
-
+ 
 .feature-box {
   margin-top: 40px;
   padding: 25px;
   border-radius: 12px;
   background: linear-gradient(45deg, #ffb0c1, #ffcfb2);
 }
-
+ 
 .feature-title {
   font-size: 22px;
   font-weight: bold;
   margin-bottom: 10px;
 }
-
+ 
 .feature-list li {
   margin-bottom: 8px;
   font-size: 16px;
