@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Logo from "../../assets/img/logo.png";
 import "./header.css";
 import { Tabs } from 'antd';
@@ -6,12 +6,23 @@ import type { TabsProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { UserCog, ShoppingCart, History, LogOut } from 'lucide-react';
+import { GetCategory } from "../../services/CategoryService";
+import type { ICategory } from "../../services/Interface";
+
+interface TabItem {
+  key: string;
+  label: string;
+  route: string;
+}
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [keyword, setKeyword] = useState("");
+
 
   const displayName = useMemo(
     () => user?.fullName || "Người dùng",
@@ -23,38 +34,89 @@ const Header = () => {
     [displayName]
   );
 
-  const routeToKey: Record<string, string> = {
-    "/Phone": "1",
-    "/Laptop": "2",
-    "/products/ipad": "3",
-    "/products/accessory": "4",
-    "/about": "5",
-    "/historyOrder": "6",
-  };
+  useEffect(() => {
+    GetCategory()
+      .then(setCategories)
+      .catch(err => console.error("GetCategory error:", err.message));
+  }, []);
 
-  const activeKey = routeToKey[location.pathname] || "1";
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(location.search);
+
+      if (keyword.trim()) {
+        params.set("keyword", keyword.trim());
+      } else {
+        params.delete("keyword");
+      }
+
+      navigate(`/products?${params.toString()}`, { replace: true });
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [keyword]);
+
+
+  const categoryTabs: TabItem[] = useMemo(
+    () =>
+      categories.map(c => ({
+        key: `cat-${c.categoryId}`,
+        label: c.description ?? c.categoryName,
+        route: `/products`,
+      })),
+    [categories]
+  );
+
+  const staticTabs: TabItem[] = [
+    { key: "blog", label: "Blog về chúng tôi", route: "/about" },
+    { key: "history", label: "Lịch sử mua hàng", route: "/historyOrder" },
+  ];
+
+  const allTabs: TabItem[] = [...categoryTabs, ...staticTabs];
+
+  const activeKey = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryId = params.get("categoryId");
+
+    if (categoryId) return `cat-${categoryId}`;
+
+    const staticTab = staticTabs.find(t =>
+      location.pathname.startsWith(t.route)
+    );
+
+    return staticTab?.key;
+  }, [location.pathname, location.search]);
+
 
   const handleTabChange = (key: string) => {
-    const routes: Record<string, string> = {
-      "1": "/Phone",
-      "2": "/Laptop",
-      "3": "/test",
-      "4": "/products/accessory",
-      "5": "/about",
-      "6": "/historyOrder",
-    };
+    const tab = allTabs.find(t => t.key === key);
+    if (!tab) return;
+
+    if (tab.key.startsWith("cat-")) {
+      const categoryId = tab.key.replace("cat-", "");
+      const params = new URLSearchParams();
+
+      params.set("categoryId", categoryId);
+
+      if (keyword.trim()) {
+        params.set("keyword", keyword.trim());
+      }
+
+      navigate(`/products?${params.toString()}`);
+    }
+    else {
+      navigate(tab.route);
+    }
+
     setDropdownOpen(false);
-    navigate(routes[key] || "/");
   };
 
-  const items: TabsProps['items'] = [
-    { key: '1', label: 'Điện thoại' },
-    { key: '2', label: 'Laptop' },
-    { key: '3', label: 'iPad' },
-    { key: '4', label: 'Phụ kiện' },
-    { key: '5', label: 'Blog về chúng tôi' },
-    { key: '6', label: 'Lịch sử mua hàng' },
-  ];
+
+  const items: TabsProps["items"] = allTabs.map(tab => ({
+    key: tab.key,
+    label: tab.label,
+  }));
+
 
   const handleLogout = () => {
     logout();
@@ -77,6 +139,17 @@ const Header = () => {
                 type="text"
                 className="search-input"
                 placeholder="Tìm kiếm sản phẩm"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const params = new URLSearchParams();
+
+                    if (keyword.trim()) params.set("keyword", keyword.trim());
+
+                    navigate(`/products?${params.toString()}`);
+                  }
+                }}
               />
             </div>
             <div className="filter-wrapper">
@@ -88,7 +161,7 @@ const Header = () => {
 
         <div className="top-right-wrapper">
           <ul className="list-user-actions">
-             <li className="list-user-item" onClick={() => navigate('/notification')}>
+            <li className="list-user-item" onClick={() => navigate('/notification')}>
               <i className="fa-solid fa-bell"></i>
               <p className="list-user-item-text">Thông báo</p>
             </li>
@@ -185,13 +258,16 @@ const Header = () => {
       </div>
 
       <div className="navbar-bot">
-        <Tabs
-          className="list-category"
-          activeKey={activeKey}
-          items={items}
-          onChange={handleTabChange}
-        />
+        {categories.length > 0 && (
+          <Tabs
+            className="list-category"
+            activeKey={activeKey}
+            items={items}
+            onChange={handleTabChange}
+          />
+        )}
       </div>
+
     </div>
   );
 };

@@ -23,6 +23,10 @@ import UpdateDeleteCategory from "./Admin/category/update_delete_category";
 import Product from "./Admin/product/product";
 import AddProduct from "./Admin/product/add_product";
 import UpdateDeleteProduct from "./Admin/product/update_delete_product";
+import PaymentPage from './pages/Payment/PaymentPage.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
+import ProductList from './components/Products/ProductList.tsx';
+import './Global.css'
 
 import Supplier from "./Admin/supplier/supplier";
 import SupplierForm from "./Admin/supplier/add_supplier";
@@ -55,8 +59,9 @@ function App() {
 
         {/* ===== USER LAYOUT ===== */}
         <Route element={<UserLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path='/' element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/products" element={<ProductList />} />
           <Route path="/laptop" element={<LaptopPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/Shopping_card" element={<Shopping_cardPage />} />
@@ -64,7 +69,8 @@ function App() {
           <Route path="/cartShop" element={<CartPage />} />
           <Route path="/historyOrder" element={<OrderHistoryPage />} />
           <Route path="/notification" element={<NotificationsPage />} />
-          <Route path="/payment" element={<OrderPage />} />
+          <Route path="/order/:orderId" element={<OrderPage />} />
+          <Route path="/payment/:orderId" element={<PaymentPage />} />
         </Route>
 
         {/* ===== ADMIN LAYOUT ===== */}
