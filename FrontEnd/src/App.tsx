@@ -14,6 +14,7 @@ import CartPage from "./pages/CartPage/CartPage";
 import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
 import NotificationsPage from "./pages/Notification/NotificationPage";
 import OrderPage from "./pages/Order/OrderPage";
+import ProductReviewPage from "./pages/ReviewPage/ProductReviewPage";
 
 /* ===== ADMIN ===== */
 import Category from "./Admin/category/category";
@@ -23,6 +24,11 @@ import UpdateDeleteCategory from "./Admin/category/update_delete_category";
 import Product from "./Admin/product/product";
 import AddProduct from "./Admin/product/add_product";
 import UpdateDeleteProduct from "./Admin/product/update_delete_product";
+import PaymentPage from './pages/Payment/PaymentPage.tsx';
+
+import ProtectedRoute from './components/ProtectedRoute.tsx';
+import ProductList from './components/Products/ProductList.tsx';
+import './Global.css'
 
 import Supplier from "./Admin/supplier/supplier";
 import SupplierForm from "./Admin/supplier/add_supplier";
@@ -57,27 +63,38 @@ function App() {
 
         {/* ===== USER LAYOUT ===== */}
         <Route element={<UserLayout />}>
+
+          {/* ===== PUBLIC USER ROUTES ===== */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/products" element={<ProductList />} />
           <Route path="/laptop" element={<LaptopPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/Shopping_card" element={<Shopping_cardPage />} />
           <Route path="/product-detail/:id" element={<ProductDetail />} />
-          <Route path="/cartShop" element={<CartPage />} />
-          <Route path="/historyOrder" element={<OrderHistoryPage />} />
-          <Route path="/notification" element={<NotificationsPage />} />
-
-            <Route path="/payment" element={<OrderPage />} />
           <Route path="/payment" element={<OrderPage />} />
-        </Route>
+          <Route path="/payment/:orderId" element={<PaymentPage />} />
+
+          {/* ===== PROTECTED USER ROUTES ===== */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/cartShop" element={<CartPage />} />
+            <Route path="/historyOrder" element={<OrderHistoryPage />} />
+            <Route path="/notification" element={<NotificationsPage />} />
+            <Route path="/order/:orderId" element={<OrderPage />} />
+            <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+            <Route
+              path="/product/:productId/reviews"
+              element={<ProductReviewPage />}
+            />
+          </Route>
+        </Route >
 
         {/* ===== ADMIN LAYOUT ===== */}
-        <Route
+        < Route
           path="/admin"
           element={
-            <RequireRole allow={[2]}>
+            < RequireRole allow={[2]} >
               <Layout />
-            </RequireRole>
+            </RequireRole >
           }
         >
           <Route path="category" element={<Category />} />
@@ -101,10 +118,12 @@ function App() {
 
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+
           <Route path="stock_management" element={<StockManagement />} />
           <Route path="batches" element={<Batch />} />
           <Route path="stockin_receipt" element={<StockinReceipt />} />
           <Route path="stockout_receipt" element={<StockoutReceipt />} />
+
           <Route
             path="sales_and_quantity"
             element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />}
@@ -116,10 +135,10 @@ function App() {
             path="order_status_by_time"
             element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />}
           />
-        </Route>
+        </Route >
 
-      </Routes>
-    </Router>
+      </Routes >
+    </Router >
   );
 }
 

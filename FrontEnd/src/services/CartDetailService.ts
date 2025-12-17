@@ -16,7 +16,11 @@ const cartDetailService = {
 
     delete(cartDetailsId: number): Promise<void> {
         return axiosClient.delete(`/api/cart-details/${cartDetailsId}`);
-    }
+    },
+
+    deleteByCartId(cartId: number): Promise<void> {
+        return axiosClient.delete(`/api/cart-details/cart/${cartId}`);
+    },
 };
 
 export default cartDetailService;

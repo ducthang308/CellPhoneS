@@ -39,7 +39,7 @@ export interface IUser {
 export interface ICategory {
     categoryId: number;
     categoryName: string;
-    description?: string;
+    description: string;
 }
 
 export interface ISpecification {
@@ -58,7 +58,6 @@ export interface IOrder {
     orderID: number;
     order_date: string;
     status: string;
-
     userID?: number;
 }
 
@@ -69,14 +68,6 @@ export interface IOrderDetail {
     quantity: number;
 }
 
-export interface IReview {
-    reviewID: number;
-    orderID: number;
-
-    comment?: string;
-    video?: string;
-    photo?: string;
-}
 
 export interface ProductImage {
     id: number;
@@ -124,18 +115,7 @@ export interface CartDTO {
     status: string;
 }
 
-export interface ISupplier{
-    supplierId: number;
-    supplierName: string;
-}
-
 export type AddToCartRequest = CartDetailRequestDTO;
-
-export interface CreateOrderRequest {
-    userID: number;
-    status: string;
-    paymentStatus: string;
-}
 
 export interface OrderResponse {
     orderID: number;
@@ -178,4 +158,39 @@ export interface Notification {
   isRead: boolean;
   // createdAt có thể có hoặc không, tùy backend trả về
   // createdAt?: string;
+}
+export interface OrderProduct {
+    productID: number;
+    name: string;
+    price: number;
+    quantity: number;
+    imageUrl?: string | null;
+}
+
+export interface OrderRequest {
+    userID: number;
+    status: string;
+    paymentStatus: string;
+    orderDate?: string;
+}
+
+
+export interface OrderFullResponse {
+    orderID: number;
+    orderDate: string;
+    status: string;
+    paymentStatus: string;
+    userID: number;
+    products: OrderProduct[];
+}
+
+export interface IReview {
+    reviewID: number;
+    productID: number;
+    orderID?: number;
+    userName: string;
+    rating: number;
+    comment: string;
+    photoUrl?: string;
+    videoUrl?: string;
 }
