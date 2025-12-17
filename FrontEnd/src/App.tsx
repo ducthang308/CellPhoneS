@@ -14,6 +14,7 @@ import CartPage from "./pages/CartPage/CartPage";
 import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
 import NotificationsPage from "./pages/Notification/NotificationPage";
 import OrderPage from "./pages/Order/OrderPage";
+import ProductReviewPage from "./pages/ReviewPage/ProductReviewPage";
 
 /* ===== ADMIN ===== */
 import Category from "./Admin/category/category";
@@ -68,6 +69,9 @@ function App() {
           <Route path="/laptop" element={<LaptopPage />} />
           <Route path="/product-detail/:id" element={<ProductDetail />} />
 
+          {/* PAYMENT / RETURN — luôn public */}
+          <Route path="/payment/:orderId" element={<PaymentPage />} />
+
           {/* ===== PROTECTED USER ROUTES ===== */}
           <Route element={<ProtectedRoute />}>
             <Route path="/account" element={<AccountPage />} />
@@ -75,22 +79,12 @@ function App() {
             <Route path="/historyOrder" element={<OrderHistoryPage />} />
             <Route path="/notification" element={<NotificationsPage />} />
             <Route path="/order/:orderId" element={<OrderPage />} />
-            <Route path="/payment/:orderId" element={<PaymentPage />} />
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+            <Route
+              path="/product/:productId/reviews"
+              element={<ProductReviewPage />}
+            />
           </Route>
-
-          <Route path='/' element={<Home />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/products" element={<ProductList />} />
-          <Route path="/laptop" element={<LaptopPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/Shopping_card" element={<Shopping_cardPage />} />
-          <Route path="/product-detail/:id" element={<ProductDetail />} />
-          <Route path="/cartShop" element={<CartPage />} />
-          <Route path="/historyOrder" element={<OrderHistoryPage />} />
-          <Route path="/notification" element={<NotificationsPage />} />
-          <Route path="/order/:orderId" element={<OrderPage />} />
-          <Route path="/payment/:orderId" element={<PaymentPage />} />
         </Route >
 
         {/* ===== ADMIN LAYOUT ===== */}

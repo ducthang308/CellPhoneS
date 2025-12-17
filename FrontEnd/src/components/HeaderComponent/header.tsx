@@ -6,7 +6,7 @@ import type { TabsProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { UserCog, ShoppingCart, History, LogOut } from 'lucide-react';
-import { GetCategory } from "../../services/CategoryService";
+import CategoryService from "../../services/CategoryService";
 import type { ICategory } from "../../services/Interface";
 
 interface TabItem {
@@ -35,7 +35,7 @@ const Header = () => {
   );
 
   useEffect(() => {
-    GetCategory()
+    CategoryService.getCategories()
       .then(setCategories)
       .catch(err => console.error("GetCategory error:", err.message));
   }, []);

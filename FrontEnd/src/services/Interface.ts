@@ -68,14 +68,6 @@ export interface IOrderDetail {
     quantity: number;
 }
 
-export interface IReview {
-    reviewID: number;
-    orderID: number;
-
-    comment?: string;
-    video?: string;
-    photo?: string;
-}
 
 export interface ProductImage {
     id: number;
@@ -181,4 +173,15 @@ export interface OrderFullResponse {
     paymentStatus: string;
     userID: number;
     products: OrderProduct[];
+}
+
+export interface IReview {
+    reviewID: number;
+    productID: number;
+    orderID?: number;
+    userName: string;
+    rating: number;
+    comment: string;
+    photoUrl?: string;
+    videoUrl?: string;
 }

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { IUser } from "../services/Interface";
-import ProtectedRoute from "./ProtectedRoute";
+import { jwtDecode } from "jwt-decode";
 
 
 type AuthContextType = {
@@ -24,19 +24,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
+
     if (!token) {
       setUser(null);
       setLoading(false);
       return;
     }
 
-    authService.getMe()
-      .then(setUser)
-      .catch(() => {
-        localStorage.removeItem("accessToken");
+    // 🔥 QUAN TRỌNG: lấy user từ localStorage
+    const rawUser = localStorage.getItem("user");
+
+    if (rawUser) {
+      try {
+        const storedUser: IUser = JSON.parse(rawUser);
+        setUser(storedUser); // ✅ có role, userId, cartId
+      } catch {
         setUser(null);
-      })
-      .finally(() => setLoading(false));
+      }
+    } else {
+      // có token nhưng không có user → coi như chưa login
+      setUser(null);
+    }
+
+    setLoading(false);
   }, []);
 
 
