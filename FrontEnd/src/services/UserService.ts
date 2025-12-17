@@ -38,6 +38,19 @@ export const register = async (
         throw new Error("Đăng ký thất bại");
     }
 };
+
+export const getAllUsers = async (): Promise<LoginResponse[]> => {
+  const token = localStorage.getItem("accessToken");
+
+  const res = await axiosClient.get('/api/user', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  return res.data;
+};
+
 export const userService = {
   updateUser: async (
     userId: number,

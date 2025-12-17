@@ -1,5 +1,5 @@
 import axiosClient from './AxiosClient';
-import type { IProduct } from './Interface';
+import type { IProduct, ProductImage } from './Interface';
 import { normalizeProduct } from "../adapter/normalizeProduct";
 
 const productService = {
@@ -21,6 +21,60 @@ const productService = {
 
   async getProductById(id: number): Promise<IProduct> {
     const res = await axiosClient.get<IProduct>(`/api/products/${id}`);
+    return res.data;
+  },
+
+  async createProduct(product: IProduct): Promise<IProduct> {
+    const res = await axiosClient.post("/api/products", product);
+    return normalizeProduct(res.data);
+  },
+
+  async updateProduct(id: number, product: IProduct): Promise<IProduct> {
+    const res = await axiosClient.put(`/api/products/${id}`, product);
+    return normalizeProduct(res.data);
+  },
+
+  async deleteProduct(id: number): Promise<void> {
+    await axiosClient.delete(`/api/products/${id}`);
+  },
+
+  async uploadSingleImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("files", file);
+
+    const res = await axiosClient.post(
+      "/api/images/img-upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return res.data; 
+  },
+
+  async uploadProductImages(
+    productId: number,
+    files: File[]
+  ): Promise<ProductImage[]> {
+    const formData = new FormData();
+
+    files.forEach(file => {
+      formData.append("files", file);
+    });
+
+    const res = await axiosClient.post(
+      `/api/images/${productId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
     return res.data;
   },
 

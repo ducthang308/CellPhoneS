@@ -10,13 +10,13 @@ export interface LoginResponse {
     cartId: number;
 }
 
-
 export interface IRegisterRequest {
     sdt: string;
     hoVaTen: string;
     email: string;
     diaChi: string;
     matKhau: string;
+    role?: number;
 }
 
 
@@ -96,7 +96,7 @@ export interface Specification {
 }
 
 export interface IProduct {
-    productId: number;
+    productId?: number;
     name: string;
     price: number;
     stockQuantity: number;
@@ -168,4 +168,14 @@ export interface PayPalPaymentRequest {
 
 export interface PayPalCreateResponse {
     approvalUrl: string;
+}
+
+export interface Notification {
+  notificationId: number;
+  title: string;
+  notificationType: 'PERSONAL' | 'PROMOTION' | 'SYSTEM' | 'ORDER'; // thêm type nếu backend mở rộng
+  content: string;           // message thực tế
+  isRead: boolean;
+  // createdAt có thể có hoặc không, tùy backend trả về
+  // createdAt?: string;
 }

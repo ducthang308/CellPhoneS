@@ -29,6 +29,8 @@ import SupplierForm from "./Admin/supplier/add_supplier";
 import SupplierEdit from "./Admin/supplier/update_delete_supplier";
 
 import AccountManagement from "./Admin/account/manage_account";
+import AccountDetail from "./Admin/account/AccountDetail";
+import AccountCreate from "./Admin/account/AccountCreate";
 
 import NotificationManagement from "./Admin/notification/manage_notification";
 import NotificationDetailPage from "./Admin/notification/notification_detail";
@@ -64,6 +66,8 @@ function App() {
           <Route path="/cartShop" element={<CartPage />} />
           <Route path="/historyOrder" element={<OrderHistoryPage />} />
           <Route path="/notification" element={<NotificationsPage />} />
+
+            <Route path="/payment" element={<OrderPage />} />
           <Route path="/payment" element={<OrderPage />} />
         </Route>
 
@@ -82,16 +86,18 @@ function App() {
 
           <Route path="products" element={<Product />} />
           <Route path="products/create" element={<AddProduct />} />
-          <Route path="products/edit/:idProduct" element={<UpdateDeleteProduct />} />
+          <Route path="products/edit/:id" element={<UpdateDeleteProduct />} />
 
           <Route path="suppliers" element={<Supplier />} />
           <Route path="supplier/create" element={<SupplierForm />} />
           <Route path="supplier/edit/:id" element={<SupplierEdit />} />
 
           <Route path="manage_account" element={<AccountManagement />} />
+          <Route path="accounts/:userId" element={<AccountDetail />} />
+          <Route path="accounts/create" element={<AccountCreate />} />
 
           <Route path="manage_notification" element={<NotificationManagement />} />
-          <Route path="notifications/:id" element={<NotificationDetailPage />} />
+          <Route path="notifications/:notificationId" element={<NotificationDetailPage />} />
 
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
