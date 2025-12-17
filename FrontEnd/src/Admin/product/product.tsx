@@ -36,7 +36,7 @@ const SanPhamPage: React.FC = () => {
   }, [sanPhams, search]);
 
   const handleEdit = (id: number) => {
-    navigate(`/products/edit/${id}`);
+    navigate(`/admin/products/edit/${id}`);
   };
 
   const handleAdd = () => {
@@ -104,7 +104,7 @@ const SanPhamPage: React.FC = () => {
             {filteredRows.map((item) => (
               <tr
                 key={item.productId}
-                onClick={() => handleEdit(item.productId)}
+                onClick={() => handleEdit(item.productId!)}
                 style={{ cursor: "pointer" }}
               >
                 <td>{item.productId}</td>

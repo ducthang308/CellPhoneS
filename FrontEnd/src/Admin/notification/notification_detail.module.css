@@ -1,272 +1,168 @@
-.content {
-    width: 100%;
-    padding: 20px;
+/* ================= LAYOUT ================= */
+.main-content {
+  flex: 1;
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
 }
 
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  padding: 24px 32px;
+}
 
+/* ================= HEADER ================= */
 .notification-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .back-icon {
-    font-size: 24px;
-    margin-right: 10px;
-    color: #333;
+  font-size: 20px;
+  cursor: pointer;
+  color: #4c84ff;
+  transition: transform 0.2s;
+}
+
+.back-icon:hover {
+  transform: translateX(-3px);
 }
 
 .notification-title {
-    font-size: 22px;
-    font-weight: 600;
-    color: #333;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
 }
 
-.notification-details {
-    background-color: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.notification-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-.sender-info {
-    display: flex;
-    align-items: center;
-}
-
-.avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    background-color: #1e88e5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-}
-
-.sender-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.sender-name {
-    font-weight: 600;
-    color: #333;
-}
-
-.recipient {
-    color: #666;
-    font-size: 14px;
-}
-
-.meta-info {
-    text-align: right;
-    font-size: 14px;
-    color: #666;
-}
-
+/* ================= BODY ================= */
 .notification-body {
-    margin-top: 20px;
+  margin-bottom: 32px;
 }
 
-.notification-heading {
+.notification-body h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.meta-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* ================= CONTENT ================= */
+.content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444;
+  white-space: pre-line;
+  background-color: #f9fafb;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+/* ================= EDIT MODE ================= */
+.edit-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 220px;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-bottom: 16px;
+}
+
+/* ================= ACTION BUTTONS ================= */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ================= BUTTONS ================= */
+.btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background-color: #4c84ff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #3b6fe0;
+}
+
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  .notification-title {
+    font-size: 20px;
+  }
+
+  .notification-body h2 {
     font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #333;
-    text-align: center;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
-
-.notification-text {
-    color: #333;
-    line-height: 1.6;
-    margin-bottom: 15px;
-}
-
-.signature {
-    color: #333;
-    font-weight: 500;
-}
-.loaithongbao-container{
-    display: flex;
-    justify-content: flex-end;
-}
-.loaithongbao{
-    font-weight: bold;
-    margin-right: 5px;
-}
-.mathongbao-container{
-    display: flex;
-    justify-content: flex-end;
-    
-}
-.mathongbao{
-    font-weight: bold;
-    margin-right: 5px;
-}
-.ngaydang-container{
-    display: flex;
-    justify-content: flex-end;
-        font-style: italic;
-    
-}
-.ngaydang{
-    margin-right: 5px;
-}
-
-        .recipients-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-        }
-
-            .recipients-section h3 {
-                margin: 0 0 15px 0;
-                color: #495057;
-                font-size: 16px;
-                font-weight: 600;
-            }
-
-        .toggle-btn {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
-        }
-
-            .toggle-btn:hover {
-                background: linear-gradient(135deg, #0056b3, #004085);
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
-            }
-
-        .recipients-list {
-            margin-top: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            background: white;
-        }
-
-        .recipient-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid #f1f3f4;
-            transition: background-color 0.2s ease;
-        }
-
-            .recipient-item:last-child {
-                border-bottom: none;
-            }
-
-            .recipient-item:hover {
-                background-color: #f8f9fa;
-            }
-
-            .recipient-item i {
-                color: #6c757d;
-                margin-right: 10px;
-                font-size: 14px;
-            }
-
-            .recipient-item span {
-                color: #495057;
-                font-weight: 500;
-                font-size: 14px;
-            }
-
-        /* CSS cho phần action buttons */
-        .action-buttons {
-            margin-top: 30px;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-            .btn:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-        }
-
-            .btn-danger:hover {
-                background: linear-gradient(135deg, #c82333, #a71e2a);
-            }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #6c757d, #545b62);
-            color: white;
-        }
-
-            .btn-secondary:hover {
-                background: linear-gradient(135deg, #545b62, #3d4146);
-            }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-        }
-
-            .btn-primary:hover {
-                background: linear-gradient(135deg, #0056b3, #004085);
-            }
-
-        /* CSS cho error message */
-        .error-message {
-            text-align: center;
-            padding: 40px 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-        }
-
-            .error-message h2 {
-                color: #dc3545;
-                margin-bottom: 15px;
-                font-size: 24px;
-            }
-
-            .error-message p {
-                color: #6c757d;
-                margin-bottom: 20px;
-                font-size: 16px;
-            }

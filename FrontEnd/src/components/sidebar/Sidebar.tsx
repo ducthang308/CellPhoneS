@@ -29,6 +29,13 @@ const Sidebar: React.FC = () => {
       </Link>
 
       <Link
+        to="/Admin/brands"
+        className={`${styles["lo-menu-item"]} ${isActive("brands")}`}
+      >
+        <i className="ri-price-tag-3-line"></i> Quản lý thương hiệu
+      </Link>
+
+      <Link
         to="/Admin/category"
         className={`${styles["lo-menu-item"]} ${isActive("category")}`}
       >

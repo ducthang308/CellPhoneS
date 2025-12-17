@@ -1,64 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./manage_account.module.css";
-
-/* ===== TYPES ===== */
-export interface Role {
-  id: number;
-  name: string;
-}
-
-export interface Account {
-  sdt: string;
-  hoVaTen: string;
-  email: string;
-  matKhau: string;
-  diaChi: string;
-  idQuyen?: number | null;
-  tenQuyen?: string;
-}
+import { getAllUsers } from "../../services/UserService";
+import type { LoginResponse } from "../../services/Interface";
+import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 5;
 
 const AccountManagement = () => {
-  /* ===== DATA STATE ===== */
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-
+  /* ===== DATA ===== */
+  const [accounts, setAccounts] = useState<LoginResponse[]>([]);
+  const navigate = useNavigate();
   /* ===== UI STATE ===== */
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [editingAccount, setEditingAccount] =
+    useState<LoginResponse | null>(null);
 
-  /* ===== MOCK DATA ===== */
+  /* ===== LOAD DATA ===== */
   useEffect(() => {
-    setRoles([
-      { id: 1, name: "Admin" },
-      { id: 2, name: "User" }
-    ]);
-
-    setAccounts([
-      {
-        sdt: "0989123456",
-        hoVaTen: "Nguyễn Văn A",
-        email: "a@gmail.com",
-        matKhau: "123456",
-        diaChi: "Đà Nẵng",
-        idQuyen: 1,
-        tenQuyen: "Admin"
-      },
-      {
-        sdt: "0977123456",
-        hoVaTen: "Trần Thị B",
-        email: "b@gmail.com",
-        matKhau: "123456",
-        diaChi: "Huế",
-        idQuyen: null,
-        tenQuyen: "Chưa phân quyền"
-      }
-    ]);
+    getAllUsers()
+      .then(setAccounts)
+      .catch(err => console.error("Load user failed", err));
   }, []);
 
   /* ===== FILTER + SEARCH ===== */
@@ -66,15 +31,16 @@ const AccountManagement = () => {
     let result = [...accounts];
 
     if (filterRole !== "all") {
-      result =
-        filterRole === "null"
-          ? result.filter(a => !a.idQuyen)
-          : result.filter(a => String(a.idQuyen) === filterRole);
+      result = result.filter(
+        a => String(a.role) === filterRole
+      );
     }
 
     if (search.trim()) {
       const s = search.toLowerCase();
-      result = result.filter(a => a.hoVaTen.toLowerCase().includes(s));
+      result = result.filter(a =>
+        a.fullName.toLowerCase().includes(s)
+      );
     }
 
     return result;
@@ -96,14 +62,23 @@ const AccountManagement = () => {
   }, [search, filterRole]);
 
   /* ===== HANDLERS ===== */
-  const openEdit = (acc: Account) => {
+  const openEdit = (acc: LoginResponse) => {
     setEditingAccount(acc);
     setShowEditModal(true);
   };
 
+const getRoleName = (role: any) => {
+  const roleId = role?.roleId;
+  const roleName = role?.roleName;
+
+  if (roleId === 2 || roleName === "ADMIN") return "Admin";
+  if (roleId === 1 || roleName === "USER") return "Người dùng";
+
+  return "Chưa phân quyền";
+};
   /* ===== RENDER ===== */
   return (
-    <div className={styles["container"]}>
+    <div className={styles.container}>
       <div className={styles["content-container"]}>
         {/* HEADER */}
         <div className={styles["content-header"]}>
@@ -120,33 +95,16 @@ const AccountManagement = () => {
             </div>
 
             <div className={styles["filter-dropdown"]}>
-              <div className={styles["filter-button"]}>
-                <i className="fas fa-filter" />
-                <span>
-                  {filterRole === "all"
-                    ? "Quyền hạn"
-                    : filterRole === "null"
-                    ? "Chưa phân quyền"
-                    : roles.find(r => String(r.id) === filterRole)?.name}
-                </span>
-              </div>
-
+           
               <div className={styles["filter-content"]}>
                 <button onClick={() => setFilterRole("all")}>
                   Tất cả quyền hạn
                 </button>
-
-                {roles.map(r => (
-                  <button
-                    key={r.id}
-                    onClick={() => setFilterRole(String(r.id))}
-                  >
-                    {r.name}
-                  </button>
-                ))}
-
-                <button onClick={() => setFilterRole("null")}>
-                  Chưa phân quyền
+                <button onClick={() => setFilterRole("2")}>
+                  Admin
+                </button>
+                <button onClick={() => setFilterRole("1")}>
+                  Người dùng
                 </button>
               </div>
             </div>
@@ -161,7 +119,6 @@ const AccountManagement = () => {
                 <th>SĐT</th>
                 <th>Họ tên</th>
                 <th>Email</th>
-                <th>Mật khẩu</th>
                 <th>Địa chỉ</th>
                 <th>Quyền hạn</th>
                 <th>Cập nhật</th>
@@ -169,19 +126,25 @@ const AccountManagement = () => {
             </thead>
             <tbody>
               {pagedAccounts.map(acc => (
-                <tr key={acc.sdt}>
+                <tr key={acc.userId}>
+                  
                   <td>
-                    <span className={styles["phone-badge"]}>{acc.sdt}</span>
+                    <span className={styles["phone-badge"]}>
+                      {acc.sdt}
+                    </span>
                   </td>
-                  <td>{acc.hoVaTen}</td>
+                  <td>{acc.fullName}</td>
                   <td>{acc.email}</td>
-                  <td>{acc.matKhau}</td>
-                  <td>{acc.diaChi}</td>
-                  <td>{acc.tenQuyen ?? "Chưa phân quyền"}</td>
+                  <td>{acc.address}</td>
+                  <td>{getRoleName(acc.role)}</td>
                   <td>
                     <button
                       className={styles["edit-btn"]}
-                      onClick={() => openEdit(acc)}
+                      onClick={() =>
+                        navigate(`/admin/accounts/${acc.userId}`, {
+                          state: acc
+                        })
+                      }
                     >
                       <i className="fas fa-edit" />
                     </button>
@@ -204,17 +167,7 @@ const AccountManagement = () => {
         {/* PAGINATION */}
         <div className={styles["pagination-container"]}>
           <div className={styles["pagination-info"]}>
-            <div>
-              Trang {currentPage}/{totalPages}
-            </div>
-            <div>
-              Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-              {Math.min(
-                currentPage * ITEMS_PER_PAGE,
-                filteredAccounts.length
-              )}
-              /{filteredAccounts.length}
-            </div>
+            Trang {currentPage}/{totalPages}
           </div>
 
           <div className={styles["pagination-controls"]}>
@@ -231,10 +184,10 @@ const AccountManagement = () => {
               ▶
             </button>
           </div>
-
+          
           <button
             className={styles["add-account-btn"]}
-            onClick={() => setShowAddModal(true)}
+            onClick={() => navigate("/admin/accounts/create")}
           >
             Thêm tài khoản
           </button>
@@ -243,19 +196,12 @@ const AccountManagement = () => {
 
       {/* MODALS */}
       {showEditModal && editingAccount && (
-        <div className={styles["modal"]}>
+        <div className={styles.modal}>
           <div className={styles["modal-content"]}>
             <h2>Sửa tài khoản</h2>
-            <button onClick={() => setShowEditModal(false)}>Đóng</button>
-          </div>
-        </div>
-      )}
-
-      {showAddModal && (
-        <div className={styles["modal"]}>
-          <div className={styles["modal-content"]}>
-            <h2>Thêm tài khoản</h2>
-            <button onClick={() => setShowAddModal(false)}>Đóng</button>
+            <button onClick={() => setShowEditModal(false)}>
+              Đóng
+            </button>
           </div>
         </div>
       )}

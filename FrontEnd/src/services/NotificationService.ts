@@ -1,38 +1,36 @@
-import axiosClient from './AxiosClient';
-
-// Interface khớp đúng với response API của bạn
-export interface Notification {
-  id: number;
-  title: string;
-  notificationType: 'PERSONAL' | 'PROMOTION' | 'SYSTEM' | 'ORDER'; // thêm type nếu backend mở rộng
-  content: string;           // message thực tế
-  isRead: boolean;
-  // createdAt có thể có hoặc không, tùy backend trả về
-  // createdAt?: string;
-}
+import axiosClient from "./AxiosClient";
+import type { Notification } from "./Interface";
 
 export const notificationService = {
-  // Lấy danh sách thông báo của user hiện tại
-  getUserNotifications: async (userId: number): Promise<Notification[]> => {
-    const response = await axiosClient.get<Notification[]>(
-      `/api/notifications/user/${userId}`
-    );
-    return response.data;
+  getAll: async (): Promise<Notification[]> => {
+    const res = await axiosClient.get<Notification[]>("/api/notifications");
+    return res.data;
   },
 
-  // Đánh dấu đã đọc một thông báo
-  markAsRead: async (notificationId: number): Promise<void> => {
-    await axiosClient.put(`/api/notifications/${notificationId}/read`);
+  create: async (payload: {
+    title: string;
+    content: string;
+    notificationType: Notification["notificationType"];
+    sendToAll: boolean;
+    userIds?: number[];
+  }) => {
+    return axiosClient.post("/api/notifications", payload);
   },
 
-  // Đánh dấu tất cả đã đọc
-  markAllAsRead: async (userId: number): Promise<void> => {
-    await axiosClient.put(`/api/notifications/read-all?userId=${userId}`);
-    // hoặc nếu backend dùng: /api/notifications/read-all (dựa vào token)
+  update: async (
+    id: number,
+    payload: {
+      title: string;
+      content: string;
+      notificationType: Notification["notificationType"];
+      sendToAll: boolean;
+    }
+  ) => {
+    return axiosClient.put(`/api/notifications/${id}`, payload);
   },
 
-  // Xóa thông báo
-  deleteNotification: async (notificationId: number): Promise<void> => {
-    await axiosClient.delete(`/api/notifications/${notificationId}`);
-  },
+
+  delete: async (notificationId: number) => {
+    return axiosClient.delete(`/api/notifications/${notificationId}`);
+  }
 };

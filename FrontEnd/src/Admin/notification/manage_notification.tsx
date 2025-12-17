@@ -1,267 +1,229 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./manage_notification.module.css";
+import type { Notification } from "../../services/Interface";
+import { notificationService } from "../../services/NotificationService";
+import { useNavigate } from "react-router-dom";
 
-/* ================= TYPES ================= */
-interface Notification {
-  id: number;
-  tieuDe: string;
-  noiDung: string;
-  loaiThongBao: string;
-}
+const ITEMS_PER_PAGE = 5;
 
-/* ================= COMPONENT ================= */
 const NotificationManagement = () => {
-  const navigate = useNavigate();
-
-  /* ===== DATA ===== */
+  /* ================= DATA ================= */
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
-  /* ===== SEARCH ===== */
+  const navigate = useNavigate();
+  /* ================= UI ================= */
   const [search, setSearch] = useState("");
-
-  /* ===== PAGINATION ===== */
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  /* ===== MODAL ===== */
   const [showModal, setShowModal] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
-  /* ===== FORM ===== */
-  const [tieuDe, setTieuDe] = useState("");
-  const [loaiThongBao, setLoaiThongBao] = useState("");
-  const [doiTuongNhan, setDoiTuongNhan] = useState("");
-  const [sdtNguoiNhan, setSdtNguoiNhan] = useState("");
-  const [noiDung, setNoiDung] = useState("");
+  /* ================= FORM (CREATE ONLY) ================= */
+  const [title, setTitle] = useState("");
+  const [notificationType, setNotificationType] =
+    useState<Notification["notificationType"]>("SYSTEM");
+  const [content, setContent] = useState("");
 
-  /* ===== MOCK DATA (XÓA KHI GẮN API) ===== */
+  /* ================= LOAD NOTIFICATIONS ================= */
   useEffect(() => {
-    setNotifications([
-      {
-        id: 1,
-        tieuDe: "Thông báo bảo trì",
-        noiDung:
-          "Hệ thống sẽ bảo trì từ 22h đến 23h hôm nay. Mong quý khách thông cảm.",
-        loaiThongBao: "Thông báo bảo trì",
-      },
-      {
-        id: 2,
-        tieuDe: "Thông báo khuyến mãi",
-        noiDung:
-          "Giảm giá 20% cho tất cả sản phẩm trong tuần này.",
-        loaiThongBao: "Thông báo khuyến mãi",
-      },
-    ]);
-  }, []);
+    notificationService
+      .getAll()
+      .then(setNotifications)
+      .catch(err => console.error("Load notifications failed", err));
+    }, []);
 
-  /* ===== SEARCH FILTER ===== */
+    useEffect(() => {
+    if (!successMsg) return;
+
+    const timer = setTimeout(() => {
+      setSuccessMsg("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [successMsg]);
+
+  /* ================= SEARCH ================= */
   const filteredNotifications = useMemo(() => {
     if (!search.trim()) return notifications;
     return notifications.filter(n =>
-      n.tieuDe.toLowerCase().includes(search.toLowerCase())
+      n.title.toLowerCase().includes(search.toLowerCase())
     );
   }, [search, notifications]);
 
-  /* ===== PAGINATION LOGIC ===== */
+  /* ================= PAGINATION ================= */
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredNotifications.length / itemsPerPage)
+    Math.ceil(filteredNotifications.length / ITEMS_PER_PAGE)
   );
 
   const pagedNotifications = filteredNotifications.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
 
-  /* ===== HANDLERS ===== */
-  const handleDelete = (id: number) => {
+  /* ================= DELETE ================= */
+  const handleDelete = async (notificationId: number) => {
     if (!confirm("Bạn có chắc chắn muốn xóa thông báo này?")) return;
-    setNotifications(prev => prev.filter(n => n.id !== id));
+
+    try {
+      await notificationService.delete(notificationId);
+      setNotifications(prev =>
+        prev.filter(n => n.notificationId !== notificationId)
+      );
+    } catch (err) {
+      console.error("Xóa thông báo thất bại", err);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /* ================= CREATE ================= */
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!tieuDe || !loaiThongBao || !doiTuongNhan || !noiDung) {
-      alert("Vui lòng nhập đầy đủ thông tin!");
-      return;
+    try {
+      await notificationService.create({
+        title,
+        content,
+        notificationType,
+        sendToAll: true
+      });
+
+      setShowModal(false);
+
+      setSuccessMsg("Đăng thông báo thành công!");
+
+      setTitle("");
+      setContent("");
+      setNotificationType("SYSTEM");
+
+      const updated = await notificationService.getAll();
+      setNotifications(updated);
+    } catch (err) {
+      console.error("Đăng thông báo thất bại", err);
     }
-
-    const newNoti: Notification = {
-      id: Date.now(),
-      tieuDe,
-      noiDung,
-      loaiThongBao,
-    };
-
-    setNotifications(prev => [newNoti, ...prev]);
-    setShowModal(false);
-
-    setTieuDe("");
-    setLoaiThongBao("");
-    setDoiTuongNhan("");
-    setSdtNguoiNhan("");
-    setNoiDung("");
   };
+
 
   /* ================= RENDER ================= */
   return (
-  <div className={styles["main-content"]} >
-    {/* HEADER */}
-    <div className={styles.header}>
-      <div className={`${styles["user-info"]} ${styles.dropdown}`}></div>
-    </div>
+    <div className={styles["main-content"]}>
+      {/* HEADER */}
+      <div className={styles["content-header"]}>
+        <h1>Quản lý thông báo</h1>
 
-    {/* TITLE + SEARCH */}
-    <div className={styles["content-header"]}>
-      <h1 className={styles["content-title"]}>Quản lý thông báo</h1>
-
-      <div className={styles["search-bar"]}>
-        <i className="fas fa-search"></i>
-        <input
-          type="text"
-          placeholder="Tìm kiếm theo tiêu đề"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+        <div className={styles["search-bar"]}>
+          <input
+            placeholder="Tìm kiếm theo tiêu đề"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
       </div>
-    </div>
 
-    <div className={styles.container}>
-      <div className={styles["content-area"]}>
-        {pagedNotifications.length > 0 ? (
+      {/* LIST */}
+      <div className={styles.container}>
+       {pagedNotifications.length > 0 ? (
           pagedNotifications.map(tb => (
             <div
-              key={tb.id}
+              key={tb.notificationId}
               className={styles["notification-card"]}
+              onClick={() =>
+                navigate(`/admin/notifications/${tb.notificationId}`, {
+                  state: tb
+                })
+              }
             >
               <div className={styles["notification-header"]}>
-                <div className={styles["date-posted"]}>
-                  Ngày đăng: {new Date().toLocaleDateString("vi-VN")}
-                </div>
+                <span>{tb.notificationType}</span>
 
                 <button
                   className={styles["delete-btn"]}
-                  onClick={() => handleDelete(tb.id)}
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDelete(tb.notificationId);
+                  }}
                 >
-                  <i className="fas fa-trash"></i>
                   Xoá
                 </button>
               </div>
 
-              <div
-                onClick={() => navigate(`/notifications/${tb.id}`)}
-                style={{ cursor: "pointer" }}
-              >
-                <div className={styles["notification-content"]}>
-                  <div className={styles["notification-info"]}>
-                    <h3 className={styles["notification-title"]}>
-                      {tb.tieuDe}
-                    </h3>
-                    <p className={styles["notification-text"]}>
-                      {tb.noiDung.length > 100
-                        ? tb.noiDung.substring(0, 100) + "..."
-                        : tb.noiDung}
-                    </p>
-                  </div>
-
-                  <div className={styles["notification-author"]}>
-                    <div>Người đăng:</div>
-                    <div className={styles["author-name"]}>Admin</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles["notification-footer"]}>
-                <div className={styles["notification-id"]}>
-                  Mã thông báo: #{tb.id}
-                </div>
-
-                <div className={styles["notification-type"]}>
-                  <span className={styles["notification-type-label"]}>
-                    Loại thông báo:
-                  </span>
-                  <span>{tb.loaiThongBao}</span>
-                </div>
+              <div className={styles["notification-content"]}>
+                <h3>{tb.title}</h3>
+                <p>{tb.content}</p>
               </div>
             </div>
           ))
         ) : (
-          <div className={styles["no-notifications"]}>
-            <p>Không có thông báo nào được tìm thấy.</p>
-          </div>
+          <p>Không có thông báo nào.</p>
         )}
+
 
         {/* PAGINATION */}
         <div className={styles["pagination-area"]}>
-          <div className={styles["page-info"]}>
-            Trang {currentPage}/{totalPages}
-          </div>
-
-          <div className={styles["pagination-controls"]}>
-            <button
-              type="button"
-              className={styles["create-notification-btn"]}
-              onClick={() => setShowModal(true)}
-            >
-              Đăng thông báo
-            </button>
-
-            <div className={styles["pagination-buttons"]}>
-              <button
-                className={`${styles["pagination-btn"]} ${styles.prev}`}
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(p => p - 1)}
-              >
-                ◀
-              </button>
-
-              <button
-                className={`${styles["pagination-btn"]} ${styles.next}`}
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(p => p + 1)}
-              >
-                ▶
-              </button>
-            </div>
-          </div>
+          Trang {currentPage}/{totalPages}
         </div>
-      </div>
-    </div>
 
-    {/* MODAL */}
-    {showModal && (
-      <div
-        className={styles.modal}
-        onClick={() => setShowModal(false)}
-      >
-        <div
-          className={styles["modal-content"]}
-          onClick={e => e.stopPropagation()}
+        <button
+          className={styles["create-notification-btn"]}
+          onClick={() => setShowModal(true)}
         >
-          <div className={styles["modal-header"]}>
-            <h2>Đăng thông báo</h2>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            <div className={styles["modal-body"]}>
-              {/* giữ nguyên form */}
-            </div>
-
-            <div className={styles["modal-footer"]}>
-              <button className={styles["submit-btn"]}>
-                Đăng thông báo
-              </button>
-            </div>
-          </form>
-        </div>
+          Đăng thông báo
+        </button>
       </div>
-    )}
-  </div>
+
+      {/* MODAL CREATE */}
+      {showModal && (
+        <div
+          className={styles.modal}
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className={styles["modal-content"]}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2>Đăng thông báo</h2>
+
+            <form onSubmit={handleSubmit}>
+              <input
+                placeholder="Tiêu đề"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                required
+              />
+
+              <select
+                value={notificationType}
+                onChange={e =>
+                  setNotificationType(
+                    e.target.value as Notification["notificationType"]
+                  )
+                }
+              >
+                <option value="SYSTEM">SYSTEM</option>
+                <option value="PROMOTION">PROMOTION</option>
+                <option value="PERSONAL">PERSONAL</option>
+                <option value="ORDER">ORDER</option>
+              </select>
+
+              <textarea
+                placeholder="Nội dung thông báo"
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                required
+              />
+
+              <button type="submit">Đăng</button>
+            </form>
+          </div>
+        </div>
+      )}
+      {successMsg && (
+        <div className={styles["success-toast"]}>
+          {successMsg}
+        </div>
+      )}
+    </div>
   );
 };
 
