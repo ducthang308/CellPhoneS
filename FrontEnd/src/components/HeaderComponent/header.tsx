@@ -6,7 +6,7 @@ import type { TabsProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { UserCog, ShoppingCart, History, LogOut } from 'lucide-react';
-import { GetCategory } from "../../services/CategoryService";
+import CategoryService from "../../services/CategoryService";
 import type { ICategory } from "../../services/Interface";
 
 interface TabItem {
@@ -35,7 +35,7 @@ const Header = () => {
   );
 
   useEffect(() => {
-    GetCategory()
+    CategoryService.getCategories()
       .then(setCategories)
       .catch(err => console.error("GetCategory error:", err.message));
   }, []);
@@ -67,16 +67,34 @@ const Header = () => {
     [categories]
   );
 
+  const allProductsTab: TabItem = {
+    key: "all",
+    label: "Tất cả",
+    route: "/products",
+  };
+
   const staticTabs: TabItem[] = [
     { key: "blog", label: "Blog về chúng tôi", route: "/about" },
     { key: "history", label: "Lịch sử mua hàng", route: "/historyOrder" },
   ];
 
-  const allTabs: TabItem[] = [...categoryTabs, ...staticTabs];
+  const allTabs: TabItem[] = [
+    allProductsTab,
+    ...categoryTabs,
+    ...staticTabs,
+  ];
+
 
   const activeKey = useMemo(() => {
+    if (categories.length === 0) return undefined;
+
     const params = new URLSearchParams(location.search);
-    const categoryId = params.get("categoryId");
+    const categoryId =
+      params.get("categoryId") || params.get("category_id");
+
+    if (location.pathname === "/products" && !categoryId) {
+      return "all";
+    }
 
     if (categoryId) return `cat-${categoryId}`;
 
@@ -85,15 +103,20 @@ const Header = () => {
     );
 
     return staticTab?.key;
-  }, [location.pathname, location.search]);
+  }, [categories.length, location.pathname, location.search]);
+
 
 
   const handleTabChange = (key: string) => {
     const tab = allTabs.find(t => t.key === key);
     if (!tab) return;
 
-    if (tab.key.startsWith("cat-")) {
-      const categoryId = tab.key.replace("cat-", "");
+    if (key === "all") {
+      navigate("/products");
+    }
+
+    else if (key.startsWith("cat-")) {
+      const categoryId = key.replace("cat-", "");
       const params = new URLSearchParams();
 
       params.set("categoryId", categoryId);
@@ -110,6 +133,7 @@ const Header = () => {
 
     setDropdownOpen(false);
   };
+
 
 
   const items: TabsProps["items"] = allTabs.map(tab => ({

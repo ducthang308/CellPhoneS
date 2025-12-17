@@ -26,7 +26,8 @@ const CartPage: React.FC = () => {
       const cartIdStr = localStorage.getItem("cartId");
 
       if (!cartIdStr) {
-        navigate("/login", { state: { redirectTo: "/cartShop" } });
+        setCartItems([]);
+        setLoading(false);
         return;
       }
 
@@ -34,19 +35,17 @@ const CartPage: React.FC = () => {
         const cartId = Number(cartIdStr);
         if (Number.isNaN(cartId)) {
           localStorage.removeItem("cartId");
-          navigate("/login");
+          setCartItems([]);
           return;
         }
 
         const details = await cartDetailService.getByCartId(cartId);
 
-        const items: CartItem[] = details.map(
-          (detail: CartDetailResponse) => ({
-            ...detail.product,
-            quantity: 1,
-            cartDetailsId: detail.cartDetailsId,
-          })
-        );
+        const items: CartItem[] = details.map((detail) => ({
+          ...detail.product,
+          quantity: 1,
+          cartDetailsId: detail.cartDetailsId,
+        }));
 
         setCartItems(items);
       } catch (err) {
@@ -58,7 +57,8 @@ const CartPage: React.FC = () => {
     };
 
     loadCart();
-  }, [user, navigate]);
+  }, []);
+
 
   const updateQuantity = (productId: number, delta: number) => {
     setCartItems((prev) =>
