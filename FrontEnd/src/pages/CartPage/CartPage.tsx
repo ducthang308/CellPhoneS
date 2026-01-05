@@ -116,7 +116,7 @@ const CartPage: React.FC = () => {
       for (const item of cartItems) {
         await orderDetailService.create({
           orderID: orderId,
-          productID: item.productId,
+          productID: item.productId ?? 0,
           quantity: item.quantity,
         });
       }
@@ -175,11 +175,11 @@ const CartPage: React.FC = () => {
 
                 <div className="quantity-and-price">
                   <div className="quantity-box">
-                    <button onClick={() => updateQuantity(item.productId, -1)}>
+                    <button onClick={() => updateQuantity(item.productId ?? 0, -1)}>
                       -
                     </button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.productId, 1)}>
+                    <button onClick={() => updateQuantity(item.productId ?? 0, 1)}>
                       +
                     </button>
                   </div>
