@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 import { notificationService } from '../../services/NotificationService';
-import type { Notification } from '../../services/NotificationService';
+import type { Notification } from '../../services/Interface';
 
 const NotificationsPage: React.FC = () => {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -52,7 +52,7 @@ const NotificationsPage: React.FC = () => {
     try {
       await notificationService.markAsRead(id);
       setNotifications(prev =>
-        prev.map(notif => notif.id === id ? { ...notif, isRead: true } : notif)
+        prev.map(notif => notif.notificationId === id ? { ...notif, isRead: true } : notif)
       );
     } catch (err) {
       console.error('Lỗi đánh dấu đã đọc');
@@ -73,7 +73,7 @@ const NotificationsPage: React.FC = () => {
     if (!confirm('Xóa thông báo này?')) return;
     try {
       await notificationService.deleteNotification(id);
-      setNotifications(prev => prev.filter(n => n.id !== id));
+      setNotifications(prev => prev.filter(n => n.notificationId !== id));
     } catch (err) {
       alert('Xóa thất bại');
     }
@@ -131,9 +131,9 @@ const NotificationsPage: React.FC = () => {
           <div className="notifications-list">
             {notifications.map((notif) => (
               <div
-                key={notif.id}
+                key={notif.notificationId}
                 className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
-                onClick={() => !notif.isRead && markAsRead(notif.id)}
+                onClick={() => !notif.isRead && markAsRead(notif.notificationId)}
               >
                 <div className="notification-icon" style={{ backgroundColor: getTypeColor(notif.notificationType) }}>
                   {getTypeIcon(notif.notificationType)}
@@ -154,7 +154,7 @@ const NotificationsPage: React.FC = () => {
                     className="delete-btn"
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteNotification(notif.id);
+                      deleteNotification(notif.notificationId);
                     }}
                   >
                     <Trash2 size={18} />

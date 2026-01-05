@@ -258,9 +258,9 @@ const StockManagement = () => {
               className={styles["add-account-btn"]}
               onClick={() => {
                 if (currentTab === "nhap") {
-                    navigate("/stockin_receipt");
+                    navigate("/admin/stockin_receipt");
                 } else {
-                    navigate("/stockout_receipt");
+                    navigate("/admin/stockout_receipt");
                 }
                 }}
                 >

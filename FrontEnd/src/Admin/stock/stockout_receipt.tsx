@@ -26,7 +26,7 @@ const StockoutReceipt = () => {
     // axios.post("/QuanLyKho/ThemPhieuXuat", payload)
 
     alert("✅ Thêm phiếu xuất kho thành công");
-    navigate("/QuanLyKho");
+    navigate("/admin/stock_management");
   };
 
   /* ================= RENDER ================= */
@@ -51,7 +51,7 @@ const StockoutReceipt = () => {
         <div className={styles["tabs-container"]}>
           <div
             className={styles.tab}
-            onClick={() => navigate("/stockin_receipt")}
+            onClick={() => navigate("/admin/stockin_receipt")}
           >
             Nhập kho
           </div>

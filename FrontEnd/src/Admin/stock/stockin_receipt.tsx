@@ -42,7 +42,7 @@ const StockinReceipt = () => {
       <div className={styles["content-header"]}>
         <div
           className={styles["content-header"]}
-          onClick={() => navigate("/stock_management")}
+          onClick={() => navigate("/admin/stock_management")}
           style={{ cursor: "pointer" }}
         >
           <div className={styles["back-button"]}>
@@ -60,7 +60,7 @@ const StockinReceipt = () => {
           </div>
           <div
             className={styles.tab}
-            onClick={() => navigate("/stockout_receipt")}
+            onClick={() => navigate("/admin/stockout_receipt")}
             style={{ cursor: "pointer" }}
           >
             Xuất kho

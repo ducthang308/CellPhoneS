@@ -45,6 +45,10 @@ import StockoutReceipt from "./Admin/stock/stockout_receipt";
 
 import Sales_And_Quantity from "./Admin/statistical/sales_and_quantity";
 
+import BrandsView from "./Admin/brand/BrandsPage";
+import AddBrandView from "./Admin/brand/BrandCreateView";
+import BrandEditView from "./Admin/brand/BrandEditView";
+
 import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
@@ -87,6 +91,10 @@ function App() {
           <Route path="products" element={<Product />} />
           <Route path="products/create" element={<AddProduct />} />
           <Route path="products/edit/:id" element={<UpdateDeleteProduct />} />
+
+          <Route path="brands" element={<BrandsView />} />
+          <Route path="brands/create" element={<AddBrandView />} />
+          <Route path="brands/edit/:id" element={<BrandEditView />} />
 
           <Route path="suppliers" element={<Supplier />} />
           <Route path="supplier/create" element={<SupplierForm />} />

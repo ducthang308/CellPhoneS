@@ -32,5 +32,24 @@ export const notificationService = {
 
   delete: async (notificationId: number) => {
     return axiosClient.delete(`/api/notifications/${notificationId}`);
+  },
+
+  /* ================= USER ================= */
+  getUserNotifications: async (userId: number): Promise<Notification[]> => {
+    const res = await axiosClient.get(`/api/notifications/user/${userId}`);
+    return res.data;
+  },
+
+  markAsRead: async (id: number) => {
+    return axiosClient.put(`/api/notifications/${id}/read`);
+  },
+
+  markAllAsRead: async (userId: number) => {
+    return axiosClient.put(`/api/notifications/user/${userId}/read-all`);
+  },
+
+  deleteNotification: async (id: number) => {
+    return axiosClient.delete(`/api/notifications/${id}`);
   }
 };
+
