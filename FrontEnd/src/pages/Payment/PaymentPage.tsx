@@ -1,5 +1,7 @@
 import React from 'react';
 import './PaymentPage.css';
+import { createPortal } from "react-dom";
+
 
 const PaymentPage: React.FC = () => {
   // Fake data để test (sau này thay bằng dữ liệu từ API hoặc context)
@@ -18,6 +20,26 @@ const PaymentPage: React.FC = () => {
     email: "tanquanghuy.2302@gmail.com",
     address: "241 Lê Văn Việt, P. Hiệp Phú, Q.9, TP. HCM",
     note: "tôi chỉ test",
+  };
+
+  const [isPaying, setIsPaying] = React.useState(false);
+
+  const handlePay = async () => {
+    if (isPaying) return;
+
+    try {
+      setIsPaying(true);
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      alert("Thanh toán thành công!");
+
+    } catch (err) {
+      console.error(err);
+      alert("Thanh toán thất bại");
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   const formatPrice = (price: number): string => {
@@ -118,18 +140,33 @@ const PaymentPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tổng tiền cuối và nút thanh toán */}
       <div className="bottom-bar">
         <div className="final-total">
           <span>Tổng tiền tạm tính:</span>
           <span className="final-amount">{formatPrice(orderSummary.total)}</span>
         </div>
-        <button className="pay-button">Thanh toán</button>
+        <button
+          className="pay-button"
+          onClick={handlePay}
+          disabled={isPaying}
+        >
+          Thanh toán
+        </button>
       </div>
 
       <div className="product-check">
         Kiểm tra danh sách sản phẩm (2)
       </div>
+      {isPaying &&
+        createPortal(
+          <div className="fullscreen-loading">
+            <div className="loading-box">
+              <div className="spinner-lg"></div>
+              <p>Đang xác nhận thanh toán...</p>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

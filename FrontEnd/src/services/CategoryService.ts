@@ -1,94 +1,23 @@
-import axiosClient from './AxiosClient';
-import type { ICategory } from './Interface';
+import axios from "axios";
+import type { ICategory } from "./Interface";
+import axiosClient from "./AxiosClient";
 
-const categoryService = {
-  getAllCategories: async (): Promise<ICategory[]> => {
-    try {
-      const res = await axiosClient.get('/api/categories');
-
-      if (!Array.isArray(res.data)) {
-        console.warn('API không trả array, fallback []');
-        return [];
-      }
-
-      return res.data;
-    } catch (error) {
-      console.error('getAllCategories failed', error);
-      return [];
-    }
-  },
-
-  async getCategoryById(id: number): Promise<ICategory> {
-    const res = await axiosClient.get<ICategory>(`/api/categories/${id}`);
-    return res.data;
-  },
-
-  async createCategory(
-    data: Omit<ICategory, 'categoryId'>
-  ): Promise<ICategory> {
-    const token = localStorage.getItem('accessToken');
-
-    if (!token) {
-      throw new Error('Chưa đăng nhập');
-    }
-
-    const res = await axiosClient.post(
-      '/api/categories',
-      {
-        categoryName: data.categoryName,
-        description: data.description ?? null,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return res.data;
-  },
-
-  async updateCategory(
-    id: number,
-    data: Omit<ICategory, 'categoryId'>
-  ): Promise<ICategory> {
-    const token = localStorage.getItem('accessToken');
-
-    if (!token) {
-      throw new Error('Chưa đăng nhập');
-    }
-
-    const res = await axiosClient.put(
-      `/api/categories/${id}`,
-      {
-        categoryName: data.categoryName,
-        description: data.description ?? null,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return res.data;
-  },
-
-  async deleteCategory(id: number): Promise<boolean> {
-    const token = localStorage.getItem('accessToken');
-
-    if (!token) {
-      throw new Error('Chưa đăng nhập');
-    }
-
-    await axiosClient.delete(`/api/categories/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return true;
-  },
+const CategoryService = {
+    async getCategories(): Promise<ICategory[]> {
+        try {
+            const response = await axiosClient.get<ICategory[]>("/api/categories");
+            return response.data;
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                const message =
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Không thể lấy thông tin Category";
+                throw new Error(message);
+            }
+            throw new Error("Không thể lấy thông tin Category");
+        }
+    },
 };
 
-export default categoryService;
+export default CategoryService;

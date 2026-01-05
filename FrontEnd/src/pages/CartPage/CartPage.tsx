@@ -20,13 +20,16 @@ const CartPage: React.FC = () => {
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
 
   useEffect(() => {
     const loadCart = async () => {
       const cartIdStr = localStorage.getItem("cartId");
 
       if (!cartIdStr) {
-        navigate("/login", { state: { redirectTo: "/cartShop" } });
+        setCartItems([]);
+        setLoading(false);
         return;
       }
 
@@ -34,19 +37,17 @@ const CartPage: React.FC = () => {
         const cartId = Number(cartIdStr);
         if (Number.isNaN(cartId)) {
           localStorage.removeItem("cartId");
-          navigate("/login");
+          setCartItems([]);
           return;
         }
 
         const details = await cartDetailService.getByCartId(cartId);
 
-        const items: CartItem[] = details.map(
-          (detail: CartDetailResponse) => ({
-            ...detail.product,
-            quantity: 1,
-            cartDetailsId: detail.cartDetailsId,
-          })
-        );
+        const items: CartItem[] = details.map((detail) => ({
+          ...detail.product,
+          quantity: 1,
+          cartDetailsId: detail.cartDetailsId,
+        }));
 
         setCartItems(items);
       } catch (err) {
@@ -58,7 +59,8 @@ const CartPage: React.FC = () => {
     };
 
     loadCart();
-  }, [user, navigate]);
+  }, []);
+
 
   const updateQuantity = (productId: number, delta: number) => {
     setCartItems((prev) =>
@@ -82,7 +84,11 @@ const CartPage: React.FC = () => {
   };
 
   const handleConfirmOrder = async () => {
+    if (isPlacingOrder) return;
+
     try {
+      setIsPlacingOrder(true);
+
       const userStr = localStorage.getItem("user");
       if (!userStr) {
         alert("Vui lòng đăng nhập");
@@ -90,9 +96,15 @@ const CartPage: React.FC = () => {
         return;
       }
 
+      const cartIdStr = localStorage.getItem("cartId");
+      if (!cartIdStr) {
+        alert("Không tìm thấy giỏ hàng");
+        return;
+      }
+
+      const cartId = Number(cartIdStr);
       const user = JSON.parse(userStr);
 
-      /* ================= 1️⃣ CREATE ORDER ================= */
       const order = await orderService.create({
         userID: user.userId,
         status: "PENDING",
@@ -101,7 +113,6 @@ const CartPage: React.FC = () => {
 
       const orderId = order.orderID;
 
-      /* ================= 2️⃣ CREATE ORDER DETAILS ================= */
       for (const item of cartItems) {
         await orderDetailService.create({
           orderID: orderId,
@@ -110,16 +121,18 @@ const CartPage: React.FC = () => {
         });
       }
 
-      /* ================= 3️⃣ CLEAR CART (OPTIONAL) ================= */
-      // Có thể gọi API xoá cart-detail hoặc giữ lại tuỳ logic
-      // localStorage.removeItem("cartId");
+      await cartDetailService.deleteByCartId(cartId);
 
-      /* ================= 4️⃣ REDIRECT ================= */
+      setCartItems([]);
+      localStorage.removeItem("cartId");
+
       navigate(`/order/${orderId}`);
 
     } catch (err) {
       console.error(err);
       alert("Đặt hàng thất bại");
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -152,6 +165,7 @@ const CartPage: React.FC = () => {
           {cartItems.map((item) => (
             <div key={item.cartDetailsId} className="cart-item">
               <img
+                className="item-img"
                 src={item.productImages?.[0]?.url || "/no-image.png"}
                 alt={item.name}
               />
@@ -236,6 +250,14 @@ const CartPage: React.FC = () => {
           </form>
         </div>
       </div>
+      {isPlacingOrder && (
+        <div className="fullscreen-loading">
+          <div className="loading-box">
+            <div className="spinner-lg"></div>
+            <p>Đang xử lý đơn hàng...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

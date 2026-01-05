@@ -3,9 +3,19 @@ import type { IProduct, ProductImage } from './Interface';
 import { normalizeProduct } from "../adapter/normalizeProduct";
 
 const productService = {
-  getAllProducts: async (): Promise<IProduct[]> => {
+  getAllProducts: async (
+    keyword?: string,
+    categoryId?: string
+  ): Promise<IProduct[]> => {
     try {
-      const response = await axiosClient.get("/api/products");
+      const params = new URLSearchParams();
+
+      if (keyword) params.set("keyword", keyword);
+      if (categoryId) params.set("categoryId", categoryId);
+
+      const response = await axiosClient.get(
+        `/api/products?${params.toString()}`
+      );
 
       if (!Array.isArray(response.data)) {
         console.warn("API không trả array, fallback []");
@@ -18,6 +28,7 @@ const productService = {
       return [];
     }
   },
+
 
   async getProductById(id: number): Promise<IProduct> {
     const res = await axiosClient.get<IProduct>(`/api/products/${id}`);
