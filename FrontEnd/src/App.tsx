@@ -48,8 +48,9 @@ import StockManagement from "./Admin/stock/manage_stock";
 import Batch from "./Admin/stock/batch";
 import StockinReceipt from "./Admin/stock/stockin_receipt";
 import StockoutReceipt from "./Admin/stock/stockout_receipt";
-
+import StockInDetail from "./Admin/stock/StockInDetail";
 import Sales_And_Quantity from "./Admin/statistical/sales_and_quantity";
+import StockOutDetail from "./Admin/stock/StockOutDetail";
 
 import BrandsView from "./Admin/brand/BrandsPage";
 import AddBrandView from "./Admin/brand/BrandCreateView";
@@ -126,11 +127,14 @@ function App() {
 
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          
 
           <Route path="stock_management" element={<StockManagement />} />
+          <Route path="stockin/:id" element={<StockInDetail />} />
           <Route path="batches" element={<Batch />} />
           <Route path="stockin_receipt" element={<StockinReceipt />} />
           <Route path="stockout_receipt" element={<StockoutReceipt />} />
+          <Route path="stockout/:id" element={<StockOutDetail />} />
 
           <Route
             path="sales_and_quantity"

@@ -20,7 +20,7 @@ const DanhMucForm: React.FC = () => {
 
       await categoryService.createCategory({
               categoryName: name.trim(),
-              description: description.trim() || undefined,
+              description: description.trim() ,
             });
 
       navigate("/admin/category");
