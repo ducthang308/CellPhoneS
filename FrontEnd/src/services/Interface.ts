@@ -42,6 +42,11 @@ export interface ICategory {
     description: string;
 }
 
+export interface CreateCategoryRequest {
+  categoryName: string;
+  description: string;
+}
+
 export interface ISpecification {
     specID: number;
     screen?: string;

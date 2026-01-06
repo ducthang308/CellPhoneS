@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./add_category.module.css";
 import categoryService from "../../services/CategoryService";
+import type { ICategory } from "../../services/Interface";
 
 const DanhMucForm: React.FC = () => {
   const navigate = useNavigate();
@@ -19,9 +20,9 @@ const DanhMucForm: React.FC = () => {
       setLoading(true);
 
       await categoryService.createCategory({
-              categoryName: name.trim(),
-              description: description.trim() ,
-            });
+  categoryName: name.trim(),
+  description: description.trim(),
+});
 
       navigate("/admin/category");
     } catch (err: any) {

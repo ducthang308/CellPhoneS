@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { IUser } from "../services/Interface";
-import { jwtDecode } from "jwt-decode";
-
 
 type AuthContextType = {
   user: IUser | null;

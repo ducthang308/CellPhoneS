@@ -16,7 +16,7 @@ const DanhMucPage: React.FC = () => {
     const fetchDanhMucs = async () => {
       try {
         setLoading(true);
-        const data = await categoryService.getAllCategories();
+        const data = await categoryService.getCategories();
         setCategory(data);
       } catch (err : any) {
         console.error("Fetch error:", err);
