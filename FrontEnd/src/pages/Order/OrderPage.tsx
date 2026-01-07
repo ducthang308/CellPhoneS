@@ -1,46 +1,43 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import "./OrderPage.css";
-import orderService from "../../services/OrderService";
-import orderDetailService from "../../services/OrderDetailService";
-import productService from "../../services/ProductService";
-import { useAuth } from "../../context/AuthContext";
-import paymentService from "../../services/PaymentService";
-import type { IProduct } from "../../services/Interface";
 
-interface OrderDetailItem {
-  id: number;
-  quantity: number;
-  product: IProduct;
-}
+import orderService from "../../services/OrderService";
+import paymentService from "../../services/PaymentService";
+import { useAuth } from "../../context/AuthContext";
+
+import type { OrderFullResponse, OrderProduct } from "../../services/Interface";
 
 const OrderPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const { user } = useAuth();
+  const [discountCode, setDiscountCode] = useState("");
+  const [applying, setApplying] = useState(false);
 
-  const [orderDetails, setOrderDetails] = useState<OrderDetailItem[]>([]);
+
+  const [order, setOrder] = useState<OrderFullResponse>({
+    orderID: 0,
+    orderDate: "",
+    status: "",
+    paymentStatus: "",
+    userID: 0,
+    subTotal: 0,
+    discountAmount: 0,
+    totalAmount: 0,
+    products: []   // 🔥 QUAN TRỌNG
+  });
+
   const [loading, setLoading] = useState(true);
+
+  /* ================= LOAD ORDER ================= */
 
   useEffect(() => {
     if (!orderId) return;
 
     const loadOrder = async () => {
       try {
-        const details = await orderDetailService.getByOrderId(Number(orderId));
-
-        const items: OrderDetailItem[] = await Promise.all(
-          details.map(async (d) => {
-            const product = await productService.getProductById(d.productId);
-
-            return {
-              id: d.id,
-              quantity: d.quantity,
-              product
-            };
-          })
-        );
-
-        setOrderDetails(items);
+        const data = await orderService.getById(Number(orderId));
+        setOrder(data);
       } catch (err) {
         console.error(err);
         alert("Không thể tải đơn hàng");
@@ -51,6 +48,8 @@ const OrderPage: React.FC = () => {
 
     loadOrder();
   }, [orderId]);
+
+  /* ================= PAYPAL ================= */
 
   const handlePayPalPayment = async () => {
     if (!orderId) return;
@@ -69,45 +68,33 @@ const OrderPage: React.FC = () => {
     }
   };
 
-  const summary = useMemo(() => {
-    const subtotal = orderDetails.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0
-    );
-
-    const discount = subtotal > 500000 ? 218000 : 0;
-
-    return {
-      quantity: orderDetails.reduce((sum, i) => sum + i.quantity, 0),
-      subtotal,
-      discount,
-      shipping: 0,
-      total: subtotal - discount,
-    };
-  }, [orderDetails]);
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat("vi-VN").format(price) + "đ";
+  const formatPrice = (price: number | undefined) =>
+    new Intl.NumberFormat("vi-VN").format(price ?? 0) + "đ";
 
   if (loading) return <div className="loading">Đang tải đơn hàng...</div>;
+  if (!order) return <div className="error">Không tìm thấy đơn hàng</div>;
+
+  /* ================= RENDER ================= */
 
   return (
     <div className="order-page">
       {/* ===== SẢN PHẨM ===== */}
-      {orderDetails.map((item) => (
-        <div key={item.id} className="product-section">
+      {order.products?.map((item) => (
+        <div key={item.productID} className="product-section">
           <img
-            src={item.product.productImages?.[0]?.url}
-            alt={item.product.name}
+            src={item.imageUrl || "/no-image.png"}
+            alt={item.name}
             className="product-image"
           />
           <div className="product-info">
-            <h3 className="product-title">{item.product.name}</h3>
+            <h3 className="product-title">{item.name}</h3>
+
             <div className="product-price">
               <span className="discounted-price">
-                {formatPrice(item.product.price)}
+                {formatPrice(item.price)}
               </span>
             </div>
+
             <div className="quantity">Số lượng: {item.quantity}</div>
           </div>
         </div>
@@ -126,44 +113,85 @@ const OrderPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ===== TỔNG TIỀN ===== */}
+      <div className="discount-box">
+        <input
+          type="text"
+          placeholder="Nhập mã giảm giá"
+          value={discountCode}
+          onChange={(e) => setDiscountCode(e.target.value)}
+        />
+        <button
+          disabled={!discountCode || applying}
+          onClick={async () => {
+            try {
+              setApplying(true);
+              const updated = await orderService.applyDiscount(
+                order.orderID,
+                discountCode
+              );
+              setOrder(updated);
+              setDiscountCode("");
+            } catch (e: any) {
+              alert(e?.response?.data?.message || "Mã giảm giá không hợp lệ");
+            } finally {
+              setApplying(false);
+            }
+          }}
+        >
+          Áp dụng
+        </button>
+      </div>
+
+
+      {/* ===== TỔNG TIỀN (BACKEND SNAPSHOT) ===== */}
       <div className="price-summary-full">
         <div className="summary-row">
           <span>Số lượng sản phẩm</span>
-          <span>{summary.quantity}</span>
+          <span>
+            {order.products.reduce((sum, p) => sum + p.quantity, 0)}
+          </span>
         </div>
+
         <div className="summary-row">
           <span>Tổng tiền hàng</span>
-          <span>{formatPrice(summary.subtotal)}</span>
+          <span>{formatPrice(order.subTotal)}</span>
         </div>
+
         <div className="summary-row">
           <span>Phí vận chuyển</span>
           <span className="free-shipping">Miễn phí</span>
         </div>
-        <div className="summary-row discount">
-          <span>Giảm giá trực tiếp</span>
-          <span>-{formatPrice(summary.discount)}</span>
-        </div>
+
+        {order.discountAmount > 0 && (
+          <div className="summary-row discount">
+            <span>Giảm giá</span>
+            <span>-{formatPrice(order.discountAmount)}</span>
+          </div>
+        )}
+
         <div className="total-row">
           <span>Tổng tiền</span>
           <span className="total-amount">
-            {formatPrice(summary.total)}
+            {formatPrice(order.totalAmount)}
           </span>
         </div>
 
         <div className="final-action">
           <div className="final-total">
-            <span>Tổng tiền tạm tính:</span>
+            <span>Tổng tiền thanh toán:</span>
             <span className="final-amount">
-              {formatPrice(summary.total)}
+              {formatPrice(order.totalAmount)}
             </span>
           </div>
-          <button
-            className="continue-button"
-            onClick={handlePayPalPayment}
-          >
-            Thanh toán
-          </button>
+
+          {order.paymentStatus === "UNPAID" && (
+            <button
+              className="continue-button"
+              onClick={handlePayPalPayment}
+            >
+              Thanh toán
+            </button>
+          )}
         </div>
       </div>
     </div>

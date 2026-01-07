@@ -33,6 +33,7 @@ export interface IUser {
     address?: string;
     avatar?: string | null;
     role: number;
+    cartId: number; 
 }
 
 
@@ -181,13 +182,19 @@ export interface OrderRequest {
 
 
 export interface OrderFullResponse {
-    orderID: number;
-    orderDate: string;
-    status: string;
-    paymentStatus: string;
-    userID: number;
-    products: OrderProduct[];
+  orderID: number;
+  orderDate: string;
+  status: string;
+  paymentStatus: string;
+  userID: number;
+
+  subTotal: number;
+  discountAmount: number;
+  totalAmount: number;
+
+  products: OrderProduct[];
 }
+
 
 export interface IReview {
     reviewID: number;
@@ -198,4 +205,13 @@ export interface IReview {
     comment: string;
     photoUrl?: string;
     videoUrl?: string;
+}
+
+export interface CreateOrderRequest {
+  userID: number;
+  discountCode?: string;
+  items: {
+    productId: number;
+    quantity: number;
+  }[];
 }

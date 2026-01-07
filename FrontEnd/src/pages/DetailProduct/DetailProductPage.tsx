@@ -83,7 +83,7 @@ export default function ProductDetail() {
       });
       return;
     }
-    const cartId = localStorage.getItem("cartId");
+    const cartId = user?.cartId;
 
     if (!cartId) {
       alert("Giỏ hàng chưa được khởi tạo, vui lòng thêm sản phẩm lại");

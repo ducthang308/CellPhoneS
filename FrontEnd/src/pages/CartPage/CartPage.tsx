@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CartPage.css";
+
 import orderService from "../../services/OrderService";
-import orderDetailService from "../../services/OrderDetailService";
-
-import { useAuth } from "../../context/AuthContext";
 import cartDetailService from "../../services/CartDetailService";
+import { useAuth } from "../../context/AuthContext";
 
-import type { IProduct, CartDetailResponse } from "../../services/Interface";
+import type { IProduct } from "../../services/Interface";
 
 interface CartItem extends IProduct {
   quantity: number;
@@ -22,45 +21,38 @@ const CartPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
+  /* ================= LOAD CART ================= */
 
   useEffect(() => {
-    const loadCart = async () => {
-      const cartIdStr = localStorage.getItem("cartId");
+  const loadCart = async () => {
+    if (!user?.cartId) {
+      setCartItems([]);
+      setLoading(false);
+      return;
+    }
 
-      if (!cartIdStr) {
-        setCartItems([]);
-        setLoading(false);
-        return;
-      }
+    try {
+      const details = await cartDetailService.getByCartId(user.cartId);
 
-      try {
-        const cartId = Number(cartIdStr);
-        if (Number.isNaN(cartId)) {
-          localStorage.removeItem("cartId");
-          setCartItems([]);
-          return;
-        }
+      const items: CartItem[] = details.map((detail) => ({
+        ...detail.product,
+        quantity: 1,
+        cartDetailsId: detail.cartDetailsId,
+      }));
 
-        const details = await cartDetailService.getByCartId(cartId);
+      setCartItems(items);
+    } catch (err) {
+      console.error(err);
+      alert("Không thể tải giỏ hàng");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const items: CartItem[] = details.map((detail) => ({
-          ...detail.product,
-          quantity: 1,
-          cartDetailsId: detail.cartDetailsId,
-        }));
+  loadCart();
+}, [user?.cartId]);
 
-        setCartItems(items);
-      } catch (err) {
-        console.error(err);
-        alert("Không thể tải giỏ hàng");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCart();
-  }, []);
-
+  /* ================= UPDATE QTY ================= */
 
   const updateQuantity = (productId: number, delta: number) => {
     setCartItems((prev) =>
@@ -71,6 +63,8 @@ const CartPage: React.FC = () => {
       )
     );
   };
+
+  /* ================= REMOVE ITEM ================= */
 
   const removeItem = async (cartDetailsId: number) => {
     try {
@@ -83,51 +77,42 @@ const CartPage: React.FC = () => {
     }
   };
 
+  /* ================= CONFIRM ORDER ================= */
+
   const handleConfirmOrder = async () => {
     if (isPlacingOrder) return;
+
+    if (!user) {
+      alert("Vui lòng đăng nhập");
+      navigate("/login");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert("Giỏ hàng trống");
+      return;
+    }
 
     try {
       setIsPlacingOrder(true);
 
-      const userStr = localStorage.getItem("user");
-      if (!userStr) {
-        alert("Vui lòng đăng nhập");
-        navigate("/login");
-        return;
-      }
-
-      const cartIdStr = localStorage.getItem("cartId");
-      if (!cartIdStr) {
-        alert("Không tìm thấy giỏ hàng");
-        return;
-      }
-
-      const cartId = Number(cartIdStr);
-      const user = JSON.parse(userStr);
-
-      const order = await orderService.create({
+      const orderPayload = {
         userID: user.userId,
-        status: "PENDING",
-        paymentStatus: "UNPAID",
-      });
-
-      const orderId = order.orderID;
-
-      for (const item of cartItems) {
-        await orderDetailService.create({
-          orderID: orderId,
-          productID: item.productId ?? 0,
+        items: cartItems.map((item) => ({
+          productId: item.productId!,
           quantity: item.quantity,
-        });
-      }
+        })),
+      };
 
-      await cartDetailService.deleteByCartId(cartId);
+      const order = await orderService.create(orderPayload);
+
+if (user?.cartId) {
+  await cartDetailService.deleteByCartId(user.cartId);
+}
+
 
       setCartItems([]);
-      localStorage.removeItem("cartId");
-
-      navigate(`/order/${orderId}`);
-
+      navigate(`/order/${order.orderID}`);
     } catch (err) {
       console.error(err);
       alert("Đặt hàng thất bại");
@@ -135,6 +120,8 @@ const CartPage: React.FC = () => {
       setIsPlacingOrder(false);
     }
   };
+
+  /* ================= TOTAL (CHỈ HIỂN THỊ) ================= */
 
   const totalPrice = useMemo(
     () =>
@@ -146,6 +133,8 @@ const CartPage: React.FC = () => {
   );
 
   if (loading) return <div className="loading">Đang tải giỏ hàng...</div>;
+
+  /* ================= RENDER ================= */
 
   return (
     <div className="cart-page">
@@ -208,7 +197,7 @@ const CartPage: React.FC = () => {
 
           <div className="cart-total">
             <div className="total-row">
-              <span>Tổng thanh toán:</span>
+              <span>Tổng thanh toán (tạm tính):</span>
               <strong>{totalPrice.toLocaleString("vi-VN")} ₫</strong>
             </div>
           </div>
@@ -217,27 +206,24 @@ const CartPage: React.FC = () => {
         <div className="cart-right">
           <h2>Thông tin đặt hàng</h2>
 
-          <form className="checkout-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              alert("Chưa tích hợp đặt hàng");
-            }}>
+          <div className="checkout-form">
             <input
               type="text"
               placeholder="Họ và tên *"
-              defaultValue={user?.fullName}
-              required
+              value={user?.fullName || ""}
+              readOnly
             />
             <input
               type="text"
               placeholder="Số điện thoại *"
-              defaultValue={user?.sdt}
-              required
+              value={user?.sdt || ""}
+              readOnly
             />
             <input
               type="email"
               placeholder="Email"
-              defaultValue={user?.email}
+              value={user?.email || ""}
+              readOnly
             />
 
             <button
@@ -247,9 +233,10 @@ const CartPage: React.FC = () => {
             >
               XÁC NHẬN VÀ ĐẶT HÀNG
             </button>
-          </form>
+          </div>
         </div>
       </div>
+
       {isPlacingOrder && (
         <div className="fullscreen-loading">
           <div className="loading-box">
