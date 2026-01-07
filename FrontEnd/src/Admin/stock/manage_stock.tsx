@@ -2,32 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./manage_stock.module.css";
 import { useNavigate } from "react-router-dom";
 
+import StockInService from "../../services/StockInService";
+import StockOutService from "../../services/StockOutService";
 
 /* ================= TYPES ================= */
-interface NhapKho {
-  idNhap: number;
-  sdt: string;
-  hoVaTen: string;
-  tenSanPham: string;
-  soLuongNhap: number;
-  ngayNhap?: string;
-  ghiChu?: string;
-}
-
-interface XuatKho {
-  idXuat: number;
-  sdt: string;
-  hoVaTen: string;
-  tenSanPham: string;
-  soLuongXuat: number;
-  ngayXuat?: string;
-  ghiChu?: string;
-}
-
 type TabType = "nhap" | "xuat";
 
 /* ================= COMPONENT ================= */
-const StockManagement = () => {
+const stock_management = () => {
   /* ===== STATE ===== */
   const [currentTab, setCurrentTab] = useState<TabType>("nhap");
   const [search, setSearch] = useState("");
@@ -35,52 +17,47 @@ const StockManagement = () => {
   const recordsPerPage = 5;
   const navigate = useNavigate();
 
-  const [nhapData, setNhapData] = useState<NhapKho[]>([]);
-  const [xuatData, setXuatData] = useState<XuatKho[]>([]);
+  const [nhapData, setNhapData] = useState<any[]>([]);
+  const [xuatData, setXuatData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  /* ===== MOCK DATA (thay API sau) ===== */
+  /* ===== CALL API ===== */
   useEffect(() => {
-    setNhapData([
-      {
-        idNhap: 1,
-        sdt: "0981111111",
-        hoVaTen: "Nguyễn Văn A",
-        tenSanPham: "iPhone 15",
-        soLuongNhap: 10,
-        ngayNhap: "2025-06-01",
-        ghiChu: "",
-      },
-      {
-        idNhap: 2,
-        sdt: "0982222222",
-        hoVaTen: "Trần Thị B",
-        tenSanPham: "Samsung S24",
-        soLuongNhap: 5,
-        ngayNhap: "2025-06-02",
-        ghiChu: "Nhập bổ sung",
-      },
-    ]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-    setXuatData([
-      {
-        idXuat: 101,
-        sdt: "0912345678",
-        hoVaTen: "Nguyễn Văn Thắng",
-        tenSanPham: "iPhone 15",
-        soLuongXuat: 2,
-        ngayXuat: "2025-06-10",
-        ghiChu: "",
-      },
-    ]);
-  }, []);
+        if (currentTab === "nhap") {
+          const res = await StockInService.getAll();
+          setNhapData(Array.isArray(res) ? res : []);
+        } else {
+          const res = await StockOutService.getStockOutAll();
+          console.log("StockOut raw response:", res);
+          setXuatData(Array.isArray(res) ? res : []);
+        }
+      } catch (e) {
+        console.error(e);
+        alert("❌ Không thể tải dữ liệu kho");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentTab]);
+
+  /* ===== SOURCE DATA THEO TAB ===== */
+  const sourceData = useMemo(() => {
+    return currentTab === "nhap" ? nhapData : xuatData;
+  }, [currentTab, nhapData, xuatData]);
 
   /* ===== FILTER + SEARCH ===== */
-  const sourceData = currentTab === "nhap" ? nhapData : xuatData;
-
   const filteredData = useMemo(() => {
     if (!search.trim()) return sourceData;
-    return sourceData.filter(item =>
-      JSON.stringify(item).toLowerCase().includes(search.toLowerCase())
+    return sourceData.filter((item) =>
+      JSON.stringify(item)
+        .toLowerCase()
+        .includes(search.toLowerCase())
     );
   }, [search, sourceData]);
 
@@ -94,7 +71,7 @@ const StockManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [currentTab, search]);
+  }, [search, currentTab]);
 
   /* ================= RENDER ================= */
   return (
@@ -117,7 +94,7 @@ const StockManagement = () => {
             type="text"
             placeholder="Tìm kiếm"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -154,33 +131,59 @@ const StockManagement = () => {
             <thead>
               <tr>
                 <th>{currentTab === "nhap" ? "ID Nhập" : "ID Xuất"}</th>
-                <th>SDT</th>
-                <th>Họ tên</th>
+                <th>Batch ID</th>
                 <th>Sản phẩm</th>
                 <th>Số lượng</th>
-                <th>Ngày</th>
+                <th>{currentTab === "nhap" ? "Ngày nhập" : "Ngày xuất"}</th>
                 <th>Ghi chú</th>
               </tr>
             </thead>
 
             <tbody>
-              {pageData.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className={styles["no-data"]}>
+                    Đang tải dữ liệu...
+                  </td>
+                </tr>
+              ) : pageData.length > 0 ? (
                 pageData.map((item: any) => (
-                  <tr key={item.idNhap ?? item.idXuat}>
+                  <tr
+                    key={
+                      currentTab === "nhap"
+                        ? item.stockInID
+                        : item.stockOutID
+                    }
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      if (currentTab === "nhap") {
+                        navigate(`/admin/stockin/${item.stockInID}`);
+                      } else {
+                        navigate(`/admin/stockout/${item.stockOutID}`);
+                      }
+                    }}
+                  >
                     <td>
                       <span className={styles["id-badge"]}>
-                        #{item.idNhap ?? item.idXuat}
+                        #
+                        {currentTab === "nhap"
+                          ? item.stockInID
+                          : item.stockOutID}
                       </span>
                     </td>
+
                     <td>
-                      <span className={styles["phone-badge"]}>{item.sdt}</span>
+                      {currentTab === "nhap"
+                        ? item.batchID ?? "—"
+                        : item.batch?.batchID ?? "—"}
                     </td>
+
                     <td>
-                      <span className={styles["name-badge"]}>
-                        {item.hoVaTen}
-                      </span>
+                      {currentTab === "xuat"
+                        ? item.batch?.product?.name ?? "—"
+                        : "—"}
                     </td>
-                    <td>{item.tenSanPham}</td>
+
                     <td>
                       <span
                         className={`${styles["quantity-badge"]} ${
@@ -189,24 +192,20 @@ const StockManagement = () => {
                             : styles.export
                         }`}
                       >
-                        {currentTab === "nhap"
-                          ? item.soLuongNhap
-                          : item.soLuongXuat}
+                        {item.quantity}
                       </span>
                     </td>
+
                     <td>
-                      {item.ngayNhap || item.ngayXuat
-                        ? new Date(
-                            item.ngayNhap ?? item.ngayXuat
-                          ).toLocaleDateString("vi-VN")
-                        : "N/A"}
+                      {item.date ? item.date.slice(0, 10) : "—"}
                     </td>
-                    <td>{item.ghiChu ?? ""}</td>
+
+                    <td>{item.note ?? ""}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className={styles["no-data"]}>
+                  <td colSpan={6} className={styles["no-data"]}>
                     <i className="fas fa-inbox"></i>
                     <p>Không có dữ liệu</p>
                   </td>
@@ -224,14 +223,17 @@ const StockManagement = () => {
               ? 0
               : (currentPage - 1) * recordsPerPage + 1}
             -
-            {Math.min(currentPage * recordsPerPage, filteredData.length)} của{" "}
-            {filteredData.length}
+            {Math.min(
+              currentPage * recordsPerPage,
+              filteredData.length
+            )}{" "}
+            của {filteredData.length}
           </div>
 
           <div className={styles["pagination-controls"]}>
             <button
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => p - 1)}
+              onClick={() => setCurrentPage((p) => p - 1)}
             >
               <i className="fas fa-chevron-left"></i>
             </button>
@@ -248,32 +250,31 @@ const StockManagement = () => {
 
             <button
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(p => p + 1)}
+              onClick={() => setCurrentPage((p) => p + 1)}
             >
               <i className="fas fa-chevron-right"></i>
             </button>
           </div>
 
           <button
-              className={styles["add-account-btn"]}
-              onClick={() => {
-                if (currentTab === "nhap") {
-                    navigate("/admin/stockin_receipt");
-                } else {
-                    navigate("/admin/stockout_receipt");
-                }
-                }}
-                >
-                    <i className="fas fa-plus"></i>
-                    {currentTab === "nhap"
-                    ? "Thêm phiếu nhập"
-                    : "Thêm phiếu xuất"}
+            className={styles["add-account-btn"]}
+            onClick={() => {
+              if (currentTab === "nhap") {
+                navigate("/admin/stockin_receipt");
+              } else {
+                navigate("/admin/stockout_receipt");
+              }
+            }}
+          >
+            <i className="fas fa-plus"></i>
+            {currentTab === "nhap"
+              ? "Thêm phiếu nhập"
+              : "Thêm phiếu xuất"}
           </button>
-
         </div>
       </div>
     </div>
   );
 };
 
-export default StockManagement;
+export default stock_management;
