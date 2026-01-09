@@ -123,18 +123,3 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.sm_actions button {
-  min-width: 56px;          /* ✅ không bị bóp */
-  height: 32px;
-  padding: 0 14px;
-
-  display: inline-flex;     /* ✅ chống bị đè */
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;           /* ✅ cực quan trọng */
-  white-space: nowrap;
-}
