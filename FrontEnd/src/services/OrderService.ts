@@ -25,7 +25,7 @@ const orderService = {
     getByUser(userId: number) {
         return axiosClient
             .get<OrderFullResponse[]>(`/api/order/user/${userId}`)
-            .then(res => res.data);
+            .then(res => res.data); 
     },
 
     // ADMIN xem danh sách order (summary)

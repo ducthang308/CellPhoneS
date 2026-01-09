@@ -5,7 +5,7 @@ import { Tabs } from 'antd';
 import type { TabsProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { UserCog, ShoppingCart, History, LogOut } from 'lucide-react';
+import { UserCog, ShoppingCart, History, LogOut, BadgePercent } from 'lucide-react';
 import CategoryService from "../../services/CategoryService";
 import type { ICategory } from "../../services/Interface";
 
@@ -255,6 +255,16 @@ const Header = () => {
                     <ShoppingCart size={20} />
                     <div>
                       <p className="title">Giỏ hàng & Thanh toán</p>
+                    </div>
+                  </div>
+
+                   <div
+                    className="dropdown-item"
+                    onClick={() => { navigate('/discount'); setDropdownOpen(false); }}
+                  >
+                    <BadgePercent size={20} />
+                    <div>
+                      <p className="title">Mã giảm giá</p>
                     </div>
                   </div>
 

@@ -1,96 +1,158 @@
-/* ===== PAGE ===== */
-.container {
-  padding: 24px;
-  background: #f6f8fb;
-  min-height: 100vh;
-  color: #111827;
+/* ===== ROOT ===== */
+.brandPage-root {
+  width: 100%;
+  background: #f5f7fb;
+}
+
+/* ===== CONTENT ===== */
+.brandPage-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
 }
 
 /* ===== HEADER ===== */
-.header {
+.brandPage-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 16px;
 }
 
-.header h1 {
+.brandPage-title {
   font-size: 22px;
   font-weight: 700;
+  color: #111827;
 }
 
 /* ===== ADD BUTTON ===== */
-.addBtn {
+.brandPage-addBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: #2563eb;
-  color: #ffffff;
+  color: #fff;
   border: none;
-  padding: 10px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.addBtn:hover {
+.brandPage-addBtn i {
+  font-size: 14px;
+}
+
+.brandPage-addBtn:hover {
   background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* ===== ERROR ===== */
+.brandPage-error {
+  color: #dc2626;
 }
 
 /* ===== TABLE ===== */
-.table {
+.brandPage-table {
   width: 100%;
+  background: #fff;
+  border-radius: 12px;
   border-collapse: separate;
   border-spacing: 0;
-  background: #ffffff;
-  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
 }
 
-.table th,
-.table td {
+.brandPage-table th,
+.brandPage-table td {
   padding: 14px 16px;
   text-align: center;
   font-size: 14px;
-  color: #111827;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.table th {
-  background: #f1f5f9;
+.brandPage-table th {
+  background: #2493f2;
+  color: #fff;
   font-weight: 600;
 }
 
-.table tr:hover {
-  background: #f8fafc;
-}
-
-.table tr:last-child td {
+.brandPage-table tr:last-child td {
   border-bottom: none;
 }
 
+/* ===== DESCRIPTION ===== */
+.brandPage-desc {
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ===== ACTIONS ===== */
-.actions {
+.brandPage-actions {
   display: flex;
   justify-content: center;
   gap: 10px;
 }
 
-.editBtn,
-.deleteBtn {
+.brandPage-editBtn,
+.brandPage-deleteBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
   border: none;
-  background: transparent;
   cursor: pointer;
-  font-size: 18px;
+  color: #fff;
 }
 
-.editBtn {
-  color: #2563eb;
+.brandPage-editBtn {
+  background: #2563eb;
 }
 
-.deleteBtn {
-  color: #dc2626;
+.brandPage-deleteBtn {  
+  background: #dc2626;
 }
 
-.editBtn:hover,
-.deleteBtn:hover {
-  opacity: 0.8;
+.brandPage-editBtn:hover,
+.brandPage-deleteBtn:hover {
+  opacity: 0.85;
+}
+
+/* ===== EMPTY ===== */
+.brandPage-empty {
+  padding: 32px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* ===== PAGINATION ===== */
+.brandPage-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.brandPage-pagination button {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.brandPage-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.brandPage-pageActive {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
 }

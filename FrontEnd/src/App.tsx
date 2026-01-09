@@ -56,6 +56,11 @@ import BrandsView from "./Admin/brand/BrandsPage";
 import AddBrandView from "./Admin/brand/BrandCreateView";
 import BrandEditView from "./Admin/brand/BrandEditView";
 
+import DiscountUpdate from "./Admin/discount/Discount_update.tsx";
+import DiscountPage from "./Admin/discount/Discount.tsx";
+import DiscountAdd from "./Admin/discount/Discount_add.tsx";
+import DiscountsPage from "./pages/Discount/discounts.tsx";
+
 import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
@@ -86,6 +91,7 @@ function App() {
             <Route path="/notification" element={<NotificationsPage />} />
             <Route path="/order/:orderId" element={<OrderPage />} />
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+            <Route path="discount" element={<DiscountsPage />} />
             <Route
               path="/product/:productId/reviews"
               element={<ProductReviewPage />}
@@ -113,6 +119,10 @@ function App() {
           <Route path="brands" element={<BrandsView />} />
           <Route path="brands/create" element={<AddBrandView />} />
           <Route path="brands/edit/:id" element={<BrandEditView />} />
+
+          <Route path="discounts" element={<DiscountPage />} />
+          <Route path="discounts/add" element={<DiscountAdd />} />
+          <Route path="discounts/:id/update" element={<DiscountUpdate />} />
 
           <Route path="suppliers" element={<Supplier />} />
           <Route path="supplier/create" element={<SupplierForm />} />

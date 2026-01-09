@@ -1,94 +1,110 @@
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #f3f4f6;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        min-height: 100vh;
-    }
+/* ===== PAGE ===== */
+.page {
+  padding: 32px;
+  background-color: #f5f7fb;
+  min-height: calc(100vh - 160px);
+}
 
-    .main-content {
-        flex: 1;
-        padding: 20px;
-        min-height: 100vh;
-    }
+/* ===== CENTER COLUMN ===== */
+.centerColumn {
+  max-width: 520px;
+  margin: 0 auto;
+}
 
-    .form-section {
-        display: flex;
-        flex-direction: column;
-        width: 75%;
-        padding: 16px;
-        margin: auto;
-    }
+/* ===== HEADER ===== */
+.pageHeader {
+  margin-bottom: 20px;
+}
 
-        .form-section form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+.pageHeader h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
 
-            .form-section form > div {
-                display: flex;
-                align-items: center;
-                gap: 16px;
-                justify-content: flex-start;
-            }
+.pageSubTitle {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
 
-            .form-section form label {
-                width: 150px;
-                text-align: left;
-                font-weight: bold;
-            }
+/* ===== FORM CARD ===== */
+.formCard {
+  background: #ffffff;
+  padding: 24px 28px;
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
 
-            .form-section form input,
-            .form-section form select,
-            .form-section form textarea {
-                width: 300px;
-                padding: 8px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                flex: none;
-            }
+/* ===== FORM GROUP ===== */
+.formGroup {
+  margin-bottom: 18px;
+}
 
+.formGroup label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
 
-        .form-section form .image-upload {
-            height: 128px;
-            justify-content: flex-start;
-            padding-left: 8px;
-        }
+/* ===== INPUT / TEXTAREA ===== */
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  resize: none;
+}
 
-        .form-section form .additional-images {
-            justify-content: flex-start;
-            padding-left: 158px; /* Để thẳng hàng với input */
-        }
+.formGroup input:focus,
+.formGroup textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
 
-            .form-section form .additional-images .image {
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                width: 64px;
-                height: 64px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+/* ===== ERROR ===== */
+.errorBox {
+  margin-top: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+}
 
-        .form-section form .buttons {
-            display: flex;
-            gap: 16px;
-            margin-top: 16px;
-            justify-content: center;
-        }
+/* ===== BUTTON ===== */
+.buttons {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
 
-            .form-section form .buttons button {
-                padding: 12px 32px;
-                border-radius: 4px;
-                color: white;
-                border: none;
-                font-size: 16px;
-            }
+.addBtn {
+  height: 40px;
+  padding: 0 24px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-            .form-section form .buttons .add {
-                background-color: #28a745;
-            }
+.addBtn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
 
-            
+.addBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

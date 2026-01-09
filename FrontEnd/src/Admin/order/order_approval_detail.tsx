@@ -2,69 +2,57 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./order_approval_detail.module.css";
 
-import OrderService from "../../services/OrderService";
-import StatusService from "../../services/StatusService";
-import OrderDetailService from "../../services/OrderDetailService";
-import ProductService from "../../services/ProductService";
+import OrderService from "../../services/StatusService";
+import type { OrderWithUserResponse } from "../../services/Interface";
 
-import type {
-  OrderResponse,
-  IUser,
-} from "../../services/Interface";
-
-/* ================= TYPES ================= */
-type OrderDetailVM = {
-  donHang: {
-    idDon: number;
-    ngayDat?: string | null;
-    tenNguoiNhan: string;
-    sdtNguoiNhan: string;
-    diaChiNhan: string;
-    ghiChu?: string;
-    trangThai: string;
-  };
-  chiTietDonHang: {
-    tenSanPham: string;
-    donGia: number;
-    soLuong: number;
-    thanhTien: number;
-    hinhAnh?: string | null;
-  }[];
+/* ================= VIEW MODEL ================= */
+type OrderApprovalVM = {
+  idDon: number;
+  ngayDat?: string;
+  tenNguoiNhan: string;
+  sdtNguoiNhan: string;
+  diaChiNhan: string;
+  trangThai: string;
+  paymentStatus: string;
   tongTien: number;
-  thanhTien: number;
-  phuongThucThanhToan: string;
 };
 
 /* ================= HELPERS ================= */
-const formatVND = (n: number) =>
-  `${Number(n || 0).toLocaleString("vi-VN")}đ`;
+const formatVND = (n?: number | null) =>
+  `${(n ?? 0).toLocaleString("vi-VN")} ₫`;
 
-const formatDate = (d?: string | null) => {
-  if (!d || typeof d !== "string") return "—";
-  return d.slice(0, 10).split("-").reverse().join("/");
-};
+const formatDate = (d?: string | null) =>
+  d ? d.slice(0, 10).split("-").reverse().join("/") : "—";
 
-const mapTrangThai = (status: string) => {
-  switch (status) {
-    case "PENDING": return "Chưa duyệt";
-    case "APPROVED": return "Đã duyệt";
-    case "SHIPPING": return "Đang giao";
-    case "COMPLETED": return "Hoàn thành";
-    case "REJECTED": return "Đã từ chối";
-    case "CANCELLED": return "Đã hủy";
-    default: return status;
+const mapTrangThai = (s: string) => {
+  switch (s) {
+    case "PENDING":
+      return "Chưa duyệt";
+    case "APPROVED":
+      return "Đã duyệt";
+    case "REJECTED":
+      return "Đã từ chối";
+    case "CANCELLED":
+      return "Đã hủy";
+    default:
+      return s;
   }
 };
 
 /* ================= COMPONENT ================= */
-const OrderDetailPage = () => {
+const OrderApprovalDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState<OrderDetailVM | null>(null);
+  const [order, setOrder] = useState<OrderApprovalVM | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /* ================= FETCH ================= */
+  /* ===== confirm modal ===== */
+  const [confirmType, setConfirmType] =
+    useState<"APPROVE" | "REJECT" | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  /* ================= LOAD DATA ================= */
   useEffect(() => {
     if (!id || isNaN(Number(id))) return;
 
@@ -72,132 +60,181 @@ const OrderDetailPage = () => {
       try {
         setLoading(true);
 
-        /* ===== 1️⃣ ORDER ===== */
-        const order: OrderResponse = await OrderService.getById(Number(id));
+        const orders: OrderWithUserResponse[] =
+          await OrderService.getOrdersWithUser();
 
-        /* ===== 2️⃣ USER ===== */
-        let user: IUser = {
-          userId: 0,
-          fullName: "—",
-          sdt: "—",
-          address: "—",
-        };
-
-        if (order.userID) {
-          try {
-            user = await StatusService.getUserById(order.userID);
-          } catch {}
-        }
-
-        /* ===== 3️⃣ ORDER DETAILS ===== */
-        const details = await OrderDetailService.getByOrderId(order.orderID);
-
-        /* ===== 4️⃣ PRODUCTS ===== */
-        const items = await Promise.all(
-          details.map(async d => {
-            const product = await ProductService.getProductById(d.productId);
-            const price = Number(product.price || 0);
-
-            return {
-              tenSanPham: product.name,
-              donGia: price,
-              soLuong: d.quantity,
-              thanhTien: price * d.quantity,
-              hinhAnh: product.productImages?.[0]?.url ?? null,
-            };
-          })
+        const found = orders.find(
+          o => o.orderId === Number(id)
         );
 
-        const tongTien = items.reduce((s, i) => s + i.thanhTien, 0);
+        if (!found) {
+          alert("Không tìm thấy đơn hàng");
+          navigate("/admin/order_approval");
+          return;
+        }
 
-        setData({
-          donHang: {
-            idDon: order.orderID,
-            ngayDat: order.orderDate ?? null,
-            tenNguoiNhan: user.fullName ?? "—",
-            sdtNguoiNhan: user.sdt ?? "—",
-            diaChiNhan: user.address ?? "—",
-            ghiChu: order.note ?? "",
-            trangThai: mapTrangThai(order.status),
-          },
-          chiTietDonHang: items,
-          tongTien,
-          thanhTien: tongTien,
-          phuongThucThanhToan: order.paymentMethod ?? "PayPal",
+        setOrder({
+          idDon: found.orderId,
+          ngayDat: found.orderDate,
+          tenNguoiNhan: found.user?.fullName ?? "—",
+          sdtNguoiNhan: found.user?.phone ?? "—",
+          diaChiNhan: found.user?.address ?? "—",
+          trangThai: mapTrangThai(found.status),
+          paymentStatus: found.paymentStatus,
+          tongTien: found.totalAmount,
         });
       } catch (e) {
         console.error(e);
-        alert("Không tải được chi tiết đơn hàng");
+        alert("Không tải được đơn hàng");
       } finally {
         setLoading(false);
       }
     };
 
     load();
-  }, [id]);
+  }, [id, navigate]);
 
-  /* ================= APPROVE / REJECT ================= */
-  const updateStatus = async (status: "APPROVED" | "REJECTED") => {
-    if (!data) return;
+  /* ================= ACTION ================= */
+  const canApproveReject = useMemo(
+    () => order?.trangThai === "Chưa duyệt",
+    [order]
+  );
+
+  const handleConfirm = async () => {
+    if (!order || !confirmType) return;
 
     try {
-      await StatusService.updateStatus(data.donHang.idDon, status);
-      setData(prev =>
+      setConfirmLoading(true);
+
+      await OrderService.updateStatus(
+        order.idDon,
+        confirmType === "APPROVE" ? "APPROVED" : "REJECTED"
+      );
+
+      setOrder(prev =>
         prev
           ? {
               ...prev,
-              donHang: {
-                ...prev.donHang,
-                trangThai: status === "APPROVED" ? "Đã duyệt" : "Đã từ chối",
-              },
+              trangThai:
+                confirmType === "APPROVE"
+                  ? "Đã duyệt"
+                  : "Đã từ chối",
             }
           : prev
       );
+
+      setConfirmType(null);
     } catch {
       alert("Cập nhật trạng thái thất bại");
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
-  const canApproveReject = useMemo(() => {
-    const st = data?.donHang.trangThai;
-    return st === "Chưa duyệt";
-  }, [data]);
-
-  if (loading) return <div className={styles.page}>Đang tải dữ liệu...</div>;
-  if (!data) return null;
-
   /* ================= RENDER ================= */
+  if (loading)
+    return <div className={styles.oad_page}>Đang tải dữ liệu…</div>;
+
+  if (!order) return null;
+
   return (
-    <div className={styles.container}>
-      <button onClick={() => navigate("/admin/order_approval")}>
-        ← Quay lại
-      </button>
+    <>
+      <div className={styles.oad_container}>
+        <button
+          className={styles.oad_backBtn}
+          onClick={() => navigate("/admin/order_approval")}
+        >
+          ← Quay lại
+        </button>
 
-      <h2>Đơn hàng #{data.donHang.idDon}</h2>
-      <p>Ngày đặt: {formatDate(data.donHang.ngayDat)}</p>
-      <p>Khách hàng: {data.donHang.tenNguoiNhan}</p>
-      <p>SĐT: {data.donHang.sdtNguoiNhan}</p>
-      <p>Địa chỉ: {data.donHang.diaChiNhan}</p>
-      <p>Trạng thái: {data.donHang.trangThai}</p>
+        <h2 className={styles.oad_title}>
+          Đơn hàng #{order.idDon}
+        </h2>
 
-      {canApproveReject && (
-        <>
-          <button onClick={() => updateStatus("APPROVED")}>Duyệt</button>
-          <button onClick={() => updateStatus("REJECTED")}>Từ chối</button>
-        </>
-      )}
-
-      <hr />
-
-      {data.chiTietDonHang.map((p, i) => (
-        <div key={i}>
-          <strong>{p.tenSanPham}</strong> – x{p.soLuong} – {formatVND(p.thanhTien)}
+        <div className={styles.oad_infoBox}>
+          <p><strong>Ngày đặt:</strong> {formatDate(order.ngayDat)}</p>
+          <p><strong>Người nhận:</strong> {order.tenNguoiNhan}</p>
+          <p><strong>SĐT:</strong> {order.sdtNguoiNhan}</p>
+          <p><strong>Địa chỉ:</strong> {order.diaChiNhan}</p>
+          <p><strong>Thanh toán:</strong> {order.paymentStatus}</p>
+          <p>
+            <strong>Trạng thái:</strong>{" "}
+            <span className={styles.oad_statusPending}>
+              {order.trangThai}
+            </span>
+          </p>
         </div>
-      ))}
 
-      <h3>Tổng tiền: {formatVND(data.thanhTien)}</h3>
-    </div>
+        <div className={styles.oad_total}>
+          Tổng tiền: {formatVND(order.tongTien)}
+        </div>
+
+        {canApproveReject && (
+          <div className={styles.oad_actions}>
+            <button
+              className={styles.oad_btnApprove}
+              onClick={() => setConfirmType("APPROVE")}
+            >
+              ✔ Duyệt
+            </button>
+            <button
+              className={styles.oad_btnReject}
+              onClick={() => setConfirmType("REJECT")}
+            >
+              ✖ Từ chối
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ================= MODAL CONFIRM ================= */}
+      {confirmType && (
+        <div className={styles.oad_modalOverlay}>
+          <div className={styles.oad_modal}>
+            <h3
+              className={
+                confirmType === "APPROVE"
+                  ? styles.oad_modalTitleApprove
+                  : styles.oad_modalTitleReject
+              }
+            >
+              {confirmType === "APPROVE"
+                ? "Xác nhận duyệt đơn hàng"
+                : "Xác nhận từ chối đơn hàng"}
+            </h3>
+
+            <p className={styles.oad_modalText}>
+              {confirmType === "APPROVE"
+                ? "Bạn có chắc chắn muốn duyệt đơn hàng này không?"
+                : "Bạn có chắc chắn muốn từ chối đơn hàng này không?"}
+            </p>
+
+            <div className={styles.oad_modalActions}>
+              <button
+                className={styles.oad_modalCancel}
+                onClick={() => setConfirmType(null)}
+                disabled={confirmLoading}
+              >
+                Hủy
+              </button>
+
+              <button
+                className={
+                  confirmType === "APPROVE"
+                    ? styles.oad_modalConfirmApprove
+                    : styles.oad_modalConfirmReject
+                }
+                onClick={handleConfirm}
+                disabled={confirmLoading}
+              >
+                {confirmLoading ? "Đang xử lý…" : "Xác nhận"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
-export default OrderDetailPage;
+export default OrderApprovalDetailPage;

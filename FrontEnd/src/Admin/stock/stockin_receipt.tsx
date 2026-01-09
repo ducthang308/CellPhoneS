@@ -69,7 +69,7 @@ setBatches(data);
       console.error(error);
       alert(
         error?.response?.data?.message ||
-        "❌ Lỗi khi tạo phiếu nhập kho"
+        "Lỗi khi tạo phiếu nhập kho"
       );
     } finally {
       setLoading(false);
@@ -127,11 +127,11 @@ setBatches(data);
                 required
               >
                 <option value="">-- Chọn lô hàng --</option>
-                {batches.map((batch) => (
-                  <option key={batch.batchID} value={batch.batchID}>
-                     {batch.batchID}
-                  </option>
-                ))}
+                  {batches.map((batch) => (
+                    <option key={batch.batchID} value={batch.batchID}>
+                      {batch.product?.name ?? "Sản phẩm không tên"} (Batch #{batch.batchID})
+                    </option>
+                  ))}
               </select>
             </div>
 

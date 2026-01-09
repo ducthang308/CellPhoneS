@@ -2,15 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./order_approval.module.css";
 
-import OrderService from "../../services/OrderService";
-import StatusService from "../../services/StatusService";
-import OrderDetailService from "../../services/OrderDetailService";
-import ProductService from "../../services/ProductService";
-
-import type {
-  OrderResponse,
-  IUser,
-} from "../../services/Interface";
+import OrderService from "../../services/StatusService";
+import type { OrderWithUserResponse } from "../../services/Interface";
 
 /* ================= HELPERS ================= */
 const mapTrangThai = (status: string) => {
@@ -28,18 +21,19 @@ const mapTrangThai = (status: string) => {
   }
 };
 
-const formatDate = (d?: string | null) => {
-  if (!d || typeof d !== "string") return "—";
-  return d.slice(0, 10).split("-").reverse().join("/");
-};
+const formatDate = (d?: string | null) =>
+  d ? d.slice(0, 10).split("-").reverse().join("/") : "—";
 
 /* ================= VIEW MODEL ================= */
 interface OrderRowVM {
   orderId: number;
-  orderDate?: string | null;
+  orderDate: string;
   status: string;
+  paymentStatus: string;
   customerName: string;
-  productName: string;
+  phone: string;
+  address: string;
+  totalAmount: number;
 }
 
 /* ================= COMPONENT ================= */
@@ -48,6 +42,9 @@ const OrderApproval = () => {
 
   const [orders, setOrders] = useState<OrderRowVM[]>([]);
   const [loading, setLoading] = useState(true);
+
+  /* ===== SEARCH ===== */
+  const [keyword, setKeyword] = useState("");
 
   /* ===== PAGINATION ===== */
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,45 +56,21 @@ const OrderApproval = () => {
       try {
         setLoading(true);
 
-        // 1️⃣ lấy tất cả order
-        const rawOrders: OrderResponse[] = await OrderService.getAll();
+        const raw: OrderWithUserResponse[] =
+          await OrderService.getOrdersWithUser();
 
-        // chỉ lấy đơn chưa duyệt
-        const pendingOrders = rawOrders.filter(
-          o => o.status === "PENDING"
-        );
-
-        // 2️⃣ build view model (NHẸ – có guard chống 404)
-        const rows: OrderRowVM[] = await Promise.all(
-          pendingOrders.map(async (order) => {
-            /* ===== USER ===== */
-            let customerName = "—";
-            if (order.userID) {
-              try {
-                const user: IUser = await StatusService.getUserById(order.userID);
-                customerName = user.fullName ?? "—";
-              } catch {}
-            }
-
-            /* ===== PRODUCT (lấy sản phẩm đầu tiên) ===== */
-            let productName = "—";
-            try {
-              const details = await OrderDetailService.getByOrderId(order.orderID);
-              if (details.length > 0 && details[0].productId) {
-                const product = await ProductService.getProductById(details[0].productId);
-                productName = product.name ?? "—";
-              }
-            } catch {}
-
-            return {
-              orderId: order.orderID,
-              orderDate: order.orderDate ?? null,
-              status: order.status,
-              customerName,
-              productName,
-            };
-          })
-        );
+        const rows: OrderRowVM[] = raw
+          .filter(o => o.status === "PENDING")
+          .map(o => ({
+            orderId: o.orderId,
+            orderDate: o.orderDate,
+            status: o.status,
+            paymentStatus: o.paymentStatus,
+            totalAmount: o.totalAmount,
+            customerName: o.user?.fullName ?? "—",
+            phone: o.user?.phone ?? "—",
+            address: o.user?.address ?? "—"
+          }));
 
         setOrders(rows);
       } catch (err) {
@@ -111,44 +84,69 @@ const OrderApproval = () => {
     fetchOrders();
   }, []);
 
-  /* ================= PAGED DATA ================= */
-  const totalPages = Math.ceil(orders.length / pageSize);
+  /* ================= SEARCH FILTER ================= */
+  const filteredOrders = useMemo(() => {
+    const kw = keyword.trim().toLowerCase();
+
+    if (!kw) return orders;
+
+    return orders.filter(o =>
+      o.orderId.toString().includes(kw) ||
+      o.customerName.toLowerCase().includes(kw) ||
+      o.phone.toLowerCase().includes(kw)
+    );
+  }, [orders, keyword]);
+
+  /* ================= PAGINATION ================= */
+  const totalPages = Math.ceil(filteredOrders.length / pageSize);
 
   const pagedOrders = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return orders.slice(start, start + pageSize);
-  }, [orders, currentPage]);
+    return filteredOrders.slice(start, start + pageSize);
+  }, [filteredOrders, currentPage]);
 
+  /* reset page khi search */
   useEffect(() => {
     setCurrentPage(1);
-  }, [orders.length]);
+  }, [keyword]);
 
   /* ================= RENDER ================= */
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Danh sách đơn cần duyệt</h1>
+    <div className={styles.oa_container}>
+      <div className={styles.oa_header}>
+        <h1 className={styles.oa_title}>Danh sách đơn cần duyệt</h1>
+
+        {/* ===== SEARCH BOX ===== */}
+        <input
+          className={styles.oa_search}
+          placeholder="🔍 Tìm theo mã đơn, tên khách, SĐT..."
+          value={keyword}
+          onChange={e => setKeyword(e.target.value)}
+        />
+      </div>
 
       {loading ? (
-        <div className={styles.loading}>Đang tải dữ liệu...</div>
+        <div className={styles.oa_loading}>Đang tải dữ liệu...</div>
       ) : (
         <>
-          <table className={styles.table}>
+          <table className={styles.oa_table}>
             <thead>
               <tr>
                 <th>Mã đơn</th>
                 <th>Ngày đặt</th>
                 <th>Khách hàng</th>
-                <th>Sản phẩm</th>
+                <th>SĐT</th>
+                <th>Địa chỉ</th>
+                <th>Tổng tiền</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
 
             <tbody>
               {pagedOrders.length > 0 ? (
-                pagedOrders.map((o) => (
+                pagedOrders.map(o => (
                   <tr
                     key={o.orderId}
-                    style={{ cursor: "pointer" }}
                     onClick={() =>
                       navigate(`/admin/orders/${o.orderId}`)
                     }
@@ -156,14 +154,24 @@ const OrderApproval = () => {
                     <td>#{o.orderId}</td>
                     <td>{formatDate(o.orderDate)}</td>
                     <td>{o.customerName}</td>
-                    <td>{o.productName}</td>
-                    <td>{mapTrangThai(o.status)}</td>
+                    <td>{o.phone}</td>
+                    <td className={styles.oa_address}>
+                      {o.address}
+                    </td>
+                    <td>
+                      {o.totalAmount.toLocaleString("vi-VN")} ₫
+                    </td>
+                    <td>
+                      <span className={styles.oa_statusPending}>
+                        {mapTrangThai(o.status)}
+                      </span>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className={styles.noData}>
-                    Không có đơn cần duyệt
+                  <td colSpan={7} className={styles.oa_noData}>
+                    Không tìm thấy đơn phù hợp
                   </td>
                 </tr>
               )}
@@ -171,7 +179,7 @@ const OrderApproval = () => {
           </table>
 
           {/* ===== PAGINATION ===== */}
-          <div className={styles.pagination}>
+          <div className={styles.oa_pagination}>
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(p => p - 1)}

@@ -27,7 +27,6 @@ const SupplierEdit: React.FC = () => {
     fetchSupplier();
   }, [id, navigate]);
 
-
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -73,35 +72,44 @@ const SupplierEdit: React.FC = () => {
 
   return (
     <main className={styles.mainContent}>
-      <h1>Cập nhật nhà cung cấp</h1>
-
-      <form className={styles.formSection} onSubmit={handleUpdate}>
-        <div>
-          <label>Tên nhà cung cấp</label>
-          <input
-            type="text"
-            value={supplierName}
-            onChange={(e) => setSupplierName(e.target.value)}
-            disabled={loading}
-            required
-          />
+      <div className={styles.centerColumn}>
+        {/* HEADER */}
+        <div className={styles.pageHeader}>
+          <h1>Cập nhật nhà cung cấp</h1>
+          <p className={styles.pageSubTitle}>
+            Chỉnh sửa hoặc xóa thông tin nhà cung cấp
+          </p>
         </div>
 
-        <div className={styles.buttons}>
-          <button type="submit" className={styles.update} disabled={loading}>
-            {loading ? "Đang lưu..." : "Cập nhật"}
-          </button>
+        {/* FORM */}
+        <form className={styles.formSection} onSubmit={handleUpdate}>
+          <div className={styles.formGroup}>
+            <label>Tên nhà cung cấp</label>
+            <input
+              type="text"
+              value={supplierName}
+              onChange={(e) => setSupplierName(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
 
-          <button
-            type="button"
-            className={styles.delete}
-            onClick={handleDelete}
-            disabled={loading}
-          >
-            Xóa
-          </button>
-        </div>
-      </form>
+          <div className={styles.buttons}>
+            <button type="submit" className={styles.update} disabled={loading}>
+              {loading ? "Đang lưu..." : "Cập nhật"}
+            </button>
+
+            <button
+              type="button"
+              className={styles.delete}
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              Xóa
+            </button>
+          </div>
+        </form>
+      </div>
     </main>
   );
 };

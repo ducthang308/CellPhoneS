@@ -81,7 +81,7 @@ export interface ProductImage {
 }
 
 export interface Specification {
-    specId: number;
+    specId?: number;
     screen: string;
     cpu: string;
     ram: string;
@@ -98,8 +98,10 @@ export interface IProduct {
     stockQuantity: number;
     description?: string;
     brandId: number;
+
+    supplierId: number;
     categoryId: number;
-    specification?: Specification | null;
+    specification: Specification ;
     productImages?: ProductImage[];
 }
 
@@ -170,6 +172,7 @@ export interface OrderProduct {
     price: number;
     quantity: number;
     imageUrl?: string | null;
+    
 }
 
 export interface OrderRequest {
@@ -213,6 +216,8 @@ export interface CreateOrderRequest {
     productId: number;
     quantity: number;
   }[];
+}
+
 export interface Brand {
   brandId: number;
   name: string;
@@ -252,22 +257,99 @@ export interface StockInRequest {
 export interface StockInResponse {
   stockInID: number;
   quantity: number;
-  date: string;
   note?: string;
-  batchID?: number;
-  userId?: number;
-  
+  date?: string;
+  batch?: BatchResponse;
+  user?: UserDTO;
+}
+
+export interface UserDTO {
+  userId: number;
+  sdt?: string;
+  fullName?: string;
+  email?: string;
+  address?: string;
+  avatar?: string;
 }
 
 export interface BatchResponse {
   batchID: number;
+  productionDate?: string;
+  quantity?: number;
+  priceIn?: number;
+  expiry?: string;
+  product?: IProduct ;
 }
 
 export interface StockOutResponse {
-  stockOutID: number;
-  batchID?: number;
+  stockOutId: number;
+  batch?: BatchResponse;
   quantity: number;
-  date: string;
   note?: string;
-  userID?: number;
+  date?: string;
+  user?: UserDTO;
+}
+
+export interface StockOutRequest {
+  quantity: number;
+  date: string;       
+  note?: string;
+  batchId: number;     
+}
+
+export interface ISupplier {
+  supplierId: number;
+  supplierName: string;
+
+  // Optional – dùng khi mở rộng
+  phone?: string;
+  email?: string;
+  address?: string;
+  note?: string;
+
+  createdAt?: string;   // ISO string từ backend
+  updatedAt?: string;
+}
+
+export interface Discount {
+  id?: number;
+  code: string;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  maxDiscountAmount?: number | null;
+  usageLimit?: number | null;
+  usedCount?: number;
+  startAt?: string | null;
+  endAt?: string | null;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface User {
+    userId: number;
+    phone: string;
+    fullName?: string;
+    email?: string;
+    address?: string;
+    avatar?: string | null;
+    role?: number;
+}
+
+export interface OrderProductResponse {
+  productID: number;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string;
+}
+
+export interface OrderWithUserResponse {
+  orderId: number;
+  orderDate: string;
+  status: string;
+  paymentStatus: string;
+  totalAmount: number;
+  user: User;
+  products: OrderProductResponse[];
 }
