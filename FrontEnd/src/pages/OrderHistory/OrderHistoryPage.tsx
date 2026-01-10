@@ -7,6 +7,15 @@ import "./OrderHistoryPage.css";
 const PLACEHOLDER_IMG =
   "https://via.placeholder.com/100x100?text=No+Image";
 
+/* ================= STATUS TABS ================= */
+const STATUS_TABS = [
+  { key: "ALL", label: "Tất cả" },
+  { key: "PENDING", label: "Chờ xử lý" },
+  // { key: "REJECTED", label: "" },
+  { key: "APPROVED", label: "Đang giao" },
+  { key: "CANCELLED", label: "Đã hủy" }
+];
+
 const OrderHistoryPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -19,6 +28,7 @@ const OrderHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] =
     useState<OrderFullResponse | null>(null);
+  const [activeStatus, setActiveStatus] = useState<string>("ALL");
 
   /* ================= HELPERS ================= */
   const safeNumber = (v?: number | null) => v ?? 0;
@@ -75,16 +85,16 @@ const OrderHistoryPage: React.FC = () => {
             totalAmount: o.totalAmount ?? 0
           })
         );
-
         setOrders(safeOrders);
       })
-      .catch(err => {
-        console.error("❌ Lỗi load order:", err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch(err => console.error("❌ Load order error:", err))
+      .finally(() => setLoading(false));
   }, [userId]);
+
+  /* ================= FILTER ================= */
+  const filteredOrders = orders.filter(o =>
+    activeStatus === "ALL" ? true : o.status === activeStatus
+  );
 
   /* ================= RENDER ================= */
   return (
@@ -96,19 +106,43 @@ const OrderHistoryPage: React.FC = () => {
 
         <h1 className="ohp-title">Lịch sử đơn hàng</h1>
 
+        {/* ===== TABS ===== */}
+        <div className="ohp-tabs">
+          {STATUS_TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`ohp-tab ${
+                activeStatus === tab.key ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveStatus(tab.key);
+                setSelectedOrder(null);
+              }}
+            >
+              {tab.label}
+              <span className="ohp-tab-count">
+                {tab.key === "ALL"
+                  ? orders.length
+                  : orders.filter(o => o.status === tab.key)
+                      .length}
+              </span>
+            </button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="ohp-loading">Đang tải đơn hàng…</div>
         ) : (
           <div className="ohp-grid">
-            {/* LEFT */}
+            {/* ===== LEFT ===== */}
             <div className="ohp-list">
-              {orders.length === 0 && (
+              {filteredOrders.length === 0 && (
                 <div className="ohp-empty">
-                  Bạn chưa có đơn hàng nào
+                  Không có đơn hàng ở trạng thái này
                 </div>
               )}
 
-              {orders.map(order => (
+              {filteredOrders.map(order => (
                 <div
                   key={order.orderID}
                   className={`ohp-card ${
@@ -119,10 +153,7 @@ const OrderHistoryPage: React.FC = () => {
                   onClick={() =>
                     setSelectedOrder({
                       ...order,
-                      products: safeArray(order.products),
-                      subTotal: safeNumber(order.subTotal),
-                      discountAmount: safeNumber(order.discountAmount),
-                      totalAmount: safeNumber(order.totalAmount)
+                      products: safeArray(order.products)
                     })
                   }
                 >
@@ -153,7 +184,7 @@ const OrderHistoryPage: React.FC = () => {
               ))}
             </div>
 
-            {/* RIGHT */}
+            {/* ===== RIGHT ===== */}
             <div className="ohp-detail">
               {selectedOrder ? (
                 <>
@@ -184,7 +215,6 @@ const OrderHistoryPage: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* PRODUCTS */}
                   <div className="ohp-products">
                     {safeArray(selectedOrder.products).map(p => (
                       <div
@@ -213,7 +243,6 @@ const OrderHistoryPage: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* SUMMARY */}
                   <div className="ohp-summary">
                     <div>
                       <span>Tạm tính</span>
