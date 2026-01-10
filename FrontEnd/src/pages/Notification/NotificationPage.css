@@ -153,6 +153,46 @@
   font-size: 18px;
 }
 
+.title-with-bell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background: #2563eb;
+  border-radius: 50%;
+}
+
+.bell-wrapper {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 0 0 2px #fff;
+}
+
+
 /* Responsive */
 @media (max-width: 768px) {
   .notifications-header {
