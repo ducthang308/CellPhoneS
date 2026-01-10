@@ -49,7 +49,7 @@ const OrderApprovalDetailPage = () => {
 
   /* ===== confirm modal ===== */
   const [confirmType, setConfirmType] =
-    useState<"APPROVE" | "REJECT" | null>(null);
+    useState<"APPROVE" | "CANCELLED" | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   /* ================= LOAD DATA ================= */
@@ -108,7 +108,7 @@ const OrderApprovalDetailPage = () => {
 
       await OrderService.updateStatus(
         order.idDon,
-        confirmType === "APPROVE" ? "APPROVED" : "REJECTED"
+        confirmType === "APPROVE" ? "APPROVED" : "CANCELLED"
       );
 
       setOrder(prev =>
@@ -179,7 +179,7 @@ const OrderApprovalDetailPage = () => {
             </button>
             <button
               className={styles.oad_btnReject}
-              onClick={() => setConfirmType("REJECT")}
+              onClick={() => setConfirmType("CANCELLED")}
             >
               ✖ Từ chối
             </button>

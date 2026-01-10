@@ -9,7 +9,7 @@ const OrderService = {
     const res = await axiosClient.get("/api/order/list/with-user");
     return res.data;
   },
-  updateStatus: (id: number, status: "APPROVED" | "REJECTED") =>
+  updateStatus: (id: number, status: "APPROVED" | "CANCELLED") =>
     axiosClient.put(`/api/order/${id}`, { status }),
 };
 

@@ -35,10 +35,12 @@ const Sidebar: React.FC = () => {
         <Link to="/Admin/discounts" className={`${styles["lo-menu-item"]} ${isActive("discounts")}`}>
           <i className="ri-price-tag-3-line"></i> Quản lý mã giảm giá
         </Link>
-
-        <Link to="/Admin/sales_and_quantity" className={`${styles["lo-menu-item"]} ${isActive("sales_and_quantity")}`}>
-          <i className="ri-bar-chart-box-line"></i> Thống kê
-        </Link>
+<Link
+  to="/Admin/thongke"
+  className={`${styles["lo-menu-item"]} ${isActive("sales_and_quantity")}`}
+>
+  <i className="ri-bar-chart-box-line"></i> Thống kê
+</Link>
 
         <Link to="/Admin/manage_account" className={`${styles["lo-menu-item"]} ${isActive("manage_account")}`}>
           <i className="ri-user-line"></i> Quản lý tài khoản

@@ -65,6 +65,8 @@ import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
 import OrderStatusByTime from "./Admin/statistical/order_status_by_time";
+import StatLayout from "./Admin/statistical/StatLayout.tsx";
+
 
 function App() {
   return (
@@ -147,16 +149,20 @@ function App() {
           <Route path="stockout/:id" element={<StockOutDetail />} />
 
           <Route
-            path="sales_and_quantity"
-            element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />}
-          />
-          <Route path="product_value_over_time" element={<ProductValueOverTime />} />
-          <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
-          <Route path="inventory_quantity" element={<InventoryQuantity model={[]} danhSachNam={[]} />} />
-          <Route
-            path="order_status_by_time"
-            element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />}
-          />
+            path="thongke"
+            element={<StatLayout />}
+          >
+            <Route index element={<Sales_And_Quantity />} />
+            <Route path="sales_and_quantity" element={<Sales_And_Quantity />} />
+            <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+            <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+            <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
+            <Route path="inventory_quantity" element={<InventoryQuantity />} />
+            <Route
+              path="order_status_by_time"
+              element={<OrderStatusByTime/ >} 
+            />
+          </Route>
         </Route >
 
       </Routes >
