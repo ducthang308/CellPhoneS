@@ -45,7 +45,7 @@ import PendingOrders from "./Admin/order/order_approval";
 import OrderDetailPage from "./Admin/order/order_approval_detail";
 
 import StockManagement from "./Admin/stock/manage_stock";
-import Batch from "./Admin/stock/batch";
+import Batch from "./Admin/batch/batch.tsx";
 import StockinReceipt from "./Admin/stock/stockin_receipt";
 import StockoutReceipt from "./Admin/stock/stockout_receipt";
 import StockInDetail from "./Admin/stock/StockInDetail";
@@ -60,6 +60,13 @@ import DiscountUpdate from "./Admin/discount/Discount_update.tsx";
 import DiscountPage from "./Admin/discount/Discount.tsx";
 import DiscountAdd from "./Admin/discount/Discount_add.tsx";
 import DiscountsPage from "./pages/Discount/discounts.tsx";
+
+import BatchPage from "./Admin/batch/batch.tsx";
+import BatchDetail from "./Admin/batch/BatchDetail.tsx";
+import BatchUpdate from "./Admin/batch/BatchUpdate.tsx";
+import BatchAdd from "./Admin/batch/BatchAdd.tsx";
+
+import AdminChatPage from "./Admin/Chat/AdminChatPage";
 
 import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
@@ -140,6 +147,12 @@ function App() {
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
           
+          <Route path="batch" element={<BatchPage />} />
+          <Route path="batch/:id" element={<BatchDetail />} />
+          <Route path="batch/:id/edit" element={<BatchUpdate />} />
+          <Route path="batch/add" element={<BatchAdd />} />
+
+          <Route path="/admin/chat/:roomId" element={<AdminChatPage />} />
 
           <Route path="stock_management" element={<StockManagement />} />
           <Route path="stockin/:id" element={<StockInDetail />} />

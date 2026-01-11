@@ -2,6 +2,7 @@ import Sidebar from "../sidebar/Sidebar";
 import Header from "../headerAdmin/Header";
 import styles from "./style_frame.module.css";
 import { Outlet } from "react-router-dom";
+import FloatingChat from "../Chat/FloatingChat";
 
 const Layout = () => {
   return (
@@ -12,10 +13,10 @@ const Layout = () => {
         <Header />
 
         <div className={styles["lo-container"]} >
-          {/* 👇 ADMIN PAGE RENDER Ở ĐÂY */}
           <Outlet />
         </div>
       </div>
+       <FloatingChat roomId={1} />
     </div>
   );
 };
