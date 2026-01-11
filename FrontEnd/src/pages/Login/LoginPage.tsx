@@ -4,6 +4,8 @@ import "./LoginPage.css";
 import Register from "../Register/Register";
 import { login } from "../../services/UserService";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
+import { loginWithGoogle } from "../../services/UserService";
 
 const LoginPage = () => {
     const [phone, setPhone] = useState("");
@@ -50,6 +52,31 @@ const LoginPage = () => {
         setPassword("");
     };
 
+    const handleGoogleLogin = async (credential: string) => {
+        try {
+            const data = await loginWithGoogle(credential);
+
+            localStorage.setItem("accessToken", data.token);
+            localStorage.setItem("cartId", data.cartId.toString());
+            localStorage.setItem("role", data.role.toString());
+
+            const { token, ...userInfo } = data;
+            localStorage.setItem("user", JSON.stringify(userInfo));
+            setUser(userInfo);
+
+            const redirectTo =
+                location.state?.redirectTo ||
+                (data.role === 2 ? "/Admin/category" : "/");
+
+            navigate(redirectTo, { replace: true });
+
+        } catch (err) {
+            console.error("Google login failed", err);
+            alert("Đăng nhập Google thất bại");
+        }
+    };
+
+
     return (
         <div className="login-wrapper">
             <div className="login-form">
@@ -87,6 +114,19 @@ const LoginPage = () => {
                         <button type="submit" className="login-btn">
                             Đăng nhập
                         </button>
+                        {/* ===== GOOGLE LOGIN ===== */}
+                        <div style={{ marginTop: 16, textAlign: "center" }}>
+                            <GoogleLogin
+                                onSuccess={(res) => {
+                                    if (res.credential) {
+                                        handleGoogleLogin(res.credential);
+                                    }
+                                }}
+                                onError={() => {
+                                    alert("Google Login failed");
+                                }}
+                            />
+                        </div>
                     </form>
                 ) : (
                     <Register onSuccess={handleRegisterSuccess} />
@@ -95,6 +135,6 @@ const LoginPage = () => {
         </div>
     );
 };
-  
+
 
 export default LoginPage;
