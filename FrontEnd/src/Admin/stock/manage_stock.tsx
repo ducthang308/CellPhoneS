@@ -1,278 +1,272 @@
 import { useEffect, useMemo, useState } from "react";
-import styles from "./manage_stock.module.css";
 import { useNavigate } from "react-router-dom";
+import styles from "./manage_stock.module.css";
 
-
-/* ================= TYPES ================= */
-interface NhapKho {
-  idNhap: number;
-  sdt: string;
-  hoVaTen: string;
-  tenSanPham: string;
-  soLuongNhap: number;
-  ngayNhap?: string;
-  ghiChu?: string;
-}
-
-interface XuatKho {
-  idXuat: number;
-  sdt: string;
-  hoVaTen: string;
-  tenSanPham: string;
-  soLuongXuat: number;
-  ngayXuat?: string;
-  ghiChu?: string;
-}
+import StockInService from "../../services/StockInService";
+import StockOutService from "../../services/StockOutService";
+import type {
+  StockInResponse,
+  StockOutResponse
+} from "../../services/Interface";
 
 type TabType = "nhap" | "xuat";
+const PAGE_SIZE = 5;
 
-/* ================= COMPONENT ================= */
 const StockManagement = () => {
-  /* ===== STATE ===== */
-  const [currentTab, setCurrentTab] = useState<TabType>("nhap");
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 5;
   const navigate = useNavigate();
 
-  const [nhapData, setNhapData] = useState<NhapKho[]>([]);
-  const [xuatData, setXuatData] = useState<XuatKho[]>([]);
+  const [tab, setTab] = useState<TabType>("nhap");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  /* ===== MOCK DATA (thay API sau) ===== */
+  const [stockIn, setStockIn] = useState<StockInResponse[]>([]);
+  const [stockOut, setStockOut] = useState<StockOutResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  /* ===== DELETE CONFIRM ===== */
+  const [deleteTarget, setDeleteTarget] =
+    useState<StockInResponse | StockOutResponse | null>(null);
+
+  /* ================= LOAD DATA ================= */
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      if (tab === "nhap") {
+        const data = await StockInService.getAll();
+        setStockIn(Array.isArray(data) ? data : []);
+      } else {
+        const data = await StockOutService.getStockOutAll();
+        setStockOut(Array.isArray(data) ? data : []);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setNhapData([
-      {
-        idNhap: 1,
-        sdt: "0981111111",
-        hoVaTen: "Nguyễn Văn A",
-        tenSanPham: "iPhone 15",
-        soLuongNhap: 10,
-        ngayNhap: "2025-06-01",
-        ghiChu: "",
-      },
-      {
-        idNhap: 2,
-        sdt: "0982222222",
-        hoVaTen: "Trần Thị B",
-        tenSanPham: "Samsung S24",
-        soLuongNhap: 5,
-        ngayNhap: "2025-06-02",
-        ghiChu: "Nhập bổ sung",
-      },
-    ]);
+    loadData();
+  }, [tab]);
 
-    setXuatData([
-      {
-        idXuat: 101,
-        sdt: "0912345678",
-        hoVaTen: "Nguyễn Văn Thắng",
-        tenSanPham: "iPhone 15",
-        soLuongXuat: 2,
-        ngayXuat: "2025-06-10",
-        ghiChu: "",
-      },
-    ]);
-  }, []);
-
-  /* ===== FILTER + SEARCH ===== */
-  const sourceData = currentTab === "nhap" ? nhapData : xuatData;
+  /* ================= DATA PIPE ================= */
+  const sourceData = tab === "nhap" ? stockIn : stockOut;
 
   const filteredData = useMemo(() => {
     if (!search.trim()) return sourceData;
-    return sourceData.filter(item =>
-      JSON.stringify(item).toLowerCase().includes(search.toLowerCase())
+    return sourceData.filter(i =>
+      JSON.stringify(i)
+        .toLowerCase()
+        .includes(search.toLowerCase())
     );
   }, [search, sourceData]);
 
-  /* ===== PAGINATION ===== */
-  const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
 
   const pageData = filteredData.slice(
-    (currentPage - 1) * recordsPerPage,
-    currentPage * recordsPerPage
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
   );
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [currentTab, search]);
+    setPage(1);
+  }, [search, tab]);
+
+  /* ================= DELETE ================= */
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+
+    if (tab === "nhap") {
+      await StockInService.delete(
+        (deleteTarget as StockInResponse).stockInID
+      );
+    } else {
+      await StockOutService.delete(
+        (deleteTarget as StockOutResponse).stockOutId
+      );
+    }
+
+    setDeleteTarget(null);
+    loadData();
+  };
 
   /* ================= RENDER ================= */
   return (
-    <div className={styles["main-content"]}>
-      {/* HEADER */}
-      <div className={styles["content-header"]}>
-        <div className={styles["content-title-container"]}>
-          <h1 className={`${styles["content-title"]} ${styles.active}`}>
-            Quản lý kho
-          </h1>
-          <h1 className={`${styles["content-title"]} ${styles.active}`}>|</h1>
-          <a href="/batches">
-            <h1 className={styles["content-title"]}>Xem lô hàng</h1>
-          </a>
+    <>
+      <div className={styles.sm_container}>
+        <h2 className={styles.sm_title}>Quản lý kho</h2>
+
+        {/* ===== TOP BAR ===== */}
+        <div className={styles.sm_topBar}>
+          <div className={styles.sm_left}>
+            <div className={styles.sm_tabs}>
+              <button
+                className={tab === "nhap" ? styles.sm_activeTab : ""}
+                onClick={() => setTab("nhap")}
+              >
+                Phiếu nhập
+              </button>
+              <button
+                className={tab === "xuat" ? styles.sm_activeTab : ""}
+                onClick={() => setTab("xuat")}
+              >
+                Phiếu xuất
+              </button>
+            </div>
+
+            <div className={styles.sm_searchWrap}>
+              <span className={styles.sm_searchIcon}>🔍</span>
+              <input
+                className={styles.sm_search}
+                placeholder="Tìm theo sản phẩm, ghi chú..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button
+            className={styles.sm_addBtn}
+            onClick={() =>
+              navigate(
+                tab === "nhap"
+                  ? "/admin/stockin_receipt"
+                  : "/admin/stockout_receipt"
+              )
+            }
+          >
+            + Thêm {tab === "nhap" ? "phiếu nhập" : "phiếu xuất"}
+          </button>
         </div>
 
-        <div className={styles["search-bar"]}>
-          <i className="fas fa-search"></i>
-          <input
-            type="text"
-            placeholder="Tìm kiếm"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* FILTER TABS */}
-      <div className={styles["filter-tabs"]}>
-        <button
-          className={`${styles["filter-tab"]} ${
-            currentTab === "nhap" ? styles.active : ""
-          }`}
-          onClick={() => setCurrentTab("nhap")}
-        >
-          <i className="fas fa-arrow-down"></i>
-          Phiếu nhập kho
-          <span className={styles["tab-count"]}>{nhapData.length}</span>
-        </button>
-
-        <button
-          className={`${styles["filter-tab"]} ${
-            currentTab === "xuat" ? styles.active : ""
-          }`}
-          onClick={() => setCurrentTab("xuat")}
-        >
-          <i className="fas fa-arrow-up"></i>
-          Phiếu xuất kho
-          <span className={styles["tab-count"]}>{xuatData.length}</span>
-        </button>
-      </div>
-
-      {/* CONTENT */}
-      <div className={styles.container}>
-        <div className={styles["accounts-table"]}>
-          <table>
+        {/* ===== TABLE ===== */}
+        <div className={styles.sm_tableWrap}>
+          <table className={styles.sm_table}>
             <thead>
               <tr>
-                <th>{currentTab === "nhap" ? "ID Nhập" : "ID Xuất"}</th>
-                <th>SDT</th>
-                <th>Họ tên</th>
+                <th>ID</th>
                 <th>Sản phẩm</th>
                 <th>Số lượng</th>
                 <th>Ngày</th>
                 <th>Ghi chú</th>
+                <th>Hành động</th>
               </tr>
             </thead>
 
             <tbody>
-              {pageData.length > 0 ? (
-                pageData.map((item: any) => (
-                  <tr key={item.idNhap ?? item.idXuat}>
-                    <td>
-                      <span className={styles["id-badge"]}>
-                        #{item.idNhap ?? item.idXuat}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={styles["phone-badge"]}>{item.sdt}</span>
-                    </td>
-                    <td>
-                      <span className={styles["name-badge"]}>
-                        {item.hoVaTen}
-                      </span>
-                    </td>
-                    <td>{item.tenSanPham}</td>
-                    <td>
-                      <span
-                        className={`${styles["quantity-badge"]} ${
-                          currentTab === "nhap"
-                            ? styles.import
-                            : styles.export
-                        }`}
-                      >
-                        {currentTab === "nhap"
-                          ? item.soLuongNhap
-                          : item.soLuongXuat}
-                      </span>
-                    </td>
-                    <td>
-                      {item.ngayNhap || item.ngayXuat
-                        ? new Date(
-                            item.ngayNhap ?? item.ngayXuat
-                          ).toLocaleDateString("vi-VN")
-                        : "N/A"}
-                    </td>
-                    <td>{item.ghiChu ?? ""}</td>
-                  </tr>
-                ))
-              ) : (
+              {loading ? (
                 <tr>
-                  <td colSpan={7} className={styles["no-data"]}>
-                    <i className="fas fa-inbox"></i>
-                    <p>Không có dữ liệu</p>
+                  <td colSpan={6} className={styles.sm_loading}>
+                    Đang tải...
                   </td>
                 </tr>
+              ) : pageData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className={styles.sm_noData}>
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              ) : (
+                pageData.map(item => {
+                  const id =
+                    tab === "nhap"
+                      ? (item as StockInResponse).stockInID
+                      : (item as StockOutResponse).stockOutId;
+
+                  return (
+                    <tr key={id}>
+                      <td>#{id}</td>
+                      <td>{item.batch?.product?.name ?? "—"}</td>
+                      <td>{item.quantity}</td>
+                      <td>{item.date?.slice(0, 10) ?? "—"}</td>
+                      <td>{item.note ?? ""}</td>
+                      <td className={styles.sm_actions}>
+                        <button
+                          className={styles.sm_btnEdit}
+                          onClick={() =>
+                            navigate(
+                              tab === "nhap"
+                                ? `/admin/stockin/${id}`
+                                : `/admin/stockout/${id}`
+                            )
+                          }
+                        >
+                          Sửa
+                        </button>
+
+                        <button
+                          className={styles.sm_btnDelete}
+                          onClick={() => setDeleteTarget(item)}
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        {/* PAGINATION */}
-        <div className={styles["pagination-container"]}>
-          <div className={styles["page-info"]}>
-            Hiển thị{" "}
-            {filteredData.length === 0
-              ? 0
-              : (currentPage - 1) * recordsPerPage + 1}
-            -
-            {Math.min(currentPage * recordsPerPage, filteredData.length)} của{" "}
-            {filteredData.length}
-          </div>
-
-          <div className={styles["pagination-controls"]}>
+        {/* ===== PAGINATION ===== */}
+        {totalPages > 1 && (
+          <div className={styles.sm_pagination}>
             <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => p - 1)}
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
             >
-              <i className="fas fa-chevron-left"></i>
+              ‹
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => (
+            {Array.from({ length: totalPages }).map((_, i) => (
               <button
                 key={i}
-                className={currentPage === i + 1 ? styles.active : ""}
-                onClick={() => setCurrentPage(i + 1)}
+                className={
+                  page === i + 1 ? styles.sm_activePage : ""
+                }
+                onClick={() => setPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
 
             <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(p => p + 1)}
+              disabled={page === totalPages}
+              onClick={() => setPage(p => p + 1)}
             >
-              <i className="fas fa-chevron-right"></i>
+              ›
             </button>
           </div>
-
-          <button
-              className={styles["add-account-btn"]}
-              onClick={() => {
-                if (currentTab === "nhap") {
-                    navigate("/stockin_receipt");
-                } else {
-                    navigate("/stockout_receipt");
-                }
-                }}
-                >
-                    <i className="fas fa-plus"></i>
-                    {currentTab === "nhap"
-                    ? "Thêm phiếu nhập"
-                    : "Thêm phiếu xuất"}
-          </button>
-
-        </div>
+        )}
       </div>
-    </div>
+
+      {/* ===== DELETE MODAL ===== */}
+      {deleteTarget && (
+        <div className={styles.sm_modalOverlay}>
+          <div className={styles.sm_modal}>
+            <h3 className={styles.sm_modalTitle}>
+              Xác nhận xóa
+            </h3>
+            <p className={styles.sm_modalText}>
+              Bạn có chắc chắn muốn xóa phiếu này không?
+            </p>
+
+            <div className={styles.sm_modalActions}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+              >
+                Hủy
+              </button>
+              <button
+                className={styles.sm_danger}
+                onClick={handleDeleteConfirm}
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

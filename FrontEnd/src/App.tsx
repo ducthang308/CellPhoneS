@@ -45,16 +45,35 @@ import PendingOrders from "./Admin/order/order_approval";
 import OrderDetailPage from "./Admin/order/order_approval_detail";
 
 import StockManagement from "./Admin/stock/manage_stock";
-import Batch from "./Admin/stock/batch";
+import Batch from "./Admin/batch/batch.tsx";
 import StockinReceipt from "./Admin/stock/stockin_receipt";
 import StockoutReceipt from "./Admin/stock/stockout_receipt";
-
+import StockInDetail from "./Admin/stock/StockInDetail";
 import Sales_And_Quantity from "./Admin/statistical/sales_and_quantity";
+import StockOutDetail from "./Admin/stock/StockOutDetail";
+
+import BrandsView from "./Admin/brand/BrandsPage";
+import AddBrandView from "./Admin/brand/BrandCreateView";
+import BrandEditView from "./Admin/brand/BrandEditView";
+
+import DiscountUpdate from "./Admin/discount/Discount_update.tsx";
+import DiscountPage from "./Admin/discount/Discount.tsx";
+import DiscountAdd from "./Admin/discount/Discount_add.tsx";
+import DiscountsPage from "./pages/Discount/discounts.tsx";
+
+import BatchPage from "./Admin/batch/batch.tsx";
+import BatchDetail from "./Admin/batch/BatchDetail.tsx";
+import BatchUpdate from "./Admin/batch/BatchUpdate.tsx";
+import BatchAdd from "./Admin/batch/BatchAdd.tsx";
+
+import AdminChatPage from "./Admin/Chat/AdminChatPage";
 
 import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
 import OrderStatusByTime from "./Admin/statistical/order_status_by_time";
+import StatLayout from "./Admin/statistical/StatLayout.tsx";
+
 
 function App() {
   return (
@@ -81,6 +100,7 @@ function App() {
             <Route path="/notification" element={<NotificationsPage />} />
             <Route path="/order/:orderId" element={<OrderPage />} />
             <Route path="/Shopping_card" element={<Shopping_cardPage />} />
+            <Route path="discount" element={<DiscountsPage />} />
             <Route
               path="/product/:productId/reviews"
               element={<ProductReviewPage />}
@@ -105,6 +125,14 @@ function App() {
           <Route path="products/create" element={<AddProduct />} />
           <Route path="products/edit/:id" element={<UpdateDeleteProduct />} />
 
+          <Route path="brands" element={<BrandsView />} />
+          <Route path="brands/create" element={<AddBrandView />} />
+          <Route path="brands/edit/:id" element={<BrandEditView />} />
+
+          <Route path="discounts" element={<DiscountPage />} />
+          <Route path="discounts/add" element={<DiscountAdd />} />
+          <Route path="discounts/:id/update" element={<DiscountUpdate />} />
+
           <Route path="suppliers" element={<Supplier />} />
           <Route path="supplier/create" element={<SupplierForm />} />
           <Route path="supplier/edit/:id" element={<SupplierEdit />} />
@@ -118,23 +146,36 @@ function App() {
 
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          
+          <Route path="batch" element={<BatchPage />} />
+          <Route path="batch/:id" element={<BatchDetail />} />
+          <Route path="batch/:id/edit" element={<BatchUpdate />} />
+          <Route path="batch/add" element={<BatchAdd />} />
+
+          <Route path="/admin/chat/:roomId" element={<AdminChatPage />} />
 
           <Route path="stock_management" element={<StockManagement />} />
+          <Route path="stockin/:id" element={<StockInDetail />} />
           <Route path="batches" element={<Batch />} />
           <Route path="stockin_receipt" element={<StockinReceipt />} />
           <Route path="stockout_receipt" element={<StockoutReceipt />} />
+          <Route path="stockout/:id" element={<StockOutDetail />} />
 
           <Route
-            path="sales_and_quantity"
-            element={<Sales_And_Quantity data={[]} danhSachNam={[]} tongDoanhThu={0} tongDonHang={0} />}
-          />
-          <Route path="product_value_over_time" element={<ProductValueOverTime />} />
-          <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
-          <Route path="inventory_quantity" element={<InventoryQuantity model={[]} danhSachNam={[]} />} />
-          <Route
-            path="order_status_by_time"
-            element={<OrderStatusByTime danhSachNam={[2023, 2024]} tongSoDon={0} donHoanThanh={0} donHuy={0} />}
-          />
+            path="thongke"
+            element={<StatLayout />}
+          >
+            <Route index element={<Sales_And_Quantity />} />
+            <Route path="sales_and_quantity" element={<Sales_And_Quantity />} />
+            <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+            <Route path="product_value_over_time" element={<ProductValueOverTime />} />
+            <Route path="product_quantity_by_supplier" element={<ProductQuantityBySupplier model={[]} />} />
+            <Route path="inventory_quantity" element={<InventoryQuantity />} />
+            <Route
+              path="order_status_by_time"
+              element={<OrderStatusByTime/ >} 
+            />
+          </Route>
         </Route >
 
       </Routes >

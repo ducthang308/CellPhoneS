@@ -1,200 +1,226 @@
-import React, { useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CategoryService from "../../services/CategoryService";
+import { brandService } from "../../services/BrandService";
+import productService from "../../services/ProductService";
+import type { ICategory, IProduct, Brand } from "../../services/Interface";
 import styles from "./add_product.module.css";
+import SupplierService from "../../services/supplierService";
+import type { ISupplier } from "../../services/Interface";
 
-interface Category {
-  id: number;
-  name: string;
-}
 
-interface Supplier {
-  id: number;
-  name: string;
-}
+const AddProduct: React.FC = () => {
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
 
-interface ProductForm {
-  name: string;
-  categoryId: string;
-  supplierId: string;
-  price: string;
-  quantity: string;
-  date: string;
-  description: string;
-  image?: File | null;
-}
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
 
-const ProductCreatePage: React.FC = () => {
-  // fake data tạm thời
-  const categories: Category[] = [
-    { id: 1, name: "Điện thoại" },
-    { id: 2, name: "Laptop" },
-    { id: 3, name: "Phụ kiện" },
-  ];
-
-  const suppliers: Supplier[] = [
-    { id: 1, name: "Apple VN" },
-    { id: 2, name: "Samsung VN" },
-    { id: 3, name: "Asus Distributor" },
-  ];
-
-  const [form, setForm] = useState<ProductForm>({
+  const [product, setProduct] = useState<IProduct>({
     name: "",
-    categoryId: "",
-    supplierId: "",
-    price: "",
-    quantity: "",
-    date: "",
+    price: 0,
+    stockQuantity: 0,
     description: "",
-    image: null,
+    brandId: 0,
+    supplierId: 0,
+    categoryId: 0,
+    specification: {
+      screen: "",
+      os: "",
+      cpu: "",
+      ram: "",
+      storage: "",
+      battery: "",
+      camera: ""
+    }
   });
 
-  const [preview, setPreview] = useState<string>("https://placehold.co/100x100");
+  const [images, setImages] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
 
+  /* LOAD META */
+  useEffect(() => {
+    Promise.all([
+      CategoryService.getCategories(),
+      brandService.getAll(),
+      SupplierService.getAllSuppliers()
+    ]).then(([c, b, s]) => {
+      setCategories(c);
+      setBrands(b);
+      setSuppliers(s);
+    });
+  }, []);
+
+
+  /* INPUT */
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setProduct(p => ({
+      ...p,
+      [name]:
+        name === "price" || name === "stockQuantity"
+          ? Number(value)
+          : value
+    }));
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setForm((prev) => ({ ...prev, image: file }));
-      setPreview(URL.createObjectURL(file));
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setProduct(p => ({ ...p, [name]: Number(value) }));
+  };
+
+  const handleSpec = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProduct(p => ({
+      ...p,
+      specification: { ...p.specification, [name]: value }
+    }));
+  };
+
+  const handleImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setImages(files);
+    setPreviewImages(files.map(f => URL.createObjectURL(f)));
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product.brandId || !product.categoryId) {
+      alert("Chọn thương hiệu & danh mục");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const created = await productService.createProduct(product);
+      if (created.productId && images.length) {
+        await productService.uploadProductImages(created.productId, images);
+      }
+      navigate("/admin/products");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    console.log("🧾 Product form data:", form);
-    alert("Form submitted (fake data). Sắp nối API 😎");
-  };
-
   return (
-    <main className={styles["main-content"]}>
-      <div className={styles["form-section"]}>
-        <h1>Quản lí sản phẩm</h1>
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
-          <div>
-            <label htmlFor="name">Tên sản phẩm</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={form.name}
-              placeholder="tên sản phẩm..."
-              onChange={handleChange}
-            />
+    <main className={styles.pAdd__page}>
+      <section className={styles.pAdd__card}>
+        <h1 className={styles.pAdd__title}>Thêm sản phẩm</h1>
+
+        <form onSubmit={submit} className={styles.pAdd__form}>
+          {/* BASIC */}
+          <div className={styles.pAdd__field}>
+            <label>Tên sản phẩm</label>
+            <input name="name" value={product.name} onChange={handleChange} required />
           </div>
 
-          <div>
-            <label htmlFor="categoryId">Danh mục</label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              value={form.categoryId}
-              onChange={handleChange}
-            >
-              <option value="">Chọn danh mục</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="supplierId">Nhà cung cấp</label>
-            <select
-              id="supplierId"
-              name="supplierId"
-              value={form.supplierId}
-              onChange={handleChange}
-            >
-              <option value="">Chọn nhà cung cấp</option>
-              {suppliers.map((sup) => (
-                <option key={sup.id} value={sup.id}>
-                  {sup.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="price">Đơn giá</label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={form.price}
-              placeholder="Đơn giá..."
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="quantity">Số lượng</label>
-            <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              value={form.quantity}
-              placeholder="Số lượng..."
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="date">Ngày nhập</label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description">Mô tả</label>
-            <textarea
-              id="description"
-              name="description"
-              value={form.description}
-              placeholder="Mô tả..."
-              rows={4}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <label>Hình ảnh</label>
-            <div
-              className={styles["image-upload"]}
-              onClick={() => document.getElementById("fileInput")?.click()}
-            >
-              <img src={preview} alt="preview" width={100} height={100} />
-              <input
-                id="fileInput"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
+          <div className={styles.pAdd__row}>
+            <div className={styles.pAdd__field}>
+              <label>Giá</label>
+              <input type="number" name="price" value={product.price} onChange={handleChange} />
+            </div>
+            <div className={styles.pAdd__field}>
+              <label>Số lượng</label>
+              <input type="number" name="stockQuantity" value={product.stockQuantity} onChange={handleChange} />
             </div>
           </div>
 
-          <div className={styles.buttons}>
-            <button type="submit" className={styles.add}>
-              Thêm mới
+          {/* BRAND + CATEGORY */}
+          <div className={styles.pAdd__row}>
+            <div className={styles.pAdd__field}>
+              <label>Thương hiệu</label>
+              <select name="brandId" value={product.brandId} onChange={handleSelect}>
+                <option value={0}>-- Chọn thương hiệu --</option>
+                {brands.map(b => (
+                  <option key={b.brandId} value={b.brandId}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.pAdd__field}>
+              <label>Danh mục</label>
+              <select name="categoryId" value={product.categoryId} onChange={handleSelect}>
+                <option value={0}>-- Chọn danh mục --</option>
+                {categories.map(c => (
+                  <option key={c.categoryId} value={c.categoryId}>
+                    {c.categoryName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* SUPPLIER */}
+          <div className={styles.pAdd__field}>
+            <label>Nhà cung cấp</label>
+            <select
+              name="supplierId"
+              value={product.supplierId}
+              onChange={handleSelect}
+              required
+            >
+              <option value={0}>-- Chọn nhà cung cấp --</option>
+              {suppliers.map(s => (
+                <option key={s.supplierId} value={s.supplierId}>
+                  {s.supplierName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* DESCRIPTION */}
+          <div className={styles.pAdd__field}>
+            <label>Mô tả</label>
+            <textarea name="description" value={product.description} onChange={handleChange} />
+          </div>
+
+          {/* SPEC */}
+          <h3 className={styles.pAdd__section}>Thông số kỹ thuật</h3>
+          <div className={styles.pAdd__specGrid}>
+            {Object.entries(product.specification).map(([k, v]) => (
+              <input
+                key={k}
+                name={k}
+                placeholder={k.toUpperCase()}
+                value={v}
+                onChange={handleSpec}
+              />
+            ))}
+          </div>
+
+          {/* IMAGES */}
+          <div className={styles.pAdd__field}>
+            <label>Ảnh sản phẩm</label>
+            <input type="file" multiple accept="image/*" onChange={handleImages} />
+            <div className={styles.pAdd__imageList}>
+              {previewImages.map((src, i) => (
+                <img key={i} src={src} alt="" />
+              ))}
+            </div>
+          </div>
+
+          {/* ACTION */}
+          <div className={styles.pAdd__actions}>
+            <button className={styles.pAdd__submit} disabled={saving}>
+              {saving ? "Đang lưu..." : "Thêm sản phẩm"}
+            </button>
+            <button
+              type="button"
+              className={styles.pAdd__cancel}
+              onClick={() => navigate(-1)}
+            >
+              Hủy
             </button>
           </div>
         </form>
-      </div>
+      </section>
     </main>
   );
 };
 
-export default ProductCreatePage;
+export default AddProduct;

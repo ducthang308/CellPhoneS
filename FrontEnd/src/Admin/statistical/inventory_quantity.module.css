@@ -1,327 +1,184 @@
-    body {
-        font-family: 'Roboto', sans-serif;
-        background-color: #f3f4f6;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        min-height: 100vh;
-    }
+/* ===================== ROOT ===================== */
+.main-content {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f4f7fb, #eef2f7);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
+  color: #1f2937;
+}
 
-    .sidebar {
-        width: 250px;
-        background: white;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        padding: 10px;
-        height: 100vh;
-        position: fixed;
-        overflow-y: auto;
-    }
+/* ===================== TITLE ===================== */
+.Title {
+  margin-bottom: 22px;
+}
 
-        .sidebar h2 {
-            padding: 15px;
-            margin: 0;
-            color: #333;
-        }
+.Title h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+/* ===================== FILTER ===================== */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
 
-        .sidebar li {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+.filters span {
+  font-weight: 600;
+  color: #374151;
+}
 
-            .sidebar li:hover, .sidebar li.active {
-                background-color: #f0f0f0;
-                border-left: 4px solid #2196F3;
-            }
+.filters select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
 
-            .sidebar li i {
-                margin-right: 10px;
-                width: 20px;
-                text-align: center;
-            }
+.filters select:hover {
+  border-color: #6366f1;
+}
 
-        .sidebar .logout {
-            padding: 15px;
-            border-top: 1px solid #ddd;
-            color: #f44336;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+.filters select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
 
-            .sidebar .logout:hover {
-                background-color: #ffebee;
-            }
+.filters select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
 
-    .main-content {
-        flex: 1;
-        padding: 20px 20px;
-        min-height: 100vh;
-    }
+/* ===================== TABLE CONTAINER ===================== */
+.table-container {
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+}
 
-    /* Top bar (logo + account) */
-    .topbar {
-        display: flex;
-        margin-left: -30px;
-        margin-right: -20px;
-        margin-bottom: 20px;
-        justify-content: right;
-        align-items: center;
-        background: #fff;
-        padding: 12px 32px;
-        border-bottom: 1px solid #ddd;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
+/* ===================== TABLE ===================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
 
-    .logo {
-        font-size: 20px;
-        font-weight: bold;
-        color: #2196F3;
-    }
+thead {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
 
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+thead th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
 
-        .user-info img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-        }
+/* ===================== BODY ===================== */
+tbody tr {
+  transition: all 0.25s ease;
+}
 
-    .user-details {
-        display: flex;
-        flex-direction: column;
-        font-size: 13px;
-        text-align: left;
-    }
+tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
 
-    .user-name {
-        font-weight: bold;
-    }
+tbody tr:hover {
+  background: #eef2ff;
+  transform: scale(1.003);
+}
 
-    .user-role {
-        color: #888;
-    }
+tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+}
 
+/* ===================== IMAGE ===================== */
+.rounded-img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
 
-    .filters {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        background-color: #fff;
-        padding: 16px 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 24px;
-        width: fit-content; /* 👈 Chỉ vừa đủ nội dung */
-        max-width: 100%;
-    }
+.rounded-img:hover {
+  transform: scale(1.15) rotate(1deg);
+  border-color: #6366f1;
+}
 
-        .filters select {
-            padding: 10px 16px;
-            font-size: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #f9fafb;
-            color: #333;
-            outline: none;
-            transition: border-color 0.3s ease;
-            min-width: 140px;
-        }
+/* ===================== EMPTY STATE ===================== */
+tbody tr td[colspan] {
+  padding: 32px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+}
 
-            .filters select:focus {
-                border-color: #2196F3;
-                background-color: #fff;
-            }
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 1024px) {
+  .filters {
+    flex-wrap: wrap;
+  }
 
-    .stats-container {
-        border: 1px solid #000;
-        border-radius: 8px;
-        padding: 24px;
-        overflow-x: auto;
-        background: #fff;
-    }
-
-    /* Navigation tabs */
-    .stats-nav {
-        display: flex;
-        margin-bottom: 24px;
-        font-size: 14px;
-        font-weight: 400;
-    }
-
-        .stats-nav button {
-            padding: 8px 24px;
-            border-right: 1px solid #000;
-            background: none;
-            font-weight: 400;
-            cursor: pointer;
-            color: #000;
-            white-space: nowrap;
-            border: none;
-            border-right: 1px solid #000;
-        }
-
-            .stats-nav button.active {
-                color: #ef4444;
-                font-weight: 600;
-            }
-
-            .stats-nav button:last-child {
-                border-right: none;
-            }
-
-        .stats-nav a {
-            color: inherit; /* Giữ nguyên màu chữ của nút */
-            text-decoration: none; /* Bỏ gạch chân */
-        }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        min-width: 700px;
-        text-align: center;
-        border: 1px solid black;
-    }
-
-    th, td {
-        border: 1px solid black;
-        padding: 6px 8px;
-        vertical-align: middle;
-    }
-
-    th {
-        font-weight: 600;
-    }
-
-        th.stt {
-            width: 48px;
-        }
-
-        th.ma-san-pham,
-        td.ma-san-pham {
-            width: 160px;
-        }
-
-        th.nha-cung-cap,
-        td.nha-cung-cap {
-            width: 160px;
-        }
-
-        th.ten-san-pham,
-        td.ten-san-pham {
-            width: 160px;
-        }
-
-        th.hinh-anh,
-        td.hinh-anh {
-            width: 112px;
-        }
-
-        th.don-gia,
-        td.don-gia {
-            width: 144px;
-        }
-
-        th.so-luong,
-        td.so-luong {
-            width: 80px;
-        }
-
-        th.han-su-dung,
-        td.han-su-dung {
-            width: 112px;
-        }
-
-    img {
-        display: block;
-        margin: 0 auto;
-        height: 30px;
-        width: 60px;
-        object-fit: contain;
-    }
+  .rounded-img {
+    width: 52px;
+    height: 52px;
+  }
+}
 
 @media (max-width: 768px) {
-    table {
-        min-width: 600px;
-    }
+  table {
+    font-size: 13px;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    display: block;
+    margin-bottom: 14px;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6b7280;
+  }
 }
-
-@media (max-width: 480px) {
-    table {
-        min-width: 500px;
-    }
-}
-
-
-    .sidebar a,
-    .sidebar a:visited,
-    .sidebar a:hover,
-    .sidebar a:active {
-        color: black; /* Hoặc màu nào bạn đang dùng */
-        text-decoration: none; /* Bỏ gạch chân nếu muốn */
-    }
-
-    .han-su-dung-filters {
-        font-weight: 600;
-        color: #000;
-        font-size: 20px;
-    }
-
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        min-width: 700px;
-        background-color: #fff;
-        border-radius: 6px;
-        overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    thead {
-        background-color: #2196F3;
-        color: #fff;
-    }
-
-    th, td {
-        padding: 12px 14px;
-        border: 1px solid #e0e0e0;
-        text-align: center;
-        vertical-align: middle;
-        font-size: 14px;
-    }
-
-    tbody tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-
-    tbody tr:hover {
-        background-color: #e3f2fd;
-    }
-
-    th.stt, td.stt {
-        width: 48px;
-    }
-
-    .product-img {
-        display: block;
-        margin: 0 auto;
-        height: 40px;
-        width: 70px;
-        object-fit: contain;
-        border-radius: 4px;
-    }

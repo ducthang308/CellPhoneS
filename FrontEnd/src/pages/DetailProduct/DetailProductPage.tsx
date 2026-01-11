@@ -9,7 +9,7 @@ import cartService from "../../services/CartService";
 import cartDetailService from "../../services/CartDetailService";
 import reviewService from "../../services/ReviewService";
 import type { IReview } from "../../services/Interface";
-
+import orderService from "../../services/OrderService";
 
 
 
@@ -72,8 +72,43 @@ export default function ProductDetail() {
       .finally(() => setReviewLoading(false));
   }, [product?.productId]);
 
-
   const handleBuyNow = async () => {
+    if (!user) {
+      alert("Vui lòng đăng nhập để mua hàng");
+      navigate("/login", {
+        state: { redirectTo: `/product-detail/${id}` },
+      });
+      return;
+    }
+
+    if (!product?.productId) {
+      alert("Sản phẩm không hợp lệ");
+      return;
+    }
+
+    try {
+      const orderPayload = {
+        userID: user.userId,
+        items: [
+          {
+            productId: product.productId,
+            quantity: 1, // mua ngay = 1 sp
+          },
+        ],
+      };
+
+      const order = await orderService.create(orderPayload);
+
+      // 👉 điều hướng sang trang chi tiết đơn
+      navigate(`/order/${order.orderID}`);
+    } catch (err) {
+      console.error(err);
+      alert("Mua ngay thất bại");
+    }
+  };
+
+
+  const handleAddToCart = async () => {
     const hasToken = !!localStorage.getItem("accessToken");
 
     if (!user && !hasToken) {
@@ -83,7 +118,7 @@ export default function ProductDetail() {
       });
       return;
     }
-    const cartId = localStorage.getItem("cartId");
+    const cartId = user?.cartId;
 
     if (!cartId) {
       alert("Giỏ hàng chưa được khởi tạo, vui lòng thêm sản phẩm lại");
@@ -94,7 +129,7 @@ export default function ProductDetail() {
     try {
       await cartDetailService.addToCart({
         cartId: Number(cartId),
-        productId: product.productId,
+        productId: product.productId ?? 0,
       });
 
       alert("Đã thêm sản phẩm vào giỏ hàng");
@@ -114,13 +149,6 @@ export default function ProductDetail() {
 
   if (loading) return <div className="loading">Đang tải sản phẩm...</div>;
   if (!product) return <div className="error">Không tìm thấy sản phẩm</div>;
-
-  const colors = [
-    { name: "Titan Sa Mạc", price: product.price },
-    { name: "Titan Đen", price: product.price },
-    { name: "Titan Trắng", price: product.price },
-    { name: "Titan Tự Nhiên", price: product.price },
-  ];
 
   return (
     <div className="product-container">
@@ -163,66 +191,33 @@ export default function ProductDetail() {
             <div className="price-main">
               {product.price.toLocaleString("vi-VN")}đ
             </div>
-            <div className="price-old">48.990.000đ</div>
           </div>
 
-          <div className="section-title">Phiên bản</div>
-          <div className="options-row">
-            {["1TB", "512GB", "256GB"].map((ver) => (
-              <button
-                key={ver}
-                className={`option-btn ${selectedVersion === ver ? "active" : ""}`}
-                onClick={() => setSelectedVersion(ver)}
-              >
-                {ver}
-              </button>
-            ))}
+          <div className="feature-box">
+            <div className="feature-title">TÍNH NĂNG NỔI BẬT</div>
+            <ul className="feature-list">
+              <li><strong>Battery:</strong> {product.specification?.battery}</li>
+              <li><strong>Camera:</strong> {product.specification?.camera}</li>
+              <li><strong>CPU:</strong> {product.specification?.cpu}</li>
+              <li><strong>OS:</strong> {product.specification?.os}</li>
+              <li><strong>RAM:</strong> {product.specification?.ram}</li>
+              <li><strong>Screen:</strong> {product.specification?.screen}</li>
+              <li><strong>Storage:</strong> {product.specification?.storage}</li>
+            </ul>
           </div>
-
-
-          <div className="section-title">Màu sắc</div>
-          <div className="color-grid">
-            {colors.map((color) => (
-              <button
-                key={color.name}
-                className={`color-btn ${selectedColor === color.name ? "active" : ""
-                  }`}
-                onClick={() => setSelectedColor(color.name)}
-              >
-                <img src={IP} className="color-img" />
-                <div className="color-info">
-                  <span>{color.name}</span>
-                  <span className="color-price">
-                    {color.price.toLocaleString("vi-VN")}đ
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-
 
           <div className="action-row">
             <button className="btn blue">Trả góp 0%</button>
+
             <button className="btn red" onClick={handleBuyNow}>
-              Mua ngay
+              🛒 Mua ngay
             </button>
           </div>
 
-          <button className="btn-outline">Liên hệ</button>
+          <button className="btn-outline add-cart-btn" onClick={handleAddToCart}>
+            🛒 Thêm vào giỏ hàng
+          </button>
         </div>
-      </div>
-
-      <div className="feature-box">
-        <div className="feature-title">TÍNH NĂNG NỔI BẬT</div>
-        <ul className="feature-list">
-          <li><strong>Battery:</strong> {product.specification?.battery}</li>
-          <li><strong>Camera:</strong> {product.specification?.camera}</li>
-          <li><strong>CPU:</strong> {product.specification?.cpu}</li>
-          <li><strong>OS:</strong> {product.specification?.os}</li>
-          <li><strong>RAM:</strong> {product.specification?.ram}</li>
-          <li><strong>Screen:</strong> {product.specification?.screen}</li>
-          <li><strong>Storage:</strong> {product.specification?.storage}</li>
-        </ul>
       </div>
 
       {/* ===== REVIEW SECTION ===== */}

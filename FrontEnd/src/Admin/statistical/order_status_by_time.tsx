@@ -1,48 +1,114 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Chart from "chart.js/auto";
 import styles from "./order_status_by_time.module.css";
+import StatisticService from "../../services/StatisticService";
 
 /* ===================== TYPES ===================== */
-interface Props {
-  danhSachNam: number[];
-  namDuocChon?: number;
-  thangDuocChon?: number;
-  ngayDuocChon?: number;
-  tongSoDon: number;
-  donHoanThanh: number;
-  donHuy: number;
+interface OrderStatusStatistic {
+  availableYears: number[];
+  selectedYear: number | null;
+  selectedMonth: number | null;
+  selectedDay: number | null;
+  totalOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
 }
 
 /* ===================== COMPONENT ===================== */
-const OrderStatusByTime: React.FC<Props> = ({
-  danhSachNam,
-  namDuocChon,
-  thangDuocChon,
-  ngayDuocChon,
-  tongSoDon,
-  donHoanThanh,
-  donHuy
-}) => {
+const OrderStatusByTime = () => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
 
-  /* ===== Chart logic (giữ nguyên ý nghĩa script cũ) ===== */
-  useEffect(() => {
-    if (!chartRef.current) return;
+  const [searchParams, setSearchParams] = useSearchParams();
 
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
+  /* ===================== FILTER STATE ===================== */
+  const [year, setYear] = useState<number | null>(() => {
+    const q = searchParams.get("year");
+    return q ? Number(q) : null;
+  });
+
+  const [month, setMonth] = useState<number | "">(() => {
+    const q = searchParams.get("month");
+    return q ? Number(q) : "";
+  });
+
+  const [day, setDay] = useState<number | "">(() => {
+    const q = searchParams.get("day");
+    return q ? Number(q) : "";
+  });
+
+  /* ===================== DATA STATE ===================== */
+  const [data, setData] = useState<OrderStatusStatistic | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  /* ===================== SYNC QUERY PARAM ===================== */
+  useEffect(() => {
+    const q: Record<string, string> = {};
+    if (year !== null) q.year = String(year);
+    if (month) q.month = String(month);
+    if (day) q.day = String(day);
+
+    setSearchParams(q, { replace: true });
+  }, [year, month, day, setSearchParams]);
+
+  /* ===================== FETCH API ===================== */
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const res = await StatisticService.getOrderStatusByTime({
+          year: year ?? undefined,
+          month: month || undefined,
+          day: day || undefined
+        });
+
+        // 🔥 NORMALIZE RESPONSE (FIX CRASH)
+        setData({
+          availableYears: Array.isArray(res.availableYears)
+            ? res.availableYears
+            : [],
+          selectedYear: res.selectedYear ?? null,
+          selectedMonth: res.selectedMonth ?? null,
+          selectedDay: res.selectedDay ?? null,
+          totalOrders: res.totalOrders ?? 0,
+          completedOrders: res.completedOrders ?? 0,
+          cancelledOrders: res.cancelledOrders ?? 0
+        });
+      } catch (e) {
+        console.error(e);
+        alert("Không tải được thống kê trạng thái đơn hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [year, month, day]);
+
+  /* ===================== SAFE YEARS ===================== */
+  const availableYears = useMemo(
+    () => (data?.availableYears ? data.availableYears : []),
+    [data]
+  );
+
+  /* ===================== CHART ===================== */
+  useEffect(() => {
+    if (!chartRef.current || !data) return;
+
+    chartInstance.current?.destroy();
 
     chartInstance.current = new Chart(chartRef.current, {
       type: "bar",
       data: {
-        labels: ["Đơn Hoàn Thành", "Đơn Đã Hủy"],
+        labels: ["Hoàn thành", "Đã hủy"],
         datasets: [
           {
-            label: "Số đơn",
-            data: [donHoanThanh, donHuy],
-            backgroundColor: ["#4CAF50", "#F44336"]
+            data: [data.completedOrders, data.cancelledOrders],
+            backgroundColor: ["#22c55e", "#ef4444"],
+            borderRadius: 8,
+            maxBarThickness: 60
           }
         ]
       },
@@ -54,127 +120,85 @@ const OrderStatusByTime: React.FC<Props> = ({
             display: true,
             text: "Tình trạng đơn hàng"
           }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
         }
       }
     });
-  }, [donHoanThanh, donHuy]);
 
-  /* ===== Reload khi chọn filter (giữ y nguyên hành vi) ===== */
-  useEffect(() => {
-    const layLaiDuLieu = () => {
-      const day =
-        (document.getElementById("daySelect") as HTMLSelectElement)?.value || 0;
-      const month =
-        (document.getElementById("monthSelect") as HTMLSelectElement)?.value || 0;
-      const year =
-        (document.getElementById("yearSelect") as HTMLSelectElement)?.value || 0;
+    return () => chartInstance.current?.destroy();
+  }, [data]);
 
-      window.location.href = `/ThongKe/ThongKeTrangThaiDonHangTheoThoiGian?ngay=${day}&thang=${month}&nam=${year}`;
-    };
-
-    const yearSelect = document.getElementById("yearSelect");
-    const monthSelect = document.getElementById("monthSelect");
-    const daySelect = document.getElementById("daySelect");
-
-    yearSelect?.addEventListener("change", layLaiDuLieu);
-    monthSelect?.addEventListener("change", layLaiDuLieu);
-    daySelect?.addEventListener("change", layLaiDuLieu);
-
-    return () => {
-      yearSelect?.removeEventListener("change", layLaiDuLieu);
-      monthSelect?.removeEventListener("change", layLaiDuLieu);
-      daySelect?.removeEventListener("change", layLaiDuLieu);
-    };
-  }, []);
-
+  /* ===================== RENDER ===================== */
   return (
-    <main className={styles["main-content"]}>
-      <div className={styles["Title"]}>
-        <h1>THỐNG KÊ</h1>
-      </div>
+    <main className={styles.main}>
+      <h1 className={styles.title}>Thống kê trạng thái đơn hàng</h1>
 
-      <div className={styles["filters"]}>
-        <select id="yearSelect" defaultValue={namDuocChon ?? ""}>
-          {danhSachNam.map(year => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-
-        <select id="monthSelect" defaultValue={thangDuocChon ?? ""}>
-          <option value="">-- Không chọn tháng --</option>
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-            <option key={m} value={m}>
-              Tháng {m}
-            </option>
-          ))}
-        </select>
-
-        <select id="daySelect" defaultValue={ngayDuocChon ?? ""}>
-          <option value="">-- Không chọn ngày --</option>
-          {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-            <option key={d} value={d}>
-              Ngày {d}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className={styles["stats-container"]}>
-        <nav
-          className={styles["stats-nav"]}
-          role="tablist"
-          aria-label="Chọn loại thống kê"
+      {/* ===== FILTER ===== */}
+      <div className={styles.filters}>
+        {/* YEAR */}
+        <select
+          value={year === null ? "" : year}
+          onChange={e => {
+            const v = e.target.value;
+            setYear(v === "" ? null : Number(v));
+            setMonth("");
+            setDay("");
+          }}
         >
-          <button role="tab" aria-selected="true" tabIndex={0}>
-            <a href="/ThongKe/ThongKeDoanhThuVaSoLuongDon">
-              Thống kê số lượng đơn hàng và doanh thu
-            </a>
-          </button>
+          <option value="">-- Năm --</option>
+          {availableYears.map(y => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
 
-          <button role="tab" aria-selected="false" tabIndex={-1}>
-            <a href="/ThongKe/ThongKeSoLuongTonKho">
-              Thống kê số lượng tồn kho
-            </a>
-          </button>
+        {/* MONTH */}
+        <select
+          value={month}
+          disabled={year === null}
+          onChange={e => setMonth(Number(e.target.value) || "")}
+        >
+          <option value="">-- Tất cả tháng --</option>
+          {Array.from({ length: 12 }, (_, i) => (
+            <option key={i + 1} value={i + 1}>
+              Tháng {i + 1}
+            </option>
+          ))}
+        </select>
 
-          <button role="tab" aria-selected="false" tabIndex={-1}>
-            <a href="/ThongKe/ThongKeGiaTriSanPhamTheoThoiGian">
-              Thống kê giá sản phẩm
-            </a>
-          </button>
+        {/* DAY */}
+        <select
+          value={day}
+          disabled={!month}
+          onChange={e => setDay(Number(e.target.value) || "")}
+        >
+          <option value="">-- Tất cả ngày --</option>
+          {Array.from({ length: 31 }, (_, i) => (
+            <option key={i + 1} value={i + 1}>
+              Ngày {i + 1}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          <button role="tab" aria-selected="false" tabIndex={-1}>
-            <a href="/ThongKe/ThongKeSoLuongSanPhamTheoNhaCungCap">
-              Số lượng sản phẩm theo nhà cung cấp
-            </a>
-          </button>
+      {/* ===== SUMMARY ===== */}
+      <div className={styles.stats}>
+        <div>Tổng đơn: {data?.totalOrders ?? 0}</div>
+        <div>Hoàn thành: {data?.completedOrders ?? 0}</div>
+        <div>Đã hủy: {data?.cancelledOrders ?? 0}</div>
+      </div>
 
-          <button
-            className={styles["active"]}
-            role="tab"
-            aria-selected="false"
-            tabIndex={-1}
-          >
-            <a href="/ThongKe/ThongKeTrangThaiDonHangTheoThoiGian">
-              Thống kê đơn hàng đã hủy/ đã hoàn thành
-            </a>
-          </button>
-        </nav>
-
-        <div className={styles["summary-stats"]}>
-          <div className={styles["summary-item"]}>
-            <h2>Tổng số đơn</h2>
-            <p className={styles["red"]}>{tongSoDon} đơn</p>
-          </div>
-
-          <div className={styles["chart-container"]}>
-            <div className={styles["chart-wrapper"]}>
-              <canvas ref={chartRef} width={800} height={400} />
-            </div>
-          </div>
-        </div>
+      {/* ===== CHART ===== */}
+      <div className={styles.chartBox}>
+        {loading ? <p>Đang tải...</p> : <canvas ref={chartRef} />}
       </div>
     </main>
   );

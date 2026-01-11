@@ -1,45 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import './NotificationPage.css';
-import { useAuth } from '../../context/AuthContext';
-import LoadingSkeleton from '../../components/NotificationComponet/LoadingSkeleton';
-import { 
-  Package, 
-  Percent, 
-  Bell, 
-  User, 
-  Info, 
-  Trash2 
-} from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import "./NotificationPage.css";
+import { useAuth } from "../../context/AuthContext";
+import LoadingSkeleton from "../../components/NotificationComponet/LoadingSkeleton";
+import {
+  Package,
+  Percent,
+  Bell,
+  User,
+  Info,
+  Trash2
+} from "lucide-react";
 
-import { notificationService } from '../../services/NotificationService';
-import type { Notification } from '../../services/NotificationService';
+import NotificationBell from "../../components/Badge/NotificationBell";
+import { notificationService } from "../../services/NotificationService";
+import type { Notification } from "../../services/Interface";
+
+/* ================= CLIENT READ STATE ================= */
+
+// lưu theo user
+const getStorageKey = (userId: number) =>
+  `read_notification_keys_user_${userId}`;
+
+// key cơ bản từ nội dung
+const buildBaseKey = (n: Notification) =>
+  `${n.notificationType}|${n.title}|${n.content}`;
+
+const getReadKeys = (userId: number): string[] => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(getStorageKey(userId)) || "[]"
+    );
+  } catch {
+    return [];
+  }
+};
+
+const saveReadKey = (userId: number, key: string) => {
+  const cur = getReadKeys(userId);
+  if (!cur.includes(key)) {
+    localStorage.setItem(
+      getStorageKey(userId),
+      JSON.stringify([...cur, key])
+    );
+  }
+};
+
+const saveAllReadKeys = (userId: number, keys: string[]) => {
+  localStorage.setItem(
+    getStorageKey(userId),
+    JSON.stringify(keys)
+  );
+};
+
+/* ================= TYPES ================= */
+
+type NotificationClient = Notification & {
+  __clientKey: string;
+};
+
+/* ================= COMPONENT ================= */
 
 const NotificationsPage: React.FC = () => {
   const { user: authUser, loading: authLoading } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] =
+    useState<NotificationClient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const userId = authUser?.userId;
 
+  /* ================= FETCH ================= */
   useEffect(() => {
     if (!userId) {
       setLoading(false);
-      setError('Vui lòng đăng nhập để xem thông báo');
+      setError("Vui lòng đăng nhập để xem thông báo");
       return;
     }
 
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const data = await notificationService.getUserNotifications(userId);
-        setNotifications(data);
-      } catch (err: any) {
-        console.error('Lỗi tải thông báo:', err);
-        setError('Không thể tải thông báo. Vui lòng thử lại sau.');
 
-        // Tạm dùng fake data nếu muốn test giao diện khi API lỗi
-        // setNotifications(fakeNotifications);
+        const data =
+          await notificationService.getUserNotifications(
+            userId
+          );
+
+        const readKeys = getReadKeys(userId);
+
+        const merged: NotificationClient[] = data.map(
+          (n, index) => {
+            const baseKey = buildBaseKey(n);
+            const clientKey = `${baseKey}__${index}`;
+
+            return {
+              ...n,
+              __clientKey: clientKey,
+              isRead: readKeys.includes(baseKey)
+            };
+          }
+        );
+
+        setNotifications(merged);
+      } catch (err) {
+        console.error("Lỗi tải thông báo:", err);
+        setError(
+          "Không thể tải thông báo. Vui lòng thử lại sau."
+        );
       } finally {
         setLoading(false);
       }
@@ -48,75 +115,117 @@ const NotificationsPage: React.FC = () => {
     fetchNotifications();
   }, [userId]);
 
-  const markAsRead = async (id: number) => {
-    try {
-      await notificationService.markAsRead(id);
-      setNotifications(prev =>
-        prev.map(notif => notif.id === id ? { ...notif, isRead: true } : notif)
-      );
-    } catch (err) {
-      console.error('Lỗi đánh dấu đã đọc');
-    }
+  /* ================= HANDLERS ================= */
+
+  const handleClickNotification = (notif: NotificationClient) => {
+    if (!userId || notif.isRead) return;
+
+    setNotifications(prev =>
+      prev.map(n =>
+        n.__clientKey === notif.__clientKey
+          ? { ...n, isRead: true }
+          : n
+      )
+    );
+
+    const baseKey = `${notif.notificationType}|${notif.title}|${notif.content}`;
+
+    saveReadKey(userId, baseKey);
+    window.dispatchEvent(new Event("notification-read"));
   };
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = () => {
     if (!userId) return;
-    try {
-      await notificationService.markAllAsRead(userId);
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch (err) {
-      console.error('Lỗi đánh dấu tất cả');
-    }
+
+    const allBaseKeys = notifications.map(
+      n => `${n.notificationType}|${n.title}|${n.content}`
+    );
+    setNotifications(prev =>
+      prev.map(n => ({ ...n, isRead: true }))
+    );
+
+    saveAllReadKeys(userId, allBaseKeys);
+    window.dispatchEvent(new Event("notification-read"));
+
   };
 
-  const deleteNotification = async (id: number) => {
-    if (!confirm('Xóa thông báo này?')) return;
-    try {
-      await notificationService.deleteNotification(id);
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch (err) {
-      alert('Xóa thất bại');
-    }
+  const deleteNotification = (clientKey: string) => {
+    if (!userId) return;
+    if (!confirm("Xóa thông báo này?")) return;
+
+    setNotifications(prev =>
+      prev.filter(n => n.__clientKey !== clientKey)
+    );
+
+    const remain = getReadKeys(userId).filter(
+      k => k !== clientKey
+    );
+    saveAllReadKeys(userId, remain);
   };
+
+  /* ================= HELPERS ================= */
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'ORDER': return <Package size={20} />;
-      case 'PROMOTION': return <Percent size={20} />;
-      case 'SYSTEM': return <Bell size={20} />;
-      case 'ACCOUNT':
-      case 'PERSONAL': return <User size={20} />;
-      default: return <Info size={20} />;
+      case "ORDER":
+        return <Package size={20} />;
+      case "PROMOTION":
+        return <Percent size={20} />;
+      case "SYSTEM":
+        return <Bell size={20} />;
+      case "ACCOUNT":
+      case "PERSONAL":
+        return <User size={20} />;
+      default:
+        return <Info size={20} />;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'ORDER': return '#10b981';
-      case 'PROMOTION': return '#f59e0b';
-      case 'SYSTEM': return '#3b82f6';
-      case 'PERSONAL':
-      case 'ACCOUNT': return '#8b5cf6';
-      default: return '#6b7280';
+      case "ORDER":
+        return "#10b981";
+      case "PROMOTION":
+        return "#f59e0b";
+      case "SYSTEM":
+        return "#3b82f6";
+      case "ACCOUNT":
+      case "PERSONAL":
+        return "#8b5cf6";
+      default:
+        return "#6b7280";
     }
   };
 
-  // Loading từ auth hoặc fetch
+  /* ================= DERIVED ================= */
+
+  const unreadCount = notifications.filter(
+    n => !n.isRead
+  ).length;
+
+  /* ================= RENDER ================= */
+
   if (authLoading || loading) return <LoadingSkeleton />;
-
   if (error) return <div className="error-message">{error}</div>;
-
-  if (!authUser) return <div className="error-message">Vui lòng đăng nhập</div>;
-
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  if (!authUser)
+    return (
+      <div className="error-message">Vui lòng đăng nhập</div>
+    );
 
   return (
     <div className="notifications-page">
       <div className="notifications-container">
         <div className="notifications-header">
-          <h1>Thông báo của bạn</h1>
+          <div className="title-with-bell">
+            <NotificationBell count={unreadCount} />
+            <h1>Thông báo của bạn</h1>
+          </div>
+
           {unreadCount > 0 && (
-            <button className="mark-all-read" onClick={markAllAsRead}>
+            <button
+              className="mark-all-read"
+              onClick={markAllAsRead}
+            >
               Đánh dấu tất cả đã đọc ({unreadCount})
             </button>
           )}
@@ -129,32 +238,43 @@ const NotificationsPage: React.FC = () => {
           </div>
         ) : (
           <div className="notifications-list">
-            {notifications.map((notif) => (
+            {notifications.map(notif => (
               <div
-                key={notif.id}
-                className={`notification-item ${notif.isRead ? 'read' : 'unread'}`}
-                onClick={() => !notif.isRead && markAsRead(notif.id)}
+                key={notif.__clientKey}
+                className={`notification-item ${
+                  notif.isRead ? "read" : "unread"
+                }`}
+                onClick={() =>
+                  handleClickNotification(notif)
+                }
               >
-                <div className="notification-icon" style={{ backgroundColor: getTypeColor(notif.notificationType) }}>
+                <div
+                  className="notification-icon"
+                  style={{
+                    backgroundColor: getTypeColor(
+                      notif.notificationType
+                    )
+                  }}
+                >
                   {getTypeIcon(notif.notificationType)}
                 </div>
 
                 <div className="notification-content">
                   <h4>{notif.title}</h4>
                   <p>{notif.content}</p>
-                  {/* Nếu backend trả createdAt thì hiển thị */}
-                  {/* <span className="notification-time">
-                    {new Date(notif.createdAt).toLocaleString('vi-VN')}
-                  </span> */}
                 </div>
 
                 <div className="notification-actions">
-                  {!notif.isRead && <span className="unread-dot"></span>}
+                  {!notif.isRead && (
+                    <span className="unread-dot"></span>
+                  )}
                   <button
                     className="delete-btn"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
-                      deleteNotification(notif.id);
+                      deleteNotification(
+                        notif.__clientKey
+                      );
                     }}
                   >
                     <Trash2 size={18} />

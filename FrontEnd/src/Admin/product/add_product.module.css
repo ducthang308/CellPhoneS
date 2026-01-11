@@ -1,80 +1,138 @@
-.main-content {
-  flex: 1;
-  padding: 20px;
-  background-color: #f3f4f6;
+/* PAGE */
+.pAdd__page {
   min-height: 100vh;
+  background: #f5f6fa;
   display: flex;
   justify-content: center;
+  padding: 40px 16px;
 }
 
-.form-section {
-  width: 75%;
-  background-color: #fefefe;
-  padding: 32px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+/* CARD */
+.pAdd__card {
+  width: 100%;
+  max-width: 980px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 36px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.08);
 }
 
-.form-section h1 {
+/* TITLE */
+.pAdd__title {
+  font-size: 22px;
+  font-weight: 700;
   margin-bottom: 24px;
-  color: #222;
 }
 
-.form-section form {
+/* FORM */
+.pAdd__form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
-.form-section form > div {
+/* FIELD */
+.pAdd__field {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
 }
 
-.form-section label {
-  width: 150px;
-  text-align: left;
+.pAdd__field label {
+  font-size: 13px;
   font-weight: 600;
+  margin-bottom: 6px;
+  color: #374151;
 }
 
-.form-section input,
-.form-section select,
-.form-section textarea {
-  width: 300px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.image-upload {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-}
-
-.image-upload img {
-  border: 1px solid #ddd;
+.pAdd__field input,
+.pAdd__field textarea,
+.pAdd__field select {
+  height: 40px;
+  padding: 0 12px;
   border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
 }
 
-.buttons {
+.pAdd__field textarea {
+  height: 90px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+/* ROW */
+.pAdd__row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* SPEC */
+.pAdd__section {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.pAdd__specGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.pAdd__specGrid input {
+  height: 38px;
+}
+
+/* IMAGES */
+.pAdd__imageList {
+  margin-top: 10px;
   display: flex;
-  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pAdd__imageList img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* ACTIONS */
+.pAdd__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
   margin-top: 20px;
 }
 
-.add {
-  background-color: #28a745;
-  color: white;
-  padding: 12px 32px;
+.pAdd__submit {
+  height: 40px;
+  padding: 0 22px;
   border-radius: 8px;
   border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 16px;
 }
 
-.add:hover {
-  background-color: #218838;
+.pAdd__submit:hover {
+  background: #1d4ed8;
+}
+
+.pAdd__cancel {
+  height: 40px;
+  padding: 0 22px;
+  border-radius: 8px;
+  border: none;
+  background: #e5e7eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pAdd__cancel:hover {
+  background: #d1d5db;
 }

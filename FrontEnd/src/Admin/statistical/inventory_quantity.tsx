@@ -1,95 +1,78 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./inventory_quantity.module.css";
+import StatisticService from "../../services/StatisticService";
+import type {
+  InventoryStatisticItem,
+  InventoryStatisticResponse
+} from "../../services/Interface";
 
-/* ===================== TYPES ===================== */
-interface SanPham {
-  IDSanPham: number;
-  TenSanPham: string;
-  HinhAnh?: string;
-  SoLuong: number;
-}
 
-interface NhaCungCap {
-  TenNCC: string;
-}
+const InventoryQuantity: React.FC = () => {
 
-interface LoSanXuat {
-  IDLo: number;
-  HanSuDung?: string | null;
-}
+  const [filters, setFilters] = useState<{
+    year?: number;
+    month?: number;
+    day?: number;
+  }>({});
 
-interface ThongKeTonKhoItem {
-  sanPham: SanPham;
-  nhaCungCap: NhaCungCap;
-  loSanXuat: LoSanXuat;
-}
+  const [data, setData] = useState<InventoryStatisticResponse>();
 
-interface Props {
-  model: ThongKeTonKhoItem[];
-  danhSachNam: number[];
-  namDuocChon?: number;
-  thangDuocChon?: number;
-  ngayDuocChon?: number;
-}
+  const model: InventoryStatisticItem[] = data?.items ?? [];
+  const danhSachNam = data?.availableYears ?? [];
 
-/* ===================== COMPONENT ===================== */
-const InventoryQuantity: React.FC<Props> = ({
-  model,
-  danhSachNam,
-  namDuocChon,
-  thangDuocChon,
-  ngayDuocChon
-}) => {
-  /* ===== JS logic giữ nguyên ===== */
+  /* ===================== FETCH API ===================== */
   useEffect(() => {
-    const redirectThongKe = () => {
-      const year =
-        (document.getElementById("yearSelect") as HTMLSelectElement)?.value ||
-        0;
-      const month =
-        (document.getElementById("monthSelect") as HTMLSelectElement)?.value ||
-        0;
-      const day =
-        (document.getElementById("daySelect") as HTMLSelectElement)?.value || 0;
+    StatisticService.getInventoryStatistic(filters).then(res => {
+      setData(res);
+    });
+  }, [filters]);
 
-      window.location.href = `/ThongKe/ThongKeSoLuongTonKho?nam=${year}&thang=${month}&ngay=${day}`;
-    };
+  /* ===================== HANDLER ===================== */
+  const onChangeFilter = (f: {
+    year?: number;
+    month?: number;
+    day?: number;
+  }) => {
+    setFilters(f);
+  };
 
-    const yearSelect = document.getElementById("yearSelect");
-    const monthSelect = document.getElementById("monthSelect");
-    const daySelect = document.getElementById("daySelect");
-
-    yearSelect?.addEventListener("change", redirectThongKe);
-    monthSelect?.addEventListener("change", redirectThongKe);
-    daySelect?.addEventListener("change", redirectThongKe);
-
-    return () => {
-      yearSelect?.removeEventListener("change", redirectThongKe);
-      monthSelect?.removeEventListener("change", redirectThongKe);
-      daySelect?.removeEventListener("change", redirectThongKe);
-    };
-  }, []);
-
+  /* ===================== RENDER ===================== */
   return (
     <main className={styles["main-content"]}>
       <div className={styles["Title"]}>
-        <h1>Thống kê</h1>
+        <h1>Thống kê số lượng tồn kho</h1>
       </div>
 
       <div className={styles["filters"]}>
-        <div className={styles["han-su-dung-filters"]}>Hạn sử dụng :</div>
+        <span>Hạn sử dụng:</span>
 
-        <select id="yearSelect" defaultValue={namDuocChon ?? ""}>
-          <option value="">-- Không chọn năm --</option>
-          {danhSachNam.map(year => (
-            <option key={year} value={year}>
-              {year}
+        <select
+          value={filters.year ?? ""}
+          onChange={e =>
+            onChangeFilter({
+              year: e.target.value ? Number(e.target.value) : undefined
+            })
+          }
+        >
+          <option value="">-- Năm --</option>
+          {danhSachNam.map(y => (
+            <option key={y} value={y}>
+              {y}
             </option>
           ))}
         </select>
 
-        <select id="monthSelect" defaultValue={thangDuocChon ?? ""}>
-          <option value="">-- Không chọn tháng --</option>
+        <select
+          value={filters.month ?? ""}
+          disabled={!filters.year}
+          onChange={e =>
+            onChangeFilter({
+              year: filters.year,
+              month: e.target.value ? Number(e.target.value) : undefined
+            })
+          }
+        >
+          <option value="">-- Tháng --</option>
           {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
             <option key={m} value={m}>
               Tháng {m}
@@ -97,8 +80,18 @@ const InventoryQuantity: React.FC<Props> = ({
           ))}
         </select>
 
-        <select id="daySelect" defaultValue={ngayDuocChon ?? ""}>
-          <option value="">-- Không chọn tháng --</option>
+        <select
+          value={filters.day ?? ""}
+          disabled={!filters.month}
+          onChange={e =>
+            onChangeFilter({
+              year: filters.year,
+              month: filters.month,
+              day: e.target.value ? Number(e.target.value) : undefined
+            })
+          }
+        >
+          <option value="">-- Ngày --</option>
           {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
             <option key={d} value={d}>
               Ngày {d}
@@ -107,113 +100,57 @@ const InventoryQuantity: React.FC<Props> = ({
         </select>
       </div>
 
-      <div className={styles["stats-container"]}>
-        <nav
-          className={styles["stats-nav"]}
-          role="tablist"
-          aria-label="Chọn loại thống kê"
-        >
-          <button role="tab" aria-selected="true" tabIndex={0}>
-            <a href="/ThongKe/ThongKeDoanhThuVaSoLuongDon">
-              Thống kê số lượng đơn hàng và doanh thu
-            </a>
-          </button>
+      <div className={styles["table-container"]}>
+        <table>
+          <thead>
+            <tr>
+              <th>Mã SP</th>
+              <th>Nhà cung cấp</th>
+              <th>Tên sản phẩm</th>
+              <th>Hình ảnh</th>
+              <th>Số lượng tồn</th>
+              <th>Lô</th>
+              <th>Hạn sử dụng</th>
+            </tr>
+          </thead>
 
-          <button
-            className={styles["active"]}
-            role="tab"
-            aria-selected="false"
-            tabIndex={-1}
-          >
-            <a href="/ThongKe/ThongKeSoLuongTonKho">
-              Thống kê số lượng tồn kho
-            </a>
-          </button>
-
-          <button role="tab" aria-selected="false" tabIndex={-1}>
-            <a href="/ThongKe/ThongKeGiaTriSanPhamTheoThoiGian">
-              Thống kê giá sản phẩm
-            </a>
-          </button>
-
-          <button role="tab" aria-selected="false" tabIndex={-1}>
-            <a href="/ThongKe/ThongKeSoLuongSanPhamTheoNhaCungCap">
-              Số lượng sản phẩm theo nhà cung cấp
-            </a>
-          </button>
-
-          <button role="tab" aria-selected="false" tabIndex={-1}>
-            <a href="/ThongKe/ThongKeTrangThaiDonHangTheoThoiGian">
-              Thống kê đơn hàng đã hủy/ đã hoàn thành
-            </a>
-          </button>
-        </nav>
-
-        <div className={styles["table-container"]}>
-          <table>
-            <thead>
+          <tbody>
+            {model.length === 0 && (
               <tr>
-                <th className={styles["stt"]}>Mã sản phẩm</th>
-                <th className={styles["nha-cung-cap"]}>Nhà cung cấp</th>
-                <th className={styles["ten-san-pham"]}>Tên sản phẩm</th>
-                <th className={styles["hinh-anh"]}>Hình ảnh</th>
-                <th className={styles["don-gia"]}>Số lượng tồn kho</th>
-                <th className={styles["so-luong"]}>Lô</th>
-                <th className={styles["han-su-dung"]}>Hạn sử dụng</th>
+                <td colSpan={7} style={{ textAlign: "center" }}>
+                  Không có dữ liệu
+                </td>
               </tr>
-            </thead>
+            )}
 
-            <tbody>
-              {model.map((item, index) => (
-                <tr key={index}>
-                  <td className={styles["ma-san-pham"]}>
-                    {item.sanPham.IDSanPham}
-                  </td>
-
-                  <td className={styles["nha-cung-cap"]}>
-                    {item.nhaCungCap.TenNCC}
-                  </td>
-
-                  <td className={styles["ten-san-pham"]}>
-                    {item.sanPham.TenSanPham}
-                  </td>
-
-                  <td className={styles["hinh-anh"]}>
-                    {item.sanPham.HinhAnh ? (
-                      <img
-                        src={item.sanPham.HinhAnh}
-                        alt="Ảnh sản phẩm"
-                        className={styles["rounded-img"]}
-                        title={item.sanPham.TenSanPham}
-                      />
-                    ) : (
-                      <img
-                        src="/Uploads/placeholder.jpg"
-                        alt="Không có ảnh"
-                        className={styles["rounded-img"]}
-                        title="Không có ảnh"
-                      />
-                    )}
-                  </td>
-
-                  <td className={styles["so-luong-ton-kho"]}>
-                    {item.sanPham.SoLuong}
-                  </td>
-
-                  <td className={styles["lo"]}>{item.loSanXuat.IDLo}</td>
-
-                  <td className={styles["han-su-dung"]}>
-                    {item.loSanXuat.HanSuDung
-                      ? new Date(item.loSanXuat.HanSuDung).toLocaleDateString(
-                          "vi-VN"
-                        )
-                      : ""}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            {model.map((item, index) => (
+              <tr key={index}>
+                <td>{item.product.productId}</td>
+                <td>{item.supplier.supplierName ?? "—"}</td>
+                <td>{item.product.productName}</td>
+                <td>
+                  <img
+                    src={
+                      item.product.imageUrl ??
+                      "/Uploads/placeholder.jpg"
+                    }
+                    alt={item.product.productName}
+                    className={styles["rounded-img"]}
+                  />
+                </td>
+                <td>{item.product.quantity}</td>
+                <td>{item.batch.batchId}</td>
+                <td>
+                  {item.batch.expiryDate
+                    ? new Date(
+                        item.batch.expiryDate
+                      ).toLocaleDateString("vi-VN")
+                    : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </main>
   );

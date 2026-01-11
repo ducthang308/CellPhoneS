@@ -1,124 +1,117 @@
-.main {
-  max-width: 960px;
-  margin: auto;
-  padding: 32px 24px;
-  background: #f9fafb;
+.pdEdit__page {
+  min-height: 100vh;
+  background: #f5f6fa;
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
 }
 
-/* ===== HEADER ===== */
-.header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.pdEdit__card {
+  width: 100%;
+  max-width: 980px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 36px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.08);
+}
+
+.pdEdit__title {
+  font-size: 22px;
+  font-weight: 700;
   margin-bottom: 24px;
 }
 
-.backBtn {
-  background: none;
-  border: none;
-  color: #2563eb;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 4px 0;
-}
-
-.backBtn:hover {
-  text-decoration: underline;
-}
-
-.header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-/* ===== FORM ===== */
-.form {
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-}
-
-/* ===== GROUP ===== */
-.group {
+.pdEdit__form {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  gap: 18px;
 }
 
-.group label {
-  font-size: 15px;
+.pdEdit__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdEdit__field label {
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 8px;
-  color: #0f172a;
+  margin-bottom: 6px;
 }
 
-.group input,
-.group textarea {
-  font-size: 15px;
-  padding: 12px 14px;
-  border-radius: 10px;
+.pdEdit__field input,
+.pdEdit__field textarea,
+.pdEdit__field select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
-  transition: border 0.2s ease;
 }
 
-.group input:focus,
-.group textarea:focus {
-  outline: none;
-  border-color: #2563eb;
+.pdEdit__field textarea {
+  height: 90px;
+  padding: 10px 12px;
 }
 
-/* ===== ROW ===== */
-.row {
+.pdEdit__row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.pdEdit__section {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.pdEdit__specGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.pdEdit__imageList {
   display: flex;
-  gap: 20px;
-}
-
-/* ===== IMAGES ===== */
-.imageList {
-  display: flex;
-  gap: 14px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.imageList img {
-  width: 110px;
-  height: 110px;
+.pdEdit__imageList img {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
   object-fit: cover;
-  border-radius: 12px;
   border: 1px solid #e5e7eb;
-  background: #fff;
 }
 
-/* ===== BUTTON ===== */
-.updateBtn {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
+.pdEdit__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pdEdit__submit {
+  background: #2563eb;
+  color: white;
+  padding: 0 22px;
+  height: 40px;
+  border-radius: 8px;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
-  margin-top: 12px;
 }
 
-.updateBtn:hover {
-  opacity: 0.95;
+.pdEdit__delete {
+  background: #ef4444;
+  color: white;
+  padding: 0 22px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
 }
 
-.updateBtn:disabled {
-  background: #94a3b8;
-  cursor: not-allowed;
-}
-
-/* ===== LOADING ===== */
-.loading {
+.pdEdit__loading {
+  padding: 40px;
   text-align: center;
-  padding: 60px;
-  font-size: 16px;
-  color: #475569;
 }

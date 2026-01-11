@@ -5,9 +5,17 @@ import { Tabs } from 'antd';
 import type { TabsProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { UserCog, ShoppingCart, History, LogOut } from 'lucide-react';
+import { UserCog, ShoppingCart, History, LogOut, BadgePercent } from 'lucide-react';
 import CategoryService from "../../services/CategoryService";
+import NotificationBell from '../Badge/NotificationBell';
+import { notificationService } from "../../services/NotificationService";
 import type { ICategory } from "../../services/Interface";
+
+const getReadStorageKey = (userId: number) =>
+  `read_notification_keys_user_${userId}`;
+
+const buildBaseKey = (n: any) =>
+  `${n.notificationType}|${n.title}|${n.content}`;
 
 interface TabItem {
   key: string;
@@ -23,6 +31,51 @@ const Header = () => {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [keyword, setKeyword] = useState("");
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadUnreadCount = async () => {
+    if (!user?.userId) {
+      setUnreadCount(0);
+      return;
+    }
+
+    try {
+      const data = await notificationService.getUserNotifications(user.userId);
+
+      const readKeys: string[] = JSON.parse(
+        localStorage.getItem(
+          `read_notification_keys_user_${user.userId}`
+        ) || "[]"
+      );
+
+      const buildBaseKey = (n: any) =>
+        `${n.notificationType}|${n.title}|${n.content}`;
+
+      const unread = data.filter(
+        n => !readKeys.includes(buildBaseKey(n))
+      ).length;
+
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error("Load unread count failed", err);
+    }
+  };
+
+  useEffect(() => {
+    loadUnreadCount();
+  }, [location.pathname, user]);
+
+  useEffect(() => {
+    const syncUnread = () => loadUnreadCount();
+
+    window.addEventListener("focus", syncUnread);
+    window.addEventListener("notification-read", syncUnread);
+
+    return () => {
+      window.removeEventListener("focus", syncUnread);
+      window.removeEventListener("notification-read", syncUnread);
+    };
+  }, [user]);
 
   const displayName = useMemo(
     () => user?.fullName || "Người dùng",
@@ -33,6 +86,36 @@ const Header = () => {
     () => displayName.slice(-3).toUpperCase(),
     [displayName]
   );
+
+  // useEffect(() => {
+  // if (!user?.userId) {
+  //   setUnreadCount(0);
+  //   return;
+  // }
+
+  // const fetchUnreadCount = async () => {
+  //     try {
+  //       const data = await notificationService.getUserNotifications(user.userId);
+
+  //       const readKeys: string[] = JSON.parse(
+  //         localStorage.getItem(getReadStorageKey(user.userId)) || "[]"
+  //       );
+
+  //       const buildBaseKey = (n: any) =>
+  //         `${n.notificationType}|${n.title}|${n.content}`;
+
+  //       const unread = data.filter(
+  //         n => !readKeys.includes(buildBaseKey(n))
+  //       ).length;
+
+  //       setUnreadCount(unread);
+  //     } catch (err) {
+  //       console.error("Load unread notification count failed", err);
+  //     }
+  //   };
+
+  //   fetchUnreadCount();
+  // }, [user]);
 
   useEffect(() => {
     CategoryService.getCategories()
@@ -185,10 +268,23 @@ const Header = () => {
 
         <div className="top-right-wrapper">
           <ul className="list-user-actions">
-            <li className="list-user-item" onClick={() => navigate('/notification')}>
-              <i className="fa-solid fa-bell"></i>
+            <li
+              className="list-user-item notification-item"
+              onClick={() => navigate('/notification')}
+            >
+              <div className="bell-wrapper">
+                <i className="fa-solid fa-bell"></i>
+
+                {unreadCount > 0 && (
+                  <span className="notification-badge">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
               <p className="list-user-item-text">Thông báo</p>
             </li>
+
+
             <li className="list-user-item" onClick={() => navigate('/cartShop')}>
               <i className="fa-solid fa-cart-shopping"></i>
               <p className="list-user-item-text">Giỏ hàng</p>
@@ -255,6 +351,16 @@ const Header = () => {
                     <ShoppingCart size={20} />
                     <div>
                       <p className="title">Giỏ hàng & Thanh toán</p>
+                    </div>
+                  </div>
+
+                   <div
+                    className="dropdown-item"
+                    onClick={() => { navigate('/discount'); setDropdownOpen(false); }}
+                  >
+                    <BadgePercent size={20} />
+                    <div>
+                      <p className="title">Mã giảm giá</p>
                     </div>
                   </div>
 

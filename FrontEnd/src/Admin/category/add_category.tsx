@@ -15,72 +15,78 @@ const DanhMucForm: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    if (!name.trim()) {
+      setError("Tên danh mục không được để trống");
+      return;
+    }
+
     try {
       setLoading(true);
 
       await categoryService.createCategory({
-              categoryName: name.trim(),
-              description: description.trim() || undefined,
-            });
+        categoryName: name.trim(),
+        description: description.trim(),
+      });
 
       navigate("/admin/category");
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Thêm danh mục thất bại");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-  <main className={styles["main-content"]}>
-    <h1>Quản lí danh mục</h1>
-  
-  <div className={styles["form-section"]}>
-    <form onSubmit={handleSubmit}>
-      <div className={styles["form-group"]}>
-        <label className={styles["form-label"]}>Tên danh mục</label>
-        <input
-          className={styles["form-input"]}
-          type="text"
-          placeholder="Tên danh mục..."
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
+    <main className={styles.page}>
+      <div className={styles.centerColumn}>
+        {/* HEADER */}
+        <div className={styles.pageHeader}>
+          <h1>Thêm danh mục</h1>
+          <p className={styles.pageSubTitle}>
+            Tạo mới danh mục để phân loại sản phẩm
+          </p>
+        </div>
 
-        {/* Mô tả */}
-          <div className={styles["form-group"]}>
-            <label className={styles["form-label"]}>Mô tả</label>
-            <textarea
-              className={styles["form-input"]}
-              placeholder="Mô tả danh mục..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+        {/* FORM */}
+        <form className={styles.formCard} onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label>Tên danh mục</label>
+            <input
+              type="text"
+              placeholder="Ví dụ: Smartphone, Tablet..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={loading}
+              required
             />
           </div>
 
-      {error && (
-        <div className={styles["error-message"]}>
-          {error}
-        </div>
-      )}
+          <div className={styles.formGroup}>
+            <label>Mô tả</label>
+            <textarea
+              placeholder="Mô tả ngắn cho danh mục..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={loading}
+              rows={3}
+            />
+          </div>
 
-      <div className={styles["buttons"]}>
-        <button
-          type="submit"
-          className={styles["add"]}
-          disabled={loading}
-        >
-          {loading ? "Đang lưu..." : "Thêm mới"}
-        </button>
+          {error && <div className={styles.errorBox}>{error}</div>}
+
+          <div className={styles.buttons}>
+            <button
+              type="submit"
+              className={styles.addBtn}
+              disabled={loading}
+            >
+              {loading ? "Đang lưu..." : "Thêm danh mục"}
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
-  </div>
-  </main>
-
-);
+    </main>
+  );
 };
 
 export default DanhMucForm;

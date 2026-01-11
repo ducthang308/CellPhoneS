@@ -1,12 +1,13 @@
 .lo-sidebar {
     width: 250px;
-    background-color: white;
     height: 100vh;
-    padding: 20px 0;
-    box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
+    background: white;
     position: fixed;
     left: 0;
     top: 0;
+
+    display: flex;
+    flex-direction: column;
 }
 
 .lo-sidebar-header {
@@ -14,7 +15,11 @@
     font-size: 20px;
     font-weight: bold;
     border-bottom: 1px solid #f0f0f0;
-    margin-bottom: 20px;
+}
+
+.lo-menu {
+    flex: 1;
+    overflow-y: auto;
 }
 
 .lo-menu-item {
@@ -22,7 +27,8 @@
     display: flex;
     align-items: center;
     cursor: pointer;
-    transition: background-color 0.3s;
+    text-decoration: none;
+    color: inherit;
 }
 
 .lo-menu-item:hover {
@@ -40,9 +46,8 @@
 }
 
 .lo-logout {
-    position: absolute;
-    bottom: 20px;
-    width: 100%;
+    margin-top: auto;
     color: #e11d48;
     font-weight: 500;
 }
+

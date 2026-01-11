@@ -1,6 +1,7 @@
 import axios from "axios";
-import type { ICategory } from "./Interface";
+import type { CreateCategoryRequest, ICategory } from "./Interface";
 import axiosClient from "./AxiosClient";
+import create from "@ant-design/icons/lib/components/IconFont";
 
 const CategoryService = {
     async getCategories(): Promise<ICategory[]> {
@@ -18,6 +19,36 @@ const CategoryService = {
             throw new Error("Không thể lấy thông tin Category");
         }
     },
+
+    async createCategory(
+        category: CreateCategoryRequest
+    ): Promise<ICategory> {
+        const res = await axiosClient.post<ICategory>(
+            "/api/categories",
+            category
+        );
+        return res.data;
+    },
+
+    async getCategoryById(id: number): Promise<ICategory> {
+        const res = await axiosClient.get<ICategory>(`/api/categories/${id}`);
+        return res.data;
+    },
+
+    async updateCategory(
+        id: number,
+        category: CreateCategoryRequest
+    ): Promise<ICategory> {
+        const res = await axiosClient.put<ICategory>(
+            `/api/categories/${id}`,
+            category
+        );
+        return res.data;
+    },
+
+    async deleteCategory(id: number): Promise<void> {
+        await axiosClient.delete(`/api/categories/${id}`);
+    }
 };
 
 export default CategoryService;

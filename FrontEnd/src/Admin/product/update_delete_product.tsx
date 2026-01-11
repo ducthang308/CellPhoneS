@@ -1,167 +1,216 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import styles from "./update_delete_product.module.css";
+import { useNavigate, useParams } from "react-router-dom";
 import productService from "../../services/ProductService";
-import type { ProductImage } from "../../services/Interface";
-
-interface ProductForm {
-  name: string;
-  price: string;
-  stockQuantity: string;
-  description: string;
-  images: File[];
-}
+import CategoryService from "../../services/CategoryService";
+import { brandService } from "../../services/BrandService";
+import type { IProduct, ICategory, Brand } from "../../services/Interface";
+import SupplierService from "../../services/supplierService";
+import type { ISupplier } from "../../services/Interface";
+import styles from "./update_delete_product.module.css";
 
 const UpdateDeleteProduct: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const productId = Number(id);
 
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState<ProductForm>({
-    name: "",
-    price: "",
-    stockQuantity: "",
-    description: "",
-    images: [],
-  });
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [product, setProduct] = useState<IProduct | null>(null);
+  const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
 
-  const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
 
-  // ================= LOAD PRODUCT =================
   useEffect(() => {
     if (isNaN(productId)) return;
 
-    const loadProduct = async () => {
-      try {
-        const product = await productService.getProductById(productId);
-
-        setForm({
-          name: product.name,
-          price: String(product.price),
-          stockQuantity: String(product.stockQuantity),
-          description: product.description || "",
-          images: [],
+    Promise.all([
+      SupplierService.getAllSuppliers(),
+      productService.getProductById(productId),
+      CategoryService.getCategories(),
+      brandService.getAll()
+    ])
+      .then(([s, p, c, b]) => {
+        setSuppliers(s);
+        setProduct({
+          ...p,
+          specification: p.specification ?? {
+            screen: "",
+            os: "",
+            cpu: "",
+            ram: "",
+            storage: "",
+            battery: "",
+            camera: ""
+          }
         });
-
-        setExistingImages(product.productImages || []);
-      } catch (err) {
-        console.error("Load product failed", err);
-        alert("Không tải được sản phẩm");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProduct();
+        setCategories(c);
+        setBrands(b);
+      })
+      .finally(() => setLoading(false));
   }, [productId]);
 
-  // ================= HANDLE CHANGE =================
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    if (!product) return;
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+
+    setProduct({
+      ...product,
+      [name]:
+        name === "price" || name === "stockQuantity"
+          ? Number(value)
+          : value
+    });
   };
 
-  // ================= HANDLE IMAGE =================
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!product) return;
+    setProduct({ ...product, [e.target.name]: Number(e.target.value) });
+  };
+
+  const handleSpec = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!product) return;
+    setProduct({
+      ...product,
+      specification: {
+        ...product.specification,
+        [e.target.name]: e.target.value
+      }
+    });
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setForm(prev => ({ ...prev, images: files }));
-    setPreviewImages(files.map(file => URL.createObjectURL(file)));
+    setNewImages(files);
+    setPreviewImages(files.map(f => URL.createObjectURL(f)));
   };
 
-  // ================= UPDATE =================
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUpdating(true);
+    if (!product) return;
 
+    setSaving(true);
     try {
-      await productService.updateProduct(productId, {
-        name: form.name,
-        price: Number(form.price),
-        stockQuantity: Number(form.stockQuantity),
-        description: form.description,
-        brandId: 1,
-        categoryId: 1,
-        specification: null
-        // ❌ KHÔNG gửi productImages
-      });
-
-      if (form.images.length > 0) {
-        await productService.uploadProductImages(productId, form.images);
+      await productService.updateProduct(productId, product);
+      if (newImages.length) {
+        await productService.uploadProductImages(productId, newImages);
       }
-
-      alert("✅ Cập nhật sản phẩm thành công!");
       navigate("/admin/products");
-    } catch (err) {
-      console.error("Update failed", err);
-      alert("Cập nhật thất bại");
     } finally {
-      setUpdating(false);
+      setSaving(false);
     }
   };
 
-  if (loading) return <p className={styles.loading}>Đang tải dữ liệu...</p>;
+  const handleDelete = async () => {
+    if (!confirm("Xóa sản phẩm này?")) return;
+    await productService.deleteProduct(productId);
+    navigate("/admin/products");
+  };
+
+  if (loading || !product) {
+    return <div className={styles.pdEdit__loading}>Đang tải…</div>;
+  }
 
   return (
-    <main className={styles.main}>
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate(-1)}>
-          ← Quay lại
-        </button>
-        <h1>Cập nhật sản phẩm</h1>
-      </div>
+    <main className={styles.pdEdit__page}>
+      <section className={styles.pdEdit__card}>
+        <h1 className={styles.pdEdit__title}>Cập nhật sản phẩm</h1>
 
-      <form onSubmit={handleUpdate} className={styles.form}>
-        <div className={styles.group}>
-          <label>Tên sản phẩm</label>
-          <input name="name" value={form.name} onChange={handleChange} required />
-        </div>
-
-        <div className={styles.row}>
-          <div className={styles.group}>
-            <label>Giá</label>
-            <input type="number" name="price" value={form.price} onChange={handleChange} required />
+        <form onSubmit={handleUpdate} className={styles.pdEdit__form}>
+          {/* BASIC */}
+          <div className={styles.pdEdit__field}>
+            <label>Tên sản phẩm</label>
+            <input name="name" value={product.name} onChange={handleChange} />
           </div>
 
-          <div className={styles.group}>
-            <label>Số lượng</label>
-            <input type="number" name="stockQuantity" value={form.stockQuantity} onChange={handleChange} required />
+          <div className={styles.pdEdit__row}>
+            <div className={styles.pdEdit__field}>
+              <label>Giá</label>
+              <input type="number" name="price" value={product.price} onChange={handleChange} />
+            </div>
+            <div className={styles.pdEdit__field}>
+              <label>Số lượng</label>
+              <input type="number" name="stockQuantity" value={product.stockQuantity} onChange={handleChange} />
+            </div>
           </div>
-        </div>
 
-        <div className={styles.group}>
-          <label>Mô tả</label>
-          <textarea name="description" rows={4} value={form.description} onChange={handleChange} />
-        </div>
+          <div className={styles.pdEdit__row}>
+            <div className={styles.pdEdit__field}>
+              <label>Thương hiệu</label>
+              <select name="brandId" value={product.brandId} onChange={handleSelect}>
+                {brands.map(b => (
+                  <option key={b.brandId} value={b.brandId}>{b.name}</option>
+                ))}
+              </select>
+            </div>
 
-        <div className={styles.group}>
+            <div className={styles.pdEdit__field}>
+              <label>Danh mục</label>
+              <select name="categoryId" value={product.categoryId} onChange={handleSelect}>
+                {categories.map(c => (
+                  <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className={styles.pdEdit__field}>
+            <label>Nhà cung cấp</label>
+            <select name="supplierId" value={product.supplierId} onChange={handleSelect}>
+              {suppliers.map(s => (
+                <option key={s.supplierId} value={s.supplierId}>{s.supplierName}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.pdEdit__field}>
+            <label>Mô tả</label>
+            <textarea name="description" value={product.description ?? ""} onChange={handleChange} />
+          </div>
+
+          {/* SPEC */}
+          <h3 className={styles.pdEdit__section}>Thông số kỹ thuật</h3>
+          <div className={styles.pdEdit__specGrid}>
+            {Object.entries(product.specification).map(([k, v]) => (
+              <input key={k} name={k} placeholder={k.toUpperCase()} value={v} onChange={handleSpec} />
+            ))}
+          </div>
+
+          {/* IMAGES */}
           <label>Ảnh hiện tại</label>
-          <div className={styles.imageList}>
-            {existingImages.map(img => (
+          <div className={styles.pdEdit__imageList}>
+            {product.productImages?.map(img => (
               <img key={img.id} src={img.url} alt="" />
             ))}
           </div>
-        </div>
 
-        <div className={styles.group}>
           <label>Upload ảnh mới</label>
           <input type="file" multiple accept="image/*" onChange={handleImageChange} />
-          <div className={styles.imageList}>
-            {previewImages.map((src, idx) => (
-              <img key={idx} src={src} alt="" />
+
+          <div className={styles.pdEdit__imageList}>
+            {previewImages.map((src, i) => (
+              <img key={i} src={src} alt="" />
             ))}
           </div>
-        </div>
 
-        <button type="submit" className={styles.updateBtn} disabled={updating}>
-          {updating ? "Đang cập nhật..." : "Cập nhật"}
-        </button>
-      </form>
+          {/* ACTION */}
+          <div className={styles.pdEdit__actions}>
+            <button className={styles.pdEdit__submit} disabled={saving}>
+              {saving ? "Đang lưu…" : "Cập nhật"}
+            </button>
+            <button
+              type="button"
+              className={styles.pdEdit__delete}
+              onClick={handleDelete}
+            >
+              Xóa sản phẩm
+            </button>
+          </div>
+        </form>
+      </section>
     </main>
   );
 };

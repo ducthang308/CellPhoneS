@@ -1,38 +1,79 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./stockin_receipt.module.css";
+import StockInService from "../../services/StockInService";
+import BatchService from "../../services/BatchService";
+import type { BatchResponse } from "../../services/Interface";
 
 /* ================= COMPONENT ================= */
 const StockinReceipt = () => {
   const navigate = useNavigate();
 
   /* ===== FORM STATE ===== */
-  const [idSanPham, setIdSanPham] = useState("");
-  const [soLuong, setSoLuong] = useState<number>(1);
-  const [donGia, setDonGia] = useState<number>(1);
-  const [ngaySanXuat, setNgaySanXuat] = useState("");
-  const [hanSuDung, setHanSuDung] = useState("");
-  const [ghiChu, setGhiChu] = useState("");
+  const [batchId, setBatchId] = useState<number | "">("");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [date, setDate] = useState("");
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [batches, setBatches] = useState<BatchResponse[]>([]);
 
-  /* ===== SUBMIT ===== */
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  /* ===== LOAD BATCH LIST ===== */
+  useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        const data = await BatchService.getAll();
 
-    const payload = {
-      idSanPham,
-      soLuong,
-      donGia,
-      ngaySanXuat,
-      hanSuDung,
-      ghiChu,
+       
+console.log("Batch API data:", data);
+setBatches(data);
+
+        setBatches(data);
+      } catch (e) {
+        console.error(e);
+        alert("Không thể tải danh sách lô hàng");
+      }
     };
 
-    console.log("📦 Phiếu nhập kho:", payload);
+    fetchBatches();
+  }, []);
 
-    // TODO: axios.post("/QuanLyKho/ThemPhieuNhap", payload)
+  /* ===== SUBMIT ===== */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    alert("✅ Thêm phiếu nhập kho thành công!");
-    navigate("/stock_management");
+    if (!batchId) {
+      alert("Vui lòng chọn lô hàng");
+      return;
+    }
+
+    if (!date) {
+      alert("Vui lòng chọn ngày nhập");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        batchId,
+        quantity,
+        date: `${date}T00:00:00`, 
+        note,
+      };
+
+      await StockInService.create(payload);
+
+      alert("Thêm phiếu nhập kho thành công!");
+      navigate("/admin/stock_management");
+    } catch (error: any) {
+      console.error(error);
+      alert(
+        error?.response?.data?.message ||
+        "Lỗi khi tạo phiếu nhập kho"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ================= RENDER ================= */
@@ -42,7 +83,7 @@ const StockinReceipt = () => {
       <div className={styles["content-header"]}>
         <div
           className={styles["content-header"]}
-          onClick={() => navigate("/stock_management")}
+          onClick={() => navigate("/admin/stock_management")}
           style={{ cursor: "pointer" }}
         >
           <div className={styles["back-button"]}>
@@ -60,7 +101,7 @@ const StockinReceipt = () => {
           </div>
           <div
             className={styles.tab}
-            onClick={() => navigate("/stockout_receipt")}
+            onClick={() => navigate("/admin/stockout_receipt")}
             style={{ cursor: "pointer" }}
           >
             Xuất kho
@@ -74,20 +115,27 @@ const StockinReceipt = () => {
         >
           {/* ROW 1 */}
           <div className={`${styles["form-row"]} ${styles["form-row-2-col"]}`}>
+            {/* BATCH SELECT */}
             <div className={styles["form-col"]}>
               <label className={styles["form-row-label"]}>
-                ID Sản Phẩm
+                Lô hàng (Batch)
               </label>
-              <input
-                type="text"
+              <select
                 className={styles["form-input"]}
-                value={idSanPham}
-                onChange={e => setIdSanPham(e.target.value)}
-                placeholder="Nhập ID sản phẩm"
+                value={batchId}
+                onChange={(e) => setBatchId(Number(e.target.value))}
                 required
-              />
+              >
+                <option value="">-- Chọn lô hàng --</option>
+                  {batches.map((batch) => (
+                    <option key={batch.batchID} value={batch.batchID}>
+                      {batch.product?.name ?? "Sản phẩm không tên"} (Batch #{batch.batchID})
+                    </option>
+                  ))}
+              </select>
             </div>
 
+            {/* QUANTITY */}
             <div className={styles["form-col"]}>
               <label className={styles["form-row-label"]}>
                 Số lượng nhập
@@ -96,8 +144,8 @@ const StockinReceipt = () => {
                 type="number"
                 className={styles["form-input"]}
                 min={1}
-                value={soLuong}
-                onChange={e => setSoLuong(Number(e.target.value))}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
                 placeholder="Số lượng nhập"
                 required
               />
@@ -107,61 +155,37 @@ const StockinReceipt = () => {
           {/* ROW 2 */}
           <div className={styles["form-row"]}>
             <label className={styles["form-row-label"]}>
-              Đơn giá
+              Ngày nhập kho
             </label>
             <input
-              type="number"
+              type="date"
               className={styles["form-input"]}
-              min={1}
-              value={donGia}
-              onChange={e => setDonGia(Number(e.target.value))}
-              placeholder="Đơn giá"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               required
             />
           </div>
 
           {/* ROW 3 */}
-          <div className={`${styles["form-row"]} ${styles["form-row-2-col"]}`}>
-            <div className={styles["form-col"]}>
-              <label className={styles["form-row-label"]}>
-                Ngày sản xuất (ngày)
-              </label>
-              <input
-                type="date"
-                className={styles["form-input"]}
-                value={ngaySanXuat}
-                onChange={e => setNgaySanXuat(e.target.value)}
-              />
-            </div>
-
-            <div className={styles["form-col"]}>
-              <label className={styles["form-row-label"]}>
-                Hạn sử dụng (ngày)
-              </label>
-              <input
-                type="date"
-                className={styles["form-input"]}
-                value={hanSuDung}
-                onChange={e => setHanSuDung(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* ROW 4 */}
           <div className={styles["form-row"]}>
             <label className={styles["form-row-label"]}>
-              Ghi chú khác (nếu cần)
+              Ghi chú
             </label>
             <textarea
               className={styles["form-textarea"]}
-              value={ghiChu}
-              onChange={e => setGhiChu(e.target.value)}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Ghi chú thêm (nếu có)"
             />
           </div>
 
           {/* SUBMIT */}
-          <button type="submit" className={styles["submit-button"]}>
-            Xác nhận
+          <button
+            type="submit"
+            className={styles["submit-button"]}
+            disabled={loading}
+          >
+            {loading ? "Đang xử lý..." : "Xác nhận"}
           </button>
         </form>
       </div>

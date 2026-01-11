@@ -4,138 +4,195 @@ import type { OrderFullResponse } from "../../services/Interface";
 import orderService from "../../services/OrderService";
 import "./OrderHistoryPage.css";
 
+const PLACEHOLDER_IMG =
+  "https://via.placeholder.com/100x100?text=No+Image";
+
+/* ================= STATUS TABS ================= */
+const STATUS_TABS = [
+  { key: "ALL", label: "Tất cả" },
+  { key: "PENDING", label: "Chờ xử lý" },
+  // { key: "REJECTED", label: "" },
+  { key: "APPROVED", label: "Đang giao" },
+  { key: "CANCELLED", label: "Đã hủy" }
+];
+
 const OrderHistoryPage: React.FC = () => {
   const navigate = useNavigate();
+
+  /* ================= USER ================= */
   const rawUser = localStorage.getItem("user");
+  const userId = rawUser ? JSON.parse(rawUser).userId : null;
 
-  const userId = rawUser
-    ? JSON.parse(rawUser).userId
-    : null;
-
+  /* ================= STATE ================= */
   const [orders, setOrders] = useState<OrderFullResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<OrderFullResponse | null>(null);
+  const [selectedOrder, setSelectedOrder] =
+    useState<OrderFullResponse | null>(null);
+  const [activeStatus, setActiveStatus] = useState<string>("ALL");
 
+  /* ================= HELPERS ================= */
+  const safeNumber = (v?: number | null) => v ?? 0;
+  const safeArray = <T,>(arr?: T[] | null): T[] => arr ?? [];
+
+  const getProductImage = (p: any): string => {
+    if (p?.imageUrl) return p.imageUrl;
+    if (p?.productImages?.length > 0)
+      return p.productImages[0].url;
+    return PLACEHOLDER_IMG;
+  };
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.toLocaleDateString("vi-VN")} ${d.toLocaleTimeString(
+      "vi-VN",
+      { hour: "2-digit", minute: "2-digit" }
+    )}`;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "#16a34a";
+      case "DELIVERED":
+        return "#2563eb";
+      case "PENDING":
+        return "#f59e0b";
+      case "CANCELLED":
+        return "#dc2626";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  /* ================= LOAD ORDERS ================= */
   useEffect(() => {
     if (!userId) {
-      console.warn("❌ userId không tồn tại");
       setLoading(false);
       return;
     }
 
-    console.log("▶️ CALL API getByUser, userId =", userId);
     setLoading(true);
 
     orderService
       .getByUser(userId)
       .then(data => {
-        setOrders(data);
+        const safeOrders: OrderFullResponse[] = (data || []).map(
+          o => ({
+            ...o,
+            products: o.products ?? [],
+            subTotal: o.subTotal ?? 0,
+            discountAmount: o.discountAmount ?? 0,
+            totalAmount: o.totalAmount ?? 0
+          })
+        );
+        setOrders(safeOrders);
       })
-
-      .catch(err => {
-        console.error("❌ LỖI CALL API:", err);
-      })
-      .finally(() => {
-        console.log("⏹️ FINALLY - stop loading");
-        setLoading(false);
-      });
+      .catch(err => console.error("❌ Load order error:", err))
+      .finally(() => setLoading(false));
   }, [userId]);
 
+  /* ================= FILTER ================= */
+  const filteredOrders = orders.filter(o =>
+    activeStatus === "ALL" ? true : o.status === activeStatus
+  );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-      case "Hoàn thành":
-        return "#00c853";
-      case "DELIVERED":
-      case "Đã giao":
-        return "#0066cc";
-      case "PENDING":
-      case "Đang xử lý":
-        return "#ff9800";
-      case "CANCELLED":
-      case "Đã hủy":
-        return "#d70018";
-      default:
-        return "#666";
-    }
-  };
-
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return `${d.toLocaleDateString("vi-VN")} ${d.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit"
-    })}`;
-  };
-
-  const totalAmount = selectedOrder
-    ? selectedOrder.products.reduce(
-      (sum, p) => sum + p.price * p.quantity,
-      0
-    )
-    : 0;
-
+  /* ================= RENDER ================= */
   return (
-    <div className="order-history-page">
-      <div className="order-container">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          Quay lại
+    <div className="ohp-page">
+      <div className="ohp-container">
+        <button className="ohp-back-btn" onClick={() => navigate(-1)}>
+          ← Quay lại
         </button>
 
-        <h1 className="page-title">Lịch sử đơn hàng</h1>
+        <h1 className="ohp-title">Lịch sử đơn hàng</h1>
+
+        {/* ===== TABS ===== */}
+        <div className="ohp-tabs">
+          {STATUS_TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`ohp-tab ${
+                activeStatus === tab.key ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveStatus(tab.key);
+                setSelectedOrder(null);
+              }}
+            >
+              {tab.label}
+              <span className="ohp-tab-count">
+                {tab.key === "ALL"
+                  ? orders.length
+                  : orders.filter(o => o.status === tab.key)
+                      .length}
+              </span>
+            </button>
+          ))}
+        </div>
 
         {loading ? (
-          <div className="order-loading">
-            <div className="spinner" />
-            <p>Đang tải đơn hàng...</p>
-          </div>
+          <div className="ohp-loading">Đang tải đơn hàng…</div>
         ) : (
-          <div className="orders-grid">
-            {/* LEFT */}
-            <div className="orders-list">
-              {orders.map(order => (
+          <div className="ohp-grid">
+            {/* ===== LEFT ===== */}
+            <div className="ohp-list">
+              {filteredOrders.length === 0 && (
+                <div className="ohp-empty">
+                  Không có đơn hàng ở trạng thái này
+                </div>
+              )}
+
+              {filteredOrders.map(order => (
                 <div
                   key={order.orderID}
-                  className={`order-card ${selectedOrder?.orderID === order.orderID ? "active" : ""
-                    }`}
-                  onClick={() => setSelectedOrder(order)}
+                  className={`ohp-card ${
+                    selectedOrder?.orderID === order.orderID
+                      ? "ohp-active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setSelectedOrder({
+                      ...order,
+                      products: safeArray(order.products)
+                    })
+                  }
                 >
-                  <div className="order-header">
+                  <div className="ohp-card-header">
                     <div>
-                      <div className="order-id">Đơn hàng #{order.orderID}</div>
-                      <div className="order-date">
+                      <div className="ohp-order-id">
+                        Đơn hàng #{order.orderID}
+                      </div>
+                      <div className="ohp-order-date">
                         {formatDate(order.orderDate)}
                       </div>
                     </div>
-                    <div
-                      className="order-status"
-                      style={{ color: getStatusColor(order.status) }}
+
+                    <span
+                      className="ohp-status"
+                      style={{
+                        color: getStatusColor(order.status)
+                      }}
                     >
                       {order.status}
-                    </div>
+                    </span>
                   </div>
 
-                  {/* TEXT PREVIEW – KHÔNG MOCK */}
-                  <div className="order-items-preview-text">
-                    {order.products.length === 0
-                      ? "Không có sản phẩm"
-                      : order.products.length === 1
-                        ? order.products[0].name
-                        : `${order.products[0].name} và ${order.products.length - 1
-                        } sản phẩm khác`}
+                  <div className="ohp-preview">
+                    {safeArray(order.products).length} sản phẩm
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* RIGHT */}
-            <div className="order-detail-panel">
+            {/* ===== RIGHT ===== */}
+            <div className="ohp-detail">
               {selectedOrder ? (
                 <>
-                  <h2>Chi tiết đơn hàng #{selectedOrder.orderID}</h2>
+                  <h2 className="ohp-detail-title">
+                    Chi tiết đơn #{selectedOrder.orderID}
+                  </h2>
 
-                  <div className="detail-info">
+                  <div className="ohp-meta">
                     <p>
                       <strong>Ngày đặt:</strong>{" "}
                       {formatDate(selectedOrder.orderDate)}
@@ -144,45 +201,81 @@ const OrderHistoryPage: React.FC = () => {
                       <strong>Trạng thái:</strong>{" "}
                       <span
                         style={{
-                          color: getStatusColor(selectedOrder.status)
+                          color: getStatusColor(
+                            selectedOrder.status
+                          )
                         }}
                       >
                         {selectedOrder.status}
                       </span>
                     </p>
+                    <p>
+                      <strong>Thanh toán:</strong>{" "}
+                      {selectedOrder.paymentStatus}
+                    </p>
                   </div>
 
-                  <div className="detail-products">
-                    {selectedOrder.products.map(p => (
-                      <div key={p.productID} className="detail-item">
+                  <div className="ohp-products">
+                    {safeArray(selectedOrder.products).map(p => (
+                      <div
+                        key={p.productID}
+                        className="ohp-product"
+                      >
                         <img
-                          src={p.imageUrl || "/placeholder.png"}
+                          src={getProductImage(p)}
                           alt={p.name}
-                          className="detail-product-image"
+                          className="ohp-product-img"
                         />
 
-                        <div className="detail-item-info">
-                          <h4>{p.name}</h4>
+                        <div className="ohp-product-info">
+                          <h3>{p.name}</h3>
                           <p>Số lượng: {p.quantity}</p>
                         </div>
 
-                        <div className="detail-price">
-                          {(p.price * p.quantity).toLocaleString("vi-VN")} ₫
+                        <div className="ohp-product-price">
+                          {(
+                            safeNumber(p.price) *
+                            safeNumber(p.quantity)
+                          ).toLocaleString("vi-VN")}{" "}
+                          ₫
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="detail-total">
-                    <strong>Tổng thanh toán:</strong>
-                    <span className="final-price">
-                      {totalAmount.toLocaleString("vi-VN")} ₫
-                    </span>
+                  <div className="ohp-summary">
+                    <div>
+                      <span>Tạm tính</span>
+                      <span>
+                        {safeNumber(
+                          selectedOrder.subTotal
+                        ).toLocaleString("vi-VN")} ₫
+                      </span>
+                    </div>
+
+                    <div>
+                      <span>Giảm giá</span>
+                      <span className="ohp-discount">
+                        -
+                        {safeNumber(
+                          selectedOrder.discountAmount
+                        ).toLocaleString("vi-VN")} ₫
+                      </span>
+                    </div>
+
+                    <div className="ohp-final">
+                      <strong>Tổng thanh toán</strong>
+                      <strong>
+                        {safeNumber(
+                          selectedOrder.totalAmount
+                        ).toLocaleString("vi-VN")} ₫
+                      </strong>
+                    </div>
                   </div>
                 </>
               ) : (
-                <div className="no-order-selected">
-                  <p>Chọn một đơn hàng để xem chi tiết</p>
+                <div className="ohp-empty">
+                  Chọn một đơn hàng để xem chi tiết
                 </div>
               )}
             </div>
