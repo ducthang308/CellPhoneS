@@ -26,6 +26,17 @@ export const login = async (
     }
 };
 
+export const loginWithGoogle = async (
+  idToken: string
+): Promise<LoginResponse> => {
+  const res = await axiosClient.post<LoginResponse>(
+    "/api/user/login/google",
+    { idToken }
+  );
+  return res.data;
+};
+
+
 export const register = async (
     userData: IRegisterRequest
 ): Promise<void> => {
@@ -87,4 +98,6 @@ export const userService = {
 
     return response.data;
   },
+
+  
 };
