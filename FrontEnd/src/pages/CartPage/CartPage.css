@@ -533,3 +533,175 @@
     opacity: 1;
   }
 }
+
+/* ==================== INFO ROW (SĐT / ĐỊA CHỈ) ==================== */
+
+.checkout-info {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.info-row span {
+  color: var(--text-sub);
+}
+
+.info-row strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.info-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+}
+
+.info-edit span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+/* Text khi chưa có dữ liệu */
+.info-edit span:empty::before,
+.info-edit span:not(:empty):has(+ .edit-btn):where(:not(:has(*))) {
+  color: #999;
+}
+
+/* Nút bút ✏️ */
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.edit-btn:hover {
+  background: #f0f0f0;
+  transform: scale(1.1);
+}
+
+/* ==================== MODAL EDIT ==================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  background: #fff;
+  width: 360px;
+  max-width: calc(100% - 32px);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+  animation: pop 0.25s ease;
+}
+
+.modal-box h3 {
+  margin: 0 0 14px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+  text-align: center;
+}
+
+.modal-box input,
+.modal-box textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.modal-box textarea {
+  resize: none;
+  height: 80px;
+}
+
+.modal-box input:focus,
+.modal-box textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,158,110,0.15);
+}
+
+/* ==================== MODAL ACTIONS ==================== */
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-actions button {
+  min-width: 90px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.modal-actions button:first-child {
+  background: #f2f2f2;
+  color: #444;
+}
+
+.modal-actions button:first-child:hover {
+  background: #e6e6e6;
+}
+
+.modal-actions button:last-child {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0,158,110,0.35);
+}
+
+.modal-actions button:last-child:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0,158,110,0.45);
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 480px) {
+  .info-edit {
+    max-width: 160px;
+  }
+
+  .info-edit span {
+    max-width: 120px;
+  }
+
+  .modal-box {
+    padding: 18px 16px;
+  }
+}
