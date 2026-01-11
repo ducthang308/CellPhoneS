@@ -1,45 +1,44 @@
 export interface LoginResponse {
-    userId: number;
-    sdt: string;
-    fullName: string;
-    email: string;
-    address: string;
-    avatar: string | null;
-    role: number;
-    token: string;
-    cartId: number;
+  userId: number;
+  sdt: string;
+  fullName: string;
+  email: string;
+  address: string;
+  avatar: string | null;
+  role: number;
+  token: string;
+  cartId: number;
 }
 
 export interface IRegisterRequest {
-    sdt: string;
-    hoVaTen: string;
-    email: string;
-    diaChi: string;
-    matKhau: string;
-    role?: number;
+  sdt: string;
+  hoVaTen: string;
+  email: string;
+  diaChi: string;
+  matKhau: string;
+  role?: number;
 }
 
-
 export interface IRole {
-    roleId: number;
-    roleName: string;
+  roleId: number;
+  roleName: string;
 }
 
 export interface IUser {
-    userId: number;
-    sdt: string;
-    fullName?: string;
-    email?: string;
-    address?: string;
-    avatar?: string | null;
-    role?: number;
+  userId: number;
+  sdt: string;
+  fullName?: string;
+  email?: string;
+  address?: string;
+  avatar?: string | null;
+  role?: number;
+  cartId?: number;
 }
 
-
 export interface ICategory {
-    categoryId: number;
-    categoryName: string;
-    description: string;
+  categoryId: number;
+  categoryName: string;
+  description: string;
 }
 
 export interface CreateCategoryRequest {
@@ -48,113 +47,113 @@ export interface CreateCategoryRequest {
 }
 
 export interface ISpecification {
-    specID: number;
-    screen?: string;
-    cpu?: string;
-    ram?: string;
-    storage?: string;
-    camera?: string;
-    battery?: string;
-    os?: string;
+  specID: number;
+  screen?: string;
+  cpu?: string;
+  ram?: string;
+  storage?: string;
+  camera?: string;
+  battery?: string;
+  os?: string;
 }
 
 
 export interface IOrder {
-    orderID: number;
-    order_date: string;
-    status: string;
-    userID?: number;
+  orderID: number;
+  order_date: string;
+  status: string;
+  userID?: number;
 }
 
 export interface IOrderDetail {
-    orderDetailID: number;
-    orderID: number;
-    productID: number;
-    quantity: number;
+  orderDetailID: number;
+  orderID: number;
+  productID: number;
+  quantity: number;
 }
 
 
 export interface ProductImage {
-    id: number;
-    url: string;
-    img_index: number;
+  id: number;
+  url: string;
+  img_index: number;
 }
 
 export interface Specification {
-    specId?: number;
-    screen: string;
-    cpu: string;
-    ram: string;
-    storage: string;
-    camera: string;
-    battery: string;
-    os: string;
+  specId?: number;
+  screen: string;
+  cpu: string;
+  ram: string;
+  storage: string;
+  camera: string;
+  battery: string;
+  os: string;
 }
 
 export interface IProduct {
-    productId?: number;
-    name: string;
-    price: number;
-    stockQuantity: number;
-    description?: string;
-    brandId: number;
+  productId?: number;
+  name: string;
+  price: number;
+  stockQuantity: number;
+  description?: string;
+  brandId: number;
 
-    supplierId: number;
-    categoryId: number;
-    specification: Specification ;
-    productImages?: ProductImage[];
+  supplierId: number;
+  categoryId: number;
+  specification: Specification;
+  productImages?: ProductImage[];
 }
 
 export interface CartDetailRequestDTO {
-    cartId: number;
-    productId: number;
+  cartId: number;
+  productId: number;
 }
 
 export interface CartDetailResponse {
-    cartDetailsId: number;
-    cartId: number;
-    product: IProduct;
+  cartDetailsId: number;
+  cartId: number;
+  product: IProduct;
 }
 
 export interface CartDTO {
-    cartId: number;
-    userId: number;
-    status: string;
+  cartId: number;
+  userId: number;
+  status: string;
 }
 
 export type AddToCartRequest = CartDetailRequestDTO;
 
 export interface OrderResponse {
-    orderID: number;
+  orderID: number;
 }
 
 export interface CreateOrderDetailRequest {
-    orderID: number;
-    productID: number;
-    quantity: number;
+  orderID: number;
+  productID: number;
+  quantity: number;
 }
 
 export interface OrderDetailResponse {
-    id: number;
-    orderId: number;
-    productId: number;
-    quantity: number;
+  id: number;
+  orderId: number;
+  productId: number;
+  quantity: number;
 }
 
 export interface OrderDetailItem {
-    product: IProduct;
-    quantity: number;
+  product: IProduct;
+  quantity: number;
 }
 
 export interface PayPalPaymentRequest {
-    localOrderId: string;
-    amount: number;
-    currency: string;
-    description: string;
+  localOrderId: string;
+  amount: number;
+  currency: string;
+  description: string;
 }
 
 export interface PayPalCreateResponse {
-    approvalUrl: string;
+  approvalUrl: string;
 }
 
 export interface Notification {
@@ -167,19 +166,19 @@ export interface Notification {
   // createdAt?: string;
 }
 export interface OrderProduct {
-    productID: number;
-    name: string;
-    price: number;
-    quantity: number;
-    imageUrl?: string | null;
-    
+  productID: number;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string | null;
+
 }
 
 export interface OrderRequest {
-    userID: number;
-    status: string;
-    paymentStatus: string;
-    orderDate?: string;
+  userID: number;
+  status: string;
+  paymentStatus: string;
+  orderDate?: string;
 }
 
 
@@ -199,14 +198,14 @@ export interface OrderFullResponse {
 
 
 export interface IReview {
-    reviewID: number;
-    productID: number;
-    orderID?: number;
-    userName: string;
-    rating: number;
-    comment: string;
-    photoUrl?: string;
-    videoUrl?: string;
+  reviewID: number;
+  productID: number;
+  orderID?: number;
+  userName: string;
+  rating: number;
+  comment: string;
+  photoUrl?: string;
+  videoUrl?: string;
 }
 
 export interface CreateOrderRequest {
@@ -249,9 +248,9 @@ export interface OrderDetailResponse {
 
 export interface StockInRequest {
   quantity: number;
-  date: string;       
+  date: string;
   note?: string;
-  batchId: number;     
+  batchId: number;
 }
 
 export interface StockInResponse {
@@ -278,7 +277,7 @@ export interface BatchResponse {
   quantity?: number;
   priceIn?: number;
   expiry?: string;
-  product?: IProduct ;
+  product?: IProduct;
 }
 
 export interface StockOutResponse {
@@ -292,9 +291,9 @@ export interface StockOutResponse {
 
 export interface StockOutRequest {
   quantity: number;
-  date: string;       
+  date: string;
   note?: string;
-  batchId: number;     
+  batchId: number;
 }
 
 export interface ISupplier {
@@ -327,13 +326,13 @@ export interface Discount {
 }
 
 export interface User {
-    userId: number;
-    phone: string;
-    fullName?: string;
-    email?: string;
-    address?: string;
-    avatar?: string | null;
-    role?: number;
+  userId: number;
+  phone: string;
+  fullName?: string;
+  email?: string;
+  address?: string;
+  avatar?: string | null;
+  role?: number;
 }
 
 export interface OrderProductResponse {

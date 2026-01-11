@@ -5,6 +5,7 @@ import "./CartPage.css";
 import orderService from "../../services/OrderService";
 import cartDetailService from "../../services/CartDetailService";
 import { useAuth } from "../../context/AuthContext";
+import { userService } from "../../services/UserService";
 
 import type { IProduct } from "../../services/Interface";
 
@@ -14,46 +15,50 @@ interface CartItem extends IProduct {
 }
 
 const CartPage: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { user, setUser } = useAuth();
 
+  /* ================= EDIT STATE ================= */
+  const [isEdit, setIsEdit] = useState<null | "phone" | "address">(null);
+  const [tempPhone, setTempPhone] = useState("");
+  const [tempAddress, setTempAddress] = useState("");
+
+  /* ================= CART STATE ================= */
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   /* ================= LOAD CART ================= */
-
   useEffect(() => {
-  const loadCart = async () => {
-    if (!user?.cartId) {
-      setCartItems([]);
-      setLoading(false);
-      return;
-    }
+    const loadCart = async () => {
+      if (!user?.cartId) {
+        setCartItems([]);
+        setLoading(false);
+        return;
+      }
 
-    try {
-      const details = await cartDetailService.getByCartId(user.cartId);
+      try {
+        const details = await cartDetailService.getByCartId(user.cartId);
 
-      const items: CartItem[] = details.map((detail) => ({
-        ...detail.product,
-        quantity: 1,
-        cartDetailsId: detail.cartDetailsId,
-      }));
+        const items: CartItem[] = details.map((detail) => ({
+          ...detail.product,
+          quantity: 1,
+          cartDetailsId: detail.cartDetailsId,
+        }));
 
-      setCartItems(items);
-    } catch (err) {
-      console.error(err);
-      alert("Không thể tải giỏ hàng");
-    } finally {
-      setLoading(false);
-    }
-  };
+        setCartItems(items);
+      } catch (err) {
+        console.error(err);
+        alert("Không thể tải giỏ hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  loadCart();
-}, [user?.cartId]);
+    loadCart();
+  }, [user?.cartId]);
 
   /* ================= UPDATE QTY ================= */
-
   const updateQuantity = (productId: number, delta: number) => {
     setCartItems((prev) =>
       prev.map((item) =>
@@ -65,7 +70,6 @@ const CartPage: React.FC = () => {
   };
 
   /* ================= REMOVE ITEM ================= */
-
   const removeItem = async (cartDetailsId: number) => {
     try {
       await cartDetailService.delete(cartDetailsId);
@@ -78,7 +82,6 @@ const CartPage: React.FC = () => {
   };
 
   /* ================= CONFIRM ORDER ================= */
-
   const handleConfirmOrder = async () => {
     if (isPlacingOrder) return;
 
@@ -106,10 +109,9 @@ const CartPage: React.FC = () => {
 
       const order = await orderService.create(orderPayload);
 
-if (user?.cartId) {
-  await cartDetailService.deleteByCartId(user.cartId);
-}
-
+      if (user?.cartId) {
+        await cartDetailService.deleteByCartId(user.cartId);
+      }
 
       setCartItems([]);
       navigate(`/order/${order.orderID}`);
@@ -121,8 +123,7 @@ if (user?.cartId) {
     }
   };
 
-  /* ================= TOTAL (CHỈ HIỂN THỊ) ================= */
-
+  /* ================= TOTAL ================= */
   const totalPrice = useMemo(
     () =>
       cartItems.reduce(
@@ -135,10 +136,10 @@ if (user?.cartId) {
   if (loading) return <div className="loading">Đang tải giỏ hàng...</div>;
 
   /* ================= RENDER ================= */
-
   return (
     <div className="cart-page">
       <div className="cart-container">
+        {/* ================= LEFT ================= */}
         <div className="cart-left">
           <div className="cart-header">
             <button className="back-btn" onClick={() => navigate(-1)}>
@@ -179,8 +180,7 @@ if (user?.cartId) {
                     </span>
                     {item.quantity > 1 && (
                       <div className="total-for-item">
-                        ={" "}
-                        {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
+                        = {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
                       </div>
                     )}
                   </div>
@@ -203,28 +203,58 @@ if (user?.cartId) {
           </div>
         </div>
 
+        {/* ================= RIGHT ================= */}
         <div className="cart-right">
           <h2>Thông tin đặt hàng</h2>
 
-          <div className="checkout-form">
-            <input
-              type="text"
-              placeholder="Họ và tên *"
-              value={user?.fullName || ""}
-              readOnly
-            />
-            <input
-              type="text"
-              placeholder="Số điện thoại *"
-              value={user?.sdt || ""}
-              readOnly
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={user?.email || ""}
-              readOnly
-            />
+          <div className="checkout-info">
+            <div className="info-row">
+              <span>Họ và tên</span>
+              <strong>{user?.fullName}</strong>
+            </div>
+
+            <div className="info-row">
+              <span>Số điện thoại</span>
+              <div className="info-edit">
+                <span>
+                  {user?.sdt?.trim() ? user.sdt : "Chưa có số điện thoại"}
+                </span>
+                <button
+                  className="edit-btn"
+                  onClick={() => {
+                    setTempPhone(user?.sdt || "");
+                    setIsEdit("phone");
+                  }}
+                >
+                  ✏️
+                </button>
+              </div>
+            </div>
+
+            <div className="info-row">
+              <span>Địa chỉ</span>
+              <div className="info-edit">
+                <span>
+                  {user?.address?.trim()
+                    ? user.address
+                    : "Chưa có địa chỉ"}
+                </span>
+                <button
+                  className="edit-btn"
+                  onClick={() => {
+                    setTempAddress(user?.address || "");
+                    setIsEdit("address");
+                  }}
+                >
+                  ✏️
+                </button>
+              </div>
+            </div>
+
+            <div className="info-row">
+              <span>Email</span>
+              <span>{user?.email}</span>
+            </div>
 
             <button
               type="button"
@@ -236,6 +266,66 @@ if (user?.cartId) {
           </div>
         </div>
       </div>
+
+      {/* ================= MODAL EDIT ================= */}
+      {isEdit && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>
+              {isEdit === "phone"
+                ? "Cập nhật số điện thoại"
+                : "Cập nhật địa chỉ"}
+            </h3>
+
+            {isEdit === "phone" ? (
+              <input
+                type="text"
+                value={tempPhone}
+                onChange={(e) => setTempPhone(e.target.value)}
+                placeholder="Nhập số điện thoại"
+              />
+            ) : (
+              <textarea
+                value={tempAddress}
+                onChange={(e) => setTempAddress(e.target.value)}
+                placeholder="Nhập địa chỉ"
+              />
+            )}
+
+            <div className="modal-actions">
+              <button onClick={() => setIsEdit(null)}>Huỷ</button>
+              <button
+                onClick={async () => {
+                  if (!user?.userId) return;
+
+                  try {
+                    const updatedUser = await userService.updateUser(
+                      user.userId,
+                      isEdit === "phone"
+                        ? { sdt: tempPhone }
+                        : { address: tempAddress }
+                    );
+
+                    const newUser = {
+                      ...user,
+                      sdt: updatedUser.sdt ?? user.sdt,
+                      address: updatedUser.address ?? user.address,
+                    };
+
+                    setUser(newUser);
+                    localStorage.setItem("user", JSON.stringify(newUser));
+                    setIsEdit(null);
+                  } catch {
+                    alert("Cập nhật thất bại");
+                  }
+                }}
+              >
+                Lưu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isPlacingOrder && (
         <div className="fullscreen-loading">
