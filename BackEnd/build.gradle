@@ -1,0 +1,69 @@
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.7'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'MobileStorageManagement project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	implementation 'com.cloudinary:cloudinary-core:1.33.0'
+	// HTTP client để gửi request
+	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+
+	// Upload multipart/form-data
+	implementation 'org.apache.httpcomponents:httpmime:4.5.14'
+
+	// Hash SHA-1 signature
+	implementation 'commons-codec:commons-codec:1.15'
+
+	// JSON library
+	implementation 'org.json:json:20230227'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.4'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.4'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.4'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+	implementation("com.fasterxml.jackson.core:jackson-databind")
+
+	dependencies {
+		implementation 'com.google.api-client:google-api-client:2.2.0'
+		implementation 'com.google.http-client:google-http-client-jackson2:1.43.3'
+	}
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
