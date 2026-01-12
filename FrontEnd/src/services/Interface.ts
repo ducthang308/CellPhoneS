@@ -407,3 +407,10 @@ export interface InventoryStatisticResponse {
   selectedDay: number | null;
   items: InventoryStatisticItem[];
 }
+
+export interface AuthContextType {
+  user: IUser | null;
+  setUser: (u: IUser | null) => void;
+  loading: boolean;
+  logout: () => void;
+}
