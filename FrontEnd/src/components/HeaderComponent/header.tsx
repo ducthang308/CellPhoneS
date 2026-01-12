@@ -354,7 +354,7 @@ const Header = () => {
                     </div>
                   </div>
 
-                   <div
+                  <div
                     className="dropdown-item"
                     onClick={() => { navigate('/discount'); setDropdownOpen(false); }}
                   >

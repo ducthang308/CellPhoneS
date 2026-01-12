@@ -8,7 +8,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { loginWithGoogle } from "../../services/UserService";
 
 const LoginPage = () => {
-    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [activeTab, setActiveTab] = useState<"login" | "register">("login");
     const [loading, setLoading] = useState(false);
@@ -23,9 +23,7 @@ const LoginPage = () => {
         if (loading) return;
 
         try {
-            setLoading(true);
-
-            const data = await login(phone, password);
+            const data = await login(email, password);
 
             if (!data?.token) {
                 throw new Error("Token không hợp lệ");
@@ -53,10 +51,9 @@ const LoginPage = () => {
         }
     };
 
-
-    const handleRegisterSuccess = (registeredPhone: string) => {
+    const handleRegisterSuccess = (registeredEmail: string) => {
         setActiveTab("login");
-        setPhone(registeredPhone);
+        setEmail(registeredEmail);
         setPassword("");
     };
 
@@ -113,9 +110,9 @@ const LoginPage = () => {
                     <form onSubmit={handleLogin}>
                         <input
                             type="text"
-                            placeholder="Số điện thoại hoặc email"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Nhập Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                         <input

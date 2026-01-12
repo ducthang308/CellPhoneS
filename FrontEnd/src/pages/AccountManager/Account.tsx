@@ -71,28 +71,45 @@ const AccountPage: React.FC = () => {
         sdt?: string;
       } = {};
 
-      // Chỉ thêm field nếu người dùng thay đổi so với giá trị gốc
       if (fullName.trim() !== (user.fullName || '')) {
-  dto.fullName = fullName.trim();
-}
-if (email.trim() !== (user.email || '')) {
-  dto.email = email.trim();
-}
-if (address.trim() !== (user.address || '')) {
-  dto.address = address.trim();
-}
-if (sdt.trim() !== (user.sdt || '')) {
-  dto.sdt = sdt.trim(); // 🔥 ADD LẠI
-}
+        dto.fullName = fullName.trim();
+      }
+      if (email.trim() !== (user.email || '')) {
+        dto.email = email.trim();
+      }
+      if (address.trim() !== (user.address || '')) {
+        dto.address = address.trim();
+      }
+      if (sdt.trim() !== (user.sdt || '')) {
+        dto.sdt = sdt.trim();
+      }
 
 
-      const updatedUser = await userService.updateUser(userId, dto, avatarFile || undefined);
+      const updatedUser = await userService.updateUser(
+        userId,
+        dto,
+        avatarFile || undefined
+      );
 
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...parsedUser,
+            ...updatedUser,
+          })
+        );
+      }
       setUser(updatedUser);
+
+      window.dispatchEvent(new Event("auth-changed"));
+
       setAvatarPreview(updatedUser.avatar || null);
       setAvatarFile(null);
 
-      alert('Cập nhật thông tin thành công!');
+      alert("Cập nhật thông tin thành công!");
       setIsEditing(false);
     } catch (err: any) {
       console.error('Lỗi cập nhật:', err);
@@ -101,6 +118,7 @@ if (sdt.trim() !== (user.sdt || '')) {
       setSaving(false);
     }
   };
+
 
   if (authLoading || !user) {
     return (
