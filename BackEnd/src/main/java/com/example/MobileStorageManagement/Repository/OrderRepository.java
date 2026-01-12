@@ -99,4 +99,50 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     """)
     List<Order> findAllWithUser();
 
+    @Query("""
+    SELECT 
+        YEAR(o.orderDate),
+        MONTH(o.orderDate),
+        DAY(o.orderDate),
+        COUNT(DISTINCT o.orderID),
+        SUM(od.quantity * od.unitPrice)
+    FROM Order o
+    JOIN o.orderDetails od
+    WHERE o.paymentStatus = 'PAID'
+      AND (:year IS NULL OR YEAR(o.orderDate) = :year)
+      AND (:month IS NULL OR MONTH(o.orderDate) = :month)
+      AND (:day IS NULL OR DAY(o.orderDate) = :day)
+    GROUP BY 
+        YEAR(o.orderDate),
+        MONTH(o.orderDate),
+        DAY(o.orderDate)
+    ORDER BY 
+        YEAR(o.orderDate),
+        MONTH(o.orderDate),
+        DAY(o.orderDate)
+""")
+    List<Object[]> getRevenueStatistic(
+            @Param("year") Integer year,
+            @Param("month") Integer month,
+            @Param("day") Integer day
+    );
+
+    @Query("""
+    SELECT 
+        COUNT(DISTINCT o.orderID),
+        SUM(od.quantity * od.unitPrice)
+    FROM Order o
+    JOIN o.orderDetails od
+    WHERE o.paymentStatus = 'PAID'
+      AND (:year IS NULL OR YEAR(o.orderDate) = :year)
+      AND (:month IS NULL OR MONTH(o.orderDate) = :month)
+      AND (:day IS NULL OR DAY(o.orderDate) = :day)
+""")
+    List<Object[]> getTotalRevenueWithFilter(
+            @Param("year") Integer year,
+            @Param("month") Integer month,
+            @Param("day") Integer day
+    );
+
+
 }

@@ -218,41 +218,49 @@ public class OrderService {
     }
 
 
-    public DoanhThuDonHangResponse getDoanhThuDonHang(int year) {
+    public DoanhThuDonHangResponse getDoanhThuDonHang(
+            Integer year,
+            Integer month,
+            Integer day
+    ) {
 
-        // 1️⃣ Doanh thu theo tháng
-        List<Object[]> rows = orderRepository.getMonthlyRevenue(year);
+        // 1️⃣ Detail data
+        List<Object[]> rows = orderRepository.getRevenueStatistic(year, month, day);
 
-        List<MonthlyRevenueDTO> data = rows.stream()
-                .map(r -> new MonthlyRevenueDTO(
-                        ((Number) r[0]).intValue(),     // tháng
-                        ((Number) r[1]).longValue(),   // số đơn
-                        ((Number) r[2]).doubleValue()  // doanh thu
+        List<RevenueStatisticDTO> data = rows.stream()
+                .map(r -> new RevenueStatisticDTO(
+                        (Integer) r[0],
+                        (Integer) r[1],
+                        (Integer) r[2],
+                        ((Number) r[3]).longValue(),
+                        r[4] != null ? ((Number) r[4]).doubleValue() : 0
                 ))
                 .toList();
 
-        // 2️⃣ Tổng doanh thu + tổng đơn
-        List<Object[]> totalRows = orderRepository.getTotalRevenue(year);
+        // 2️⃣ Tổng
+        List<Object[]> totalrows =
+                orderRepository.getTotalRevenueWithFilter(year, month, day);
 
         long tongDonHang = 0;
         double tongDoanhThu = 0;
 
-        if (!totalRows.isEmpty()) {
-            Object[] row = totalRows.get(0);
+        if (!totalrows.isEmpty()) {
+            Object[] row = totalrows.get(0);
 
-            Number totalOrders = (Number) row[0];
-            Number totalRevenue = (Number) row[1];
-
-            tongDonHang = totalOrders != null ? totalOrders.longValue() : 0;
-            tongDoanhThu = totalRevenue != null ? totalRevenue.doubleValue() : 0;
+            tongDonHang = row[0] != null ? ((Number) row[0]).longValue() : 0;
+            tongDoanhThu = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
         }
 
-        // 3️⃣ Build response
+        // 3️⃣ Response
         DoanhThuDonHangResponse res = new DoanhThuDonHangResponse();
         res.setData(data);
         res.setTongDonHang(tongDonHang);
         res.setTongDoanhThu(tongDoanhThu);
         res.setYears(orderRepository.getAvailableYears());
+
+        res.setSelectedYear(year);
+        res.setSelectedMonth(month);
+        res.setSelectedDay(day);
 
         return res;
     }

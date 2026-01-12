@@ -92,12 +92,15 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/doanh-thu")
     public ResponseEntity<DoanhThuDonHangResponse> getDoanhThuDonHang(
-            @RequestParam int year
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer day
     ) {
         return ResponseEntity.ok(
-                orderService.getDoanhThuDonHang(year)
+                orderService.getDoanhThuDonHang(year, month, day)
         );
     }
+
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/statistic/order-status")
