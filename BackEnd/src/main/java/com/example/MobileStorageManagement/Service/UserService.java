@@ -68,6 +68,14 @@ public class UserService {
                 );
             }
 
+            if (dto.getOldPassword() == null || dto.getOldPassword().isBlank()) {
+                throw new RuntimeException("Vui lòng nhập mật khẩu hiện tại");
+            }
+
+            if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+                throw new RuntimeException("Mật khẩu hiện tại không đúng");
+            }
+
             user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         }
 
