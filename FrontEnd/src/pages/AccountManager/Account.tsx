@@ -4,11 +4,16 @@ import { useAuth } from '../../context/AuthContext';
 import type { IUser } from '../../services/Interface';
 import { userService } from '../../services/UserService';
 
+
 const AccountPage: React.FC = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<IUser | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -139,11 +144,12 @@ const AccountPage: React.FC = () => {
           />
 
           {/* Phần form thông tin cá nhân */}
-          <div className="info-card">
+          <div className="info-card change-password">
             <div className="card-header">
               <h3>Thông tin cá nhân</h3>
               {!isEditing ? (
-                <button className="edit-btn" onClick={() => setIsEditing(true)}>
+                <button className="account-btn" onClick={() => setIsEditing(true)}>
+                  <i className="fa-solid fa-pen"></i>
                   Chỉnh sửa
                 </button>
               ) : (
@@ -210,10 +216,79 @@ const AccountPage: React.FC = () => {
               </div>
               <div className="info-item">
                 <label>Vai trò</label>
-                <p>{user.role === 1 ? 'Khách hàng' : 'Quản trị viên'}</p>
+                <p>{user.role === 1 ? 'Quản trị viên' : 'Khách hàng'}</p>
               </div>
             </div>
           </div>
+
+          {!user.googleId && (
+            <div className="info-card change-password">
+              <div className="card-header">
+                <h3>Đổi mật khẩu</h3>
+              </div>
+
+              <div className="info-grid">
+                <div className="info-item full-width">
+                  <label>Mật khẩu hiện tại</label>
+                  <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="info-item">
+                  <label>Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="info-item">
+                  <label>Xác nhận mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="info-item full-width">
+                  <button
+                    className="save-btn"
+                    disabled={changingPassword}
+                    onClick={async () => {
+                      if (newPassword !== confirmPassword) {
+                        alert("Mật khẩu xác nhận không khớp");
+                        return;
+                      }
+
+                      try {
+                        setChangingPassword(true);
+                        await userService.changePassword(userId!, {
+                          oldPassword,
+                          newPassword,
+                        });
+                        alert("Đổi mật khẩu thành công");
+                        setOldPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      } catch (e: any) {
+                        alert(e.response?.data || "Đổi mật khẩu thất bại");
+                      } finally {
+                        setChangingPassword(false);
+                      }
+                    }}
+                  >
+                    {changingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
     </div>
