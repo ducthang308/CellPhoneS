@@ -66,8 +66,6 @@ import BatchDetail from "./Admin/batch/BatchDetail.tsx";
 import BatchUpdate from "./Admin/batch/BatchUpdate.tsx";
 import BatchAdd from "./Admin/batch/BatchAdd.tsx";
 
-import AdminChatPage from "./Admin/Chat/AdminChatPage";
-
 import ProductValueOverTime from "./Admin/statistical/product_value_over_time";
 import ProductQuantityBySupplier from "./Admin/statistical/product_quantity_by_supplier";
 import InventoryQuantity from "./Admin/statistical/inventory_quantity";
@@ -146,13 +144,11 @@ function App() {
 
           <Route path="order_approval" element={<PendingOrders />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
-          
+
           <Route path="batch" element={<BatchPage />} />
           <Route path="batch/:id" element={<BatchDetail />} />
           <Route path="batch/:id/edit" element={<BatchUpdate />} />
           <Route path="batch/add" element={<BatchAdd />} />
-
-          <Route path="/admin/chat/:roomId" element={<AdminChatPage />} />
 
           <Route path="stock_management" element={<StockManagement />} />
           <Route path="stockin/:id" element={<StockInDetail />} />
@@ -173,7 +169,7 @@ function App() {
             <Route path="inventory_quantity" element={<InventoryQuantity />} />
             <Route
               path="order_status_by_time"
-              element={<OrderStatusByTime/ >} 
+              element={<OrderStatusByTime />}
             />
           </Route>
         </Route >
