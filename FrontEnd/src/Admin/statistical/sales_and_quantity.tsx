@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Chart from "chart.js/auto";
 import styles from "./sales_and_quantity.module.css";
 
 import StatisticService from "../../services/StatisticService";
-import type { MonthlyOrderStatistic, SalesAndQuantityResponse } from "../../services/Interface";
+import type {
+  OrderStatisticItem,
+  SalesAndQuantityResponse
+} from "../../services/Interface";
 
 const Sales_And_Quantity = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,7 +44,7 @@ const Sales_And_Quantity = () => {
   });
 
   /* ===== DATA ===== */
-  const [data, setData] = useState<MonthlyOrderStatistic[]>([]);
+  const [data, setData] = useState<OrderStatisticItem[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [tongDoanhThu, setTongDoanhThu] = useState(0);
   const [tongDonHang, setTongDonHang] = useState(0);
@@ -52,7 +55,6 @@ const Sales_And_Quantity = () => {
     const params: Record<string, string> = { nam: String(year) };
     if (month) params.thang = String(month);
     if (day) params.ngay = String(day);
-
     setSearchParams(params, { replace: true });
   }, [year, month, day, setSearchParams]);
 
@@ -62,16 +64,14 @@ const Sales_And_Quantity = () => {
       try {
         setLoading(true);
 
-        const res = (await StatisticService.getSalesAndQuantity({
-          year,
-          month: month || undefined,
-          day: day || undefined
-        })) as unknown as SalesAndQuantityResponse | { data: SalesAndQuantityResponse };
-
         const payload: SalesAndQuantityResponse =
-          (res as any)?.data?.data !== undefined ? (res as any).data : (res as any);
+          await StatisticService.getSalesAndQuantity({
+            year,
+            month: month || undefined,
+            day: day || undefined
+          });
 
-        setData(Array.isArray(payload.data) ? payload.data : []);
+        setData(payload.data ?? []);
         setTongDoanhThu(payload.tongDoanhThu ?? 0);
         setTongDonHang(payload.tongDonHang ?? 0);
         setYears(payload.years ?? []);
@@ -90,23 +90,39 @@ const Sales_And_Quantity = () => {
     fetchData();
   }, [year, month, day]);
 
-  /* ===== NORMALIZE 12 MONTHS ===== */
-  const fullMonths = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const found = data.find(d => d.thang === i + 1);
+  /* ===== MODE DETECT ===== */
+  const mode: "month" | "day" = month ? "day" : "month";
+
+  /* ===== NORMALIZE DATA ===== */
+  const chartData = useMemo(() => {
+    if (mode === "month") {
+      return Array.from({ length: 12 }, (_, i) => {
+        const found = data.find(d => d.month === i + 1);
+        return {
+          label: `Tháng ${i + 1}`,
+          orders: found?.totalOrders ?? 0,
+          revenue: found?.revenue ?? 0
+        };
+      });
+    }
+
+    return Array.from({ length: 31 }, (_, i) => {
+      const found = data.find(d => d.day === i + 1);
       return {
-        thang: i + 1,
-        soLuong: found?.soLuong ?? 0,
-        doanhThu: found?.doanhThu ?? 0
+        label: `Ngày ${i + 1}`,
+        orders: found?.totalOrders ?? 0,
+        revenue: found?.revenue ?? 0
       };
     });
-  }, [data]);
+  }, [data, mode]);
 
-  const labels = fullMonths.map(m => `Tháng ${m.thang}`);
-  const soLuongData = fullMonths.map(m => m.soLuong);
-  const doanhThuData = fullMonths.map(m => m.doanhThu);
+  const labels = chartData.map(d => d.label);
+  const soLuongData = chartData.map(d => d.orders);
+  const doanhThuData = chartData.map(d => d.revenue);
 
-  const isEmpty = fullMonths.every(m => m.soLuong === 0 && m.doanhThu === 0);
+  const isEmpty = chartData.every(
+    d => d.orders === 0 && d.revenue === 0
+  );
 
   /* ===== CHART ===== */
   useEffect(() => {
@@ -122,9 +138,9 @@ const Sales_And_Quantity = () => {
           {
             label: "Số lượng đơn",
             data: soLuongData,
-            backgroundColor: "rgba(37,99,235,0.7)",
-            borderRadius: 8,
-            maxBarThickness: 42
+            backgroundColor: "rgba(37,99,235,0.75)",
+            borderRadius: 10,
+            maxBarThickness: 38
           }
         ]
       },
@@ -149,7 +165,8 @@ const Sales_And_Quantity = () => {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: v => `${Number(v).toLocaleString("vi-VN")} đơn`
+              callback: v =>
+                `${Number(v).toLocaleString("vi-VN")} đơn`
             }
           }
         }
@@ -159,54 +176,72 @@ const Sales_And_Quantity = () => {
     return () => chartInstance.current?.destroy();
   }, [labels, soLuongData, doanhThuData]);
 
-  const fmtVND = (v: number) => v.toLocaleString("vi-VN") + " VNĐ";
+  const fmtVND = (v: number) =>
+    v.toLocaleString("vi-VN") + " VNĐ";
 
   /* ===== RENDER ===== */
   return (
     <main className={styles.page}>
-      {/* HEADER */}
       <header className={styles.header}>
-        <div className={styles.titleWrap}>
-          <h1 className={styles.title}>Thống kê doanh thu & đơn hàng</h1>
-        </div>
-
+        <h1 className={styles.title}>
+          Thống kê doanh thu & đơn hàng
+        </h1>
       </header>
 
-      {/* CONTENT */}
       <section className={styles.grid}>
-        {/* FILTER */}
         <aside className={styles.filtersCard}>
           <label>
             Năm
-            <select value={year} onChange={e => setYear(+e.target.value)}>
-              {(years.length ? years : [new Date().getFullYear()]).map(y => (
-                <option key={y} value={y}>{y}</option>
+            <select
+              value={year}
+              onChange={e => setYear(+e.target.value)}
+            >
+              {(years.length
+                ? years
+                : [new Date().getFullYear()]
+              ).map(y => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
               ))}
             </select>
           </label>
 
           <label>
             Tháng
-            <select value={month} onChange={e => setMonth(+e.target.value || "")}>
+            <select
+              value={month}
+              onChange={e =>
+                setMonth(+e.target.value || "")
+              }
+            >
               <option value="">Tất cả</option>
               {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>Tháng {i + 1}</option>
+                <option key={i + 1} value={i + 1}>
+                  Tháng {i + 1}
+                </option>
               ))}
             </select>
           </label>
 
           <label>
             Ngày
-            <select value={day} onChange={e => setDay(+e.target.value || "")}>
+            <select
+              value={day}
+              onChange={e =>
+                setDay(+e.target.value || "")
+              }
+            >
               <option value="">Tất cả</option>
               {Array.from({ length: 31 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>Ngày {i + 1}</option>
+                <option key={i + 1} value={i + 1}>
+                  Ngày {i + 1}
+                </option>
               ))}
             </select>
           </label>
         </aside>
 
-        {/* MAIN */}
         <section className={styles.mainCard}>
           <div className={styles.statsRow}>
             <div className={styles.stat}>
@@ -223,7 +258,9 @@ const Sales_And_Quantity = () => {
             {loading ? (
               <p>Đang tải dữ liệu…</p>
             ) : isEmpty ? (
-              <div className={styles.empty}>Không có dữ liệu</div>
+              <div className={styles.empty}>
+                Không có dữ liệu
+              </div>
             ) : (
               <div className={styles.canvasBox}>
                 <canvas ref={chartRef} />

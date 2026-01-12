@@ -354,17 +354,22 @@ export interface OrderWithUserResponse {
   products: OrderProductResponse[];
 }
 
-export interface MonthlyOrderStatistic {
-  thang: number;
-  soLuong: number;
-  doanhThu: number;
+export interface OrderStatisticItem {
+  year: number;
+  month: number;
+  day?: number | null;
+  totalOrders: number;
+  revenue: number;
 }
 
 export interface SalesAndQuantityResponse {
-  data: MonthlyOrderStatistic[];
+  data: OrderStatisticItem[];
   tongDoanhThu: number;
   tongDonHang: number;
   years: number[];
+  selectedYear?: number;
+  selectedMonth?: number | null;
+  selectedDay?: number | null;
 }
 
 export interface OrderStatusStatistic {
