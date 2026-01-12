@@ -14,6 +14,8 @@ const AccountPage: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [sdt, setSdt] = useState('');
+
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -36,6 +38,7 @@ const AccountPage: React.FC = () => {
     setEmail(authUser.email || '');
     setAddress(authUser.address || '');
     setAvatarPreview(authUser.avatar || null);
+    setSdt(authUser.sdt || '');
   }, [authUser]);
 
   const handleAvatarClick = () => {
@@ -65,18 +68,23 @@ const AccountPage: React.FC = () => {
         fullName?: string;
         email?: string;
         address?: string;
+        sdt?: string;
       } = {};
 
       // Chỉ thêm field nếu người dùng thay đổi so với giá trị gốc
       if (fullName.trim() !== (user.fullName || '')) {
-        dto.fullName = fullName.trim() || undefined;
-      }
-      if (email.trim() !== (user.email || '')) {
-        dto.email = email.trim() || undefined;
-      }
-      if (address.trim() !== (user.address || '')) {
-        dto.address = address.trim() || undefined;
-      }
+  dto.fullName = fullName.trim();
+}
+if (email.trim() !== (user.email || '')) {
+  dto.email = email.trim();
+}
+if (address.trim() !== (user.address || '')) {
+  dto.address = address.trim();
+}
+if (sdt.trim() !== (user.sdt || '')) {
+  dto.sdt = sdt.trim(); // 🔥 ADD LẠI
+}
+
 
       const updatedUser = await userService.updateUser(userId, dto, avatarFile || undefined);
 
@@ -176,7 +184,26 @@ const AccountPage: React.FC = () => {
 
               <div className="info-item">
                 <label>Số điện thoại</label>
-                <p className="readonly-text">{user.sdt}</p>
+
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      value={sdt}
+                      onChange={(e) => setSdt(e.target.value)}
+                      disabled={!!user.googleId}
+                      placeholder="Nhập số điện thoại"
+                    />
+
+                    {user.googleId && (
+                      <small className="hint">
+                        Tài khoản Google không thể đổi số điện thoại
+                      </small>
+                    )}
+                  </>
+                ) : (
+                  <p>{sdt}</p>
+                )}
               </div>
 
               <div className="info-item">
