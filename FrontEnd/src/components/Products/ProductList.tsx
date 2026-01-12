@@ -75,20 +75,24 @@ const ProductList: React.FC = () => {
   return (
     <div className="product-list-page">
       <div className="product-container">
-<div className="page-header">
-  <h1 className="page-title">Tất cả sản phẩm</h1>
-  <span className="product-count">{products.length} sản phẩm</span>
-</div>
+        <div className="page-header">
+          <h1 className="page-title">Tất cả sản phẩm</h1>
+          <span className="product-count">{products.length} sản phẩm</span>
+        </div>
 
 
         <div className="filter-bar">
-          <select value={sortBy} onChange={handleSortChange}>
-            <option value="" disabled>
-              Sắp xếp theo
-            </option>
-            <option value="price-asc">Giá tăng dần</option>
-            <option value="price-desc">Giá giảm dần</option>
-          </select>
+          <label className="sort-label">Sắp xếp:</label>
+          <div className="select-wrapper">
+            <select value={sortBy} onChange={handleSortChange}>
+              <option value="">Mặc định</option>
+              <option value="price-asc">Giá thấp → cao</option>
+              <option value="price-desc">Giá cao → thấp</option>
+            </select>
+            <svg className="select-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+            </svg>
+          </div>
         </div>
 
         <div className="product-grid-inner">
