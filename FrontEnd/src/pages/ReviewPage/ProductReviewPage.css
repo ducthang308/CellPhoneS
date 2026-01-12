@@ -1,0 +1,112 @@
+/* ===== PAGE WRAPPER ===== */
+.prd-review-page {
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 32px;
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== TITLE ===== */
+.prd-review-page h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+/* ===== STAR RATING ===== */
+.prd-review-page__rating {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.prd-review-page__star {
+    font-size: 34px;
+    cursor: pointer;
+    color: #d1d5db;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.prd-review-page__star.active {
+    color: #facc15;
+}
+
+.prd-review-page__star:hover {
+    transform: scale(1.2);
+}
+
+/* ===== TEXTAREA ===== */
+.prd-review-page textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid #d1d5db;
+    font-size: 15px;
+    resize: none;
+    margin-bottom: 18px;
+}
+
+.prd-review-page textarea:focus {
+    outline: none;
+    border-color: #ff6a00;
+    box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.15);
+}
+
+/* ===== FILE UPLOAD ===== */
+.prd-review-page__upload {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.prd-review-page__upload input {
+    display: none;
+}
+
+.prd-review-page__upload label {
+    padding: 12px 18px;
+    background: #f3f4f6;
+    border-radius: 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.25s;
+}
+
+.prd-review-page__upload label:hover {
+    background: #e5e7eb;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.prd-review-page__submit {
+    padding: 14px 30px;
+    border-radius: 999px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff3b30, #ff9500);
+    box-shadow: 0 14px 30px rgba(255, 59, 48, 0.4);
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.prd-review-page__submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(255, 59, 48, 0.5);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+    .prd-review-page {
+        padding: 24px;
+    }
+
+    .prd-review-page h1 {
+        font-size: 22px;
+    }
+}

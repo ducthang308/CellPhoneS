@@ -1,17 +1,16 @@
-import axios from "axios";
 import axiosClient from "./AxiosClient";
 import type { IReview } from "./Interface";
 
 const reviewService = {
     getByProductId(productId: number) {
         return axiosClient.get<IReview[]>(
-            `/reviews/product/${productId}`
+            `api/reviews/product/${productId}`
         );
     },
 
     createReview(formData: FormData) {
         return axiosClient.post<IReview>(
-            "/reviews",
+            "api/reviews",
             formData,
             {
                 headers: {
@@ -20,6 +19,9 @@ const reviewService = {
             }
         );
     },
+    deleteReview(reviewId: number) {
+        return axiosClient.delete(`api/reviews/${reviewId}`);
+    }
 };
 
 export default reviewService;

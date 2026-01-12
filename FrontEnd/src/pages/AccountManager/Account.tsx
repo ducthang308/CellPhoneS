@@ -51,43 +51,43 @@ const AccountPage: React.FC = () => {
     }
   };
 
- const handleSave = async () => {
-  if (!userId || !user) return;
+  const handleSave = async () => {
+    if (!userId || !user) return;
 
-  setSaving(true);
-  try {
-    const dto: {
-      fullName?: string;
-      email?: string;
-      address?: string;
-    } = {};
+    setSaving(true);
+    try {
+      const dto: {
+        fullName?: string;
+        email?: string;
+        address?: string;
+      } = {};
 
-    // Chỉ thêm field nếu người dùng thay đổi so với giá trị gốc
-    if (fullName.trim() !== (user.fullName || '')) {
-      dto.fullName = fullName.trim() || undefined;  
+      // Chỉ thêm field nếu người dùng thay đổi so với giá trị gốc
+      if (fullName.trim() !== (user.fullName || '')) {
+        dto.fullName = fullName.trim() || undefined;
+      }
+      if (email.trim() !== (user.email || '')) {
+        dto.email = email.trim() || undefined;
+      }
+      if (address.trim() !== (user.address || '')) {
+        dto.address = address.trim() || undefined;
+      }
+
+      const updatedUser = await userService.updateUser(userId, dto, avatarFile || undefined);
+
+      setUser(updatedUser);
+      setAvatarPreview(updatedUser.avatar || null);
+      setAvatarFile(null);
+
+      alert('Cập nhật thông tin thành công!');
+      setIsEditing(false);
+    } catch (err: any) {
+      console.error('Lỗi cập nhật:', err);
+      alert(err.response?.data?.message || 'Cập nhật thất bại!');
+    } finally {
+      setSaving(false);
     }
-    if (email.trim() !== (user.email || '')) {
-      dto.email = email.trim() || undefined;
-    }
-    if (address.trim() !== (user.address || '')) {
-      dto.address = address.trim() || undefined;
-    }
-
-    const updatedUser = await userService.updateUser(userId, dto, avatarFile || undefined);
-
-    setUser(updatedUser);
-    setAvatarPreview(updatedUser.avatar || null);
-    setAvatarFile(null);
-
-    alert('Cập nhật thông tin thành công!');
-    setIsEditing(false);
-  } catch (err: any) {
-    console.error('Lỗi cập nhật:', err);
-    alert(err.response?.data?.message || 'Cập nhật thất bại!');
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   if (authLoading || !user) {
     return (
@@ -210,7 +210,7 @@ const AccountPage: React.FC = () => {
               </div>
               <div className="info-item">
                 <label>Vai trò</label>
-                <p>{user.role === 1 ? 'Quản trị viên' : 'Khách hàng'}</p>
+                <p>{user.role === 1 ? 'Khách hàng' : 'Quản trị viên'}</p>
               </div>
             </div>
           </div>

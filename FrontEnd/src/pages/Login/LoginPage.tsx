@@ -99,7 +99,7 @@ const LoginPage = () => {
                     <form onSubmit={handleLogin}>
                         <input
                             type="text"
-                            placeholder="Số điện thoại"
+                            placeholder="Số điện thoại hoặc email"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             required
