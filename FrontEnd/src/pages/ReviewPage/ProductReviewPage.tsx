@@ -1,48 +1,63 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import reviewService from "../../services/ReviewService";
+import "./ProductReviewPage.css";
 
 export default function ProductReviewPage() {
     const { productId } = useParams<{ productId: string }>();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    const orderId = searchParams.get("orderId");
 
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
     const [photo, setPhoto] = useState<File | null>(null);
     const [video, setVideo] = useState<File | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async () => {
-        if (!productId) return;
+        if (!productId || !orderId) {
+            alert("Thiếu thông tin đơn hàng để đánh giá");
+            return;
+        }
 
         const formData = new FormData();
         formData.append("productID", productId);
         formData.append("rating", rating.toString());
         formData.append("comment", comment);
 
+        formData.append("orderID", orderId);
+
         if (photo) formData.append("photo", photo);
         if (video) formData.append("video", video);
 
         try {
+            setLoading(true);
             await reviewService.createReview(formData);
             alert("Đánh giá thành công");
-            navigate(-1); // quay lại trang product
+            navigate(-1);
         } catch (e) {
+            console.error(e);
             alert("Không thể gửi đánh giá");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="review-page">
+        <div className="prd-review-page">
             <h1>Đánh giá sản phẩm</h1>
 
-            <div className="rating-input">
+            <div className="prd-review-page__rating">
                 {[1, 2, 3, 4, 5].map(n => (
                     <span
                         key={n}
-                        style={{ cursor: "pointer", fontSize: 28 }}
+                        className={`prd-review-page__star ${n <= rating ? "active" : ""
+                            }`}
                         onClick={() => setRating(n)}
                     >
-                        {n <= rating ? "★" : "☆"}
+                        ★
                     </span>
                 ))}
             </div>
@@ -53,20 +68,32 @@ export default function ProductReviewPage() {
                 onChange={e => setComment(e.target.value)}
             />
 
-            <input
-                type="file"
-                accept="image/*"
-                onChange={e => setPhoto(e.target.files?.[0] || null)}
-            />
+            <div className="prd-review-page__upload">
+                <label>
+                    📷 Ảnh
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setPhoto(e.target.files?.[0] || null)}
+                    />
+                </label>
 
-            <input
-                type="file"
-                accept="video/*"
-                onChange={e => setVideo(e.target.files?.[0] || null)}
-            />
+                <label>
+                    🎥 Video
+                    <input
+                        type="file"
+                        accept="video/*"
+                        onChange={e => setVideo(e.target.files?.[0] || null)}
+                    />
+                </label>
+            </div>
 
-            <button className="btn red" onClick={handleSubmit}>
-                Gửi đánh giá
+            <button
+                className="prd-review-page__submit"
+                onClick={handleSubmit}
+                disabled={loading}
+            >
+                {loading ? "Đang gửi..." : "Gửi đánh giá"}
             </button>
         </div>
     );

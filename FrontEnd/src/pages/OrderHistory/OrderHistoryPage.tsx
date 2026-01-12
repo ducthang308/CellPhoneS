@@ -11,33 +11,27 @@ const PLACEHOLDER_IMG =
 const STATUS_TABS = [
   { key: "ALL", label: "Tất cả" },
   { key: "PENDING", label: "Chờ xử lý" },
-  // { key: "REJECTED", label: "" },
-  { key: "APPROVED", label: "Đang giao" },
+  { key: "APPROVED", label: "Hoàn Thành" },
   { key: "CANCELLED", label: "Đã hủy" }
 ];
 
 const OrderHistoryPage: React.FC = () => {
   const navigate = useNavigate();
 
-  /* ================= USER ================= */
   const rawUser = localStorage.getItem("user");
   const userId = rawUser ? JSON.parse(rawUser).userId : null;
 
-  /* ================= STATE ================= */
   const [orders, setOrders] = useState<OrderFullResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] =
     useState<OrderFullResponse | null>(null);
   const [activeStatus, setActiveStatus] = useState<string>("ALL");
 
-  /* ================= HELPERS ================= */
-  const safeNumber = (v?: number | null) => v ?? 0;
   const safeArray = <T,>(arr?: T[] | null): T[] => arr ?? [];
 
   const getProductImage = (p: any): string => {
     if (p?.imageUrl) return p.imageUrl;
-    if (p?.productImages?.length > 0)
-      return p.productImages[0].url;
+    if (p?.productImages?.length) return p.productImages[0].url;
     return PLACEHOLDER_IMG;
   };
 
@@ -49,18 +43,16 @@ const OrderHistoryPage: React.FC = () => {
     )}`;
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusClass = (status: string) => {
     switch (status) {
-      case "COMPLETED":
-        return "#16a34a";
-      case "DELIVERED":
-        return "#2563eb";
+      case "APPROVED":
+        return "green";
       case "PENDING":
-        return "#f59e0b";
+        return "orange";
       case "CANCELLED":
-        return "#dc2626";
+        return "red";
       default:
-        return "#6b7280";
+        return "gray";
     }
   };
 
@@ -71,32 +63,16 @@ const OrderHistoryPage: React.FC = () => {
       return;
     }
 
-    setLoading(true);
-
     orderService
       .getByUser(userId)
-      .then(data => {
-        const safeOrders: OrderFullResponse[] = (data || []).map(
-          o => ({
-            ...o,
-            products: o.products ?? [],
-            subTotal: o.subTotal ?? 0,
-            discountAmount: o.discountAmount ?? 0,
-            totalAmount: o.totalAmount ?? 0
-          })
-        );
-        setOrders(safeOrders);
-      })
-      .catch(err => console.error("❌ Load order error:", err))
+      .then(data => setOrders(data || []))
       .finally(() => setLoading(false));
   }, [userId]);
 
-  /* ================= FILTER ================= */
   const filteredOrders = orders.filter(o =>
     activeStatus === "ALL" ? true : o.status === activeStatus
   );
 
-  /* ================= RENDER ================= */
   return (
     <div className="ohp-page">
       <div className="ohp-container">
@@ -111,9 +87,8 @@ const OrderHistoryPage: React.FC = () => {
           {STATUS_TABS.map(tab => (
             <button
               key={tab.key}
-              className={`ohp-tab ${
-                activeStatus === tab.key ? "active" : ""
-              }`}
+              className={`ohp-tab ${activeStatus === tab.key ? "active" : ""
+                }`}
               onClick={() => {
                 setActiveStatus(tab.key);
                 setSelectedOrder(null);
@@ -123,8 +98,7 @@ const OrderHistoryPage: React.FC = () => {
               <span className="ohp-tab-count">
                 {tab.key === "ALL"
                   ? orders.length
-                  : orders.filter(o => o.status === tab.key)
-                      .length}
+                  : orders.filter(o => o.status === tab.key).length}
               </span>
             </button>
           ))}
@@ -134,22 +108,14 @@ const OrderHistoryPage: React.FC = () => {
           <div className="ohp-loading">Đang tải đơn hàng…</div>
         ) : (
           <div className="ohp-grid">
-            {/* ===== LEFT ===== */}
             <div className="ohp-list">
-              {filteredOrders.length === 0 && (
-                <div className="ohp-empty">
-                  Không có đơn hàng ở trạng thái này
-                </div>
-              )}
-
               {filteredOrders.map(order => (
                 <div
                   key={order.orderID}
-                  className={`ohp-card ${
-                    selectedOrder?.orderID === order.orderID
+                  className={`ohp-card ${selectedOrder?.orderID === order.orderID
                       ? "ohp-active"
                       : ""
-                  }`}
+                    }`}
                   onClick={() =>
                     setSelectedOrder({
                       ...order,
@@ -160,7 +126,7 @@ const OrderHistoryPage: React.FC = () => {
                   <div className="ohp-card-header">
                     <div>
                       <div className="ohp-order-id">
-                        Đơn hàng #{order.orderID}
+                        Đơn #{order.orderID}
                       </div>
                       <div className="ohp-order-date">
                         {formatDate(order.orderDate)}
@@ -168,10 +134,7 @@ const OrderHistoryPage: React.FC = () => {
                     </div>
 
                     <span
-                      className="ohp-status"
-                      style={{
-                        color: getStatusColor(order.status)
-                      }}
+                      className={`badge ${getStatusClass(order.status)}`}
                     >
                       {order.status}
                     </span>
@@ -188,56 +151,62 @@ const OrderHistoryPage: React.FC = () => {
             <div className="ohp-detail">
               {selectedOrder ? (
                 <>
-                  <h2 className="ohp-detail-title">
-                    Chi tiết đơn #{selectedOrder.orderID}
-                  </h2>
+                  <div className="ohp-detail-header">
+                    <h2 className="ohp-detail-title">
+                      Đơn hàng #{selectedOrder.orderID}
+                    </h2>
+
+                    {selectedOrder.status === "APPROVED" && (
+                      <button
+                        className="review-btn header-review-btn"
+                        onClick={() =>
+                          navigate(
+                            `/product/${selectedOrder.products?.[0]?.productID}/reviews?orderId=${selectedOrder.orderID}`
+                          )
+                        }
+                      >
+                        Viết đánh giá
+                      </button>
+                    )}
+                  </div>
 
                   <div className="ohp-meta">
-                    <p>
-                      <strong>Ngày đặt:</strong>{" "}
-                      {formatDate(selectedOrder.orderDate)}
-                    </p>
-                    <p>
-                      <strong>Trạng thái:</strong>{" "}
-                      <span
-                        style={{
-                          color: getStatusColor(
-                            selectedOrder.status
-                          )
-                        }}
-                      >
-                        {selectedOrder.status}
-                      </span>
-                    </p>
-                    <p>
-                      <strong>Thanh toán:</strong>{" "}
+                    <span>{formatDate(selectedOrder.orderDate)}</span>
+                    <span
+                      className={`badge ${getStatusClass(
+                        selectedOrder.status
+                      )}`}
+                    >
+                      {selectedOrder.status}
+                    </span>
+                    <span className="badge gray">
                       {selectedOrder.paymentStatus}
-                    </p>
+                    </span>
                   </div>
 
                   <div className="ohp-products">
                     {safeArray(selectedOrder.products).map(p => (
                       <div
-                        key={p.productID}
-                        className="ohp-product"
+                        key={`${p.productID}-${selectedOrder.orderID}`}
+                        className="od-product"
                       >
                         <img
                           src={getProductImage(p)}
                           alt={p.name}
-                          className="ohp-product-img"
                         />
 
-                        <div className="ohp-product-info">
-                          <h3>{p.name}</h3>
-                          <p>Số lượng: {p.quantity}</p>
+                        <div className="od-info">
+                          <h4>{p.name}</h4>
+                          <span>Số lượng: {p.quantity}</span>
                         </div>
 
-                        <div className="ohp-product-price">
-                          {(
-                            safeNumber(p.price) *
-                            safeNumber(p.quantity)
-                          ).toLocaleString("vi-VN")}{" "}
-                          ₫
+                        <div className="od-right">
+                          <div className="od-price">
+                            {(p.price * p.quantity).toLocaleString(
+                              "vi-VN"
+                            )}{" "}
+                            ₫
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -245,30 +214,12 @@ const OrderHistoryPage: React.FC = () => {
 
                   <div className="ohp-summary">
                     <div>
-                      <span>Tạm tính</span>
-                      <span>
-                        {safeNumber(
-                          selectedOrder.subTotal
-                        ).toLocaleString("vi-VN")} ₫
-                      </span>
-                    </div>
-
-                    <div>
-                      <span>Giảm giá</span>
-                      <span className="ohp-discount">
-                        -
-                        {safeNumber(
-                          selectedOrder.discountAmount
-                        ).toLocaleString("vi-VN")} ₫
-                      </span>
-                    </div>
-
-                    <div className="ohp-final">
-                      <strong>Tổng thanh toán</strong>
+                      <span>Tổng thanh toán</span>
                       <strong>
-                        {safeNumber(
-                          selectedOrder.totalAmount
-                        ).toLocaleString("vi-VN")} ₫
+                        {selectedOrder.totalAmount.toLocaleString(
+                          "vi-VN"
+                        )}{" "}
+                        ₫
                       </strong>
                     </div>
                   </div>

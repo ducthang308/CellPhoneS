@@ -15,6 +15,7 @@ import OrderHistoryPage from "./pages/OrderHistory/OrderHistoryPage";
 import NotificationsPage from "./pages/Notification/NotificationPage";
 import OrderPage from "./pages/Order/OrderPage";
 import ProductReviewPage from "./pages/ReviewPage/ProductReviewPage";
+import AboutUsBlog from "./pages/Blog/AboutUsBlog";
 
 /* ===== ADMIN ===== */
 import Category from "./Admin/category/category";
@@ -89,6 +90,7 @@ function App() {
           <Route path="/product-detail/:id" element={<ProductDetail />} />
           <Route path="/payment" element={<OrderPage />} />
           <Route path="/payment/:orderId" element={<PaymentPage />} />
+          <Route path="/about" element={<AboutUsBlog />} />
 
           {/* ===== PROTECTED USER ROUTES ===== */}
           <Route element={<ProtectedRoute />}>
