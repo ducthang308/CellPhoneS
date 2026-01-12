@@ -145,3 +145,19 @@
   margin-top: 6px;
   text-align: center;
 }
+
+/* ===== COPY SUCCESS ===== */
+.user-discount-copy-btn.copied {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
+}
+
+.user-discount-copy-btn.copied::after {
+  content: "✓";
+  margin-left: 8px;
+  font-weight: 700;
+}
+
+.user-discount-copy-btn {
+  transition: all 0.25s ease;
+}

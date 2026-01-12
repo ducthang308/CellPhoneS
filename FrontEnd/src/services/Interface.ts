@@ -33,6 +33,7 @@ export interface IUser {
   avatar?: string | null;
   role?: number;
   cartId?: number;
+  googleId?: string | null;
 }
 
 export interface ICategory {
@@ -406,4 +407,9 @@ export interface InventoryStatisticResponse {
   selectedMonth: number | null;
   selectedDay: number | null;
   items: InventoryStatisticItem[];
+}
+
+export interface ChangePasswordDTO {
+  oldPassword: string;
+  newPassword: string;
 }
