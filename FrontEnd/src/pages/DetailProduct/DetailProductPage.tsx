@@ -24,6 +24,8 @@ export default function ProductDetail() {
   const [selectedVersion, setSelectedVersion] = useState("1TB");
   const [selectedColor, setSelectedColor] = useState("Titan Sa Mạc");
 
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const [reviews, setReviews] = useState<IReview[]>([]);
   const [reviewLoading, setReviewLoading] = useState(true);
 
@@ -151,123 +153,149 @@ export default function ProductDetail() {
   if (!product) return <div className="error">Không tìm thấy sản phẩm</div>;
 
   return (
-    <div className="product-container">
-      <h1 className="product-title">
-        {product.name} | Chính hãng VN/A
-      </h1>
+    <>
+      <div className="product-container">
+        <h1 className="product-title">
+          {product.name} | Chính hãng VN/A
+        </h1>
 
-      <div className="rating-row">
-        <span className="star">★</span>
-        <span className="star">★</span>
-        <span className="star">★</span>
-        <span className="star">★</span>
-        <span className="star">★</span>
-        <span>4.9 (15 đánh giá)</span>
-      </div>
-
-      <div className="product-grid">
-        <div className="image-box">
-          <img
-            src={selectedImage || IP}
-            className="main-img"
-            alt={product.name}
-          />
-
-          <div className="thumb-list">
-            {images.map((img) => (
-              <img
-                key={img.id}
-                src={img.url}
-                className="thumb"
-                onClick={() => setSelectedImage(img.url)}
-                alt="thumb"
-              />
-            ))}
-          </div>
+        <div className="rating-row">
+          {"★".repeat(5)}
+          <span>4.9 (15 đánh giá)</span>
         </div>
 
-        <div className="detail-box">
-          <div className="price-block">
-            <div className="price-main">
-              {product.price.toLocaleString("vi-VN")}đ
+        <div className="product-grid">
+          <div className="image-box">
+            <img
+              src={selectedImage || IP}
+              className="main-img"
+              alt={product.name}
+            />
+
+            <div className="thumb-list">
+              {images.map((img) => (
+                <img
+                  key={img.id}
+                  src={img.url}
+                  className="thumb"
+                  onClick={() => setSelectedImage(img.url)}
+                  alt="thumb"
+                />
+              ))}
             </div>
           </div>
 
-          <div className="feature-box">
-            <div className="feature-title">TÍNH NĂNG NỔI BẬT</div>
-            <ul className="feature-list">
-              <li><strong>Battery:</strong> {product.specification?.battery}</li>
-              <li><strong>Camera:</strong> {product.specification?.camera}</li>
-              <li><strong>CPU:</strong> {product.specification?.cpu}</li>
-              <li><strong>OS:</strong> {product.specification?.os}</li>
-              <li><strong>RAM:</strong> {product.specification?.ram}</li>
-              <li><strong>Screen:</strong> {product.specification?.screen}</li>
-              <li><strong>Storage:</strong> {product.specification?.storage}</li>
-            </ul>
-          </div>
+          <div className="detail-box">
+            <div className="price-block">
+              <div className="price-main">
+                {product.price.toLocaleString("vi-VN")}đ
+              </div>
+            </div>
 
-          <div className="action-row">
-            <button className="btn blue">Trả góp 0%</button>
+            <div className="feature-box">
+              <div className="feature-title">TÍNH NĂNG NỔI BẬT</div>
+              <ul className="feature-list">
+                <li><strong>Battery:</strong> {product.specification?.battery}</li>
+                <li><strong>Camera:</strong> {product.specification?.camera}</li>
+                <li><strong>CPU:</strong> {product.specification?.cpu}</li>
+                <li><strong>OS:</strong> {product.specification?.os}</li>
+                <li><strong>RAM:</strong> {product.specification?.ram}</li>
+                <li><strong>Screen:</strong> {product.specification?.screen}</li>
+                <li><strong>Storage:</strong> {product.specification?.storage}</li>
+              </ul>
+            </div>
 
-            <button className="btn red" onClick={handleBuyNow}>
-              🛒 Mua ngay
+            <div className="action-row">
+              <button className="btn blue">Trả góp 0%</button>
+              <button className="btn red" onClick={handleBuyNow}>
+                🛒 Mua ngay
+              </button>
+            </div>
+
+            <button
+              className="btn-outline add-cart-btn"
+              onClick={handleAddToCart}
+            >
+              🛒 Thêm vào giỏ hàng
             </button>
           </div>
+        </div>
 
-          <button className="btn-outline add-cart-btn" onClick={handleAddToCart}>
-            🛒 Thêm vào giỏ hàng
+        {/* ===== REVIEW SECTION ===== */}
+        <div className="review-section">
+          <h2 className="review-title">Đánh giá sản phẩm</h2>
+
+          {reviewLoading && <p>Đang tải đánh giá...</p>}
+
+          {!reviewLoading && reviews.length === 0 && (
+            <p className="review-empty">Chưa có đánh giá nào</p>
+          )}
+
+          {reviews.map(r => (
+            <div key={r.reviewID} className="review-item">
+              <div className="review-header">
+                <strong>{r.userName}</strong>
+                <span className="review-stars">
+                  {"★".repeat(r.rating)}
+                </span>
+              </div>
+
+              <p className="review-comment">{r.comment}</p>
+
+              {r.photoUrl && (
+                <div className="review-image-wrapper">
+                  <img
+                    src={r.photoUrl}
+                    alt="review"
+                    className="review-image"
+                    onClick={() => {
+                      console.log("CLICK IMAGE:", r.photoUrl);
+                      setPreviewImage(r.photoUrl || null);
+                    }}
+                  />
+
+                </div>
+              )}
+
+              {r.videoUrl && (
+                <video
+                  src={r.videoUrl}
+                  controls
+                  className="review-video"
+                />
+              )}
+            </div>
+          ))}
+
+          <button
+            className="btn-outline"
+            onClick={() => navigate("/historyOrder?tab=APPROVED")}
+          >
+            Vào lịch sử mua hàng đã hoàn thành để đánh giá
           </button>
         </div>
       </div>
 
-      {/* ===== REVIEW SECTION ===== */}
-      <div className="review-section">
-        <h2 className="review-title">Đánh giá sản phẩm</h2>
-
-        {reviewLoading && <p>Đang tải đánh giá...</p>}
-
-        {!reviewLoading && reviews.length === 0 && (
-          <p className="review-empty">Chưa có đánh giá nào</p>
-        )}
-
-        {reviews.map(r => (
-          <div key={r.reviewID} className="review-item">
-            <div className="review-header">
-              <strong>{r.userName}</strong>
-              <span className="review-stars">
-                {"★".repeat(r.rating)}
-              </span>
-            </div>
-
-            <p className="review-comment">{r.comment}</p>
-
-            {r.photoUrl && (
-              <img
-                src={r.photoUrl}
-                alt="review"
-                className="review-image"
-              />
-            )}
-
-            {r.videoUrl && (
-              <video
-                src={r.videoUrl}
-                controls
-                className="review-video"
-              />
-            )}
-          </div>
-        ))}
-
-        <button
-          className="btn-outline"
-          onClick={() =>
-            navigate(`/product/${product.productId}/reviews`)
-          }
+      {/* ===== IMAGE PREVIEW MODAL ===== */}
+      {previewImage && (
+        <div
+          className="image-preview-overlay"
+          onClick={() => setPreviewImage(null)}
         >
-          Viết đánh giá
-        </button>
-      </div>
-    </div>
+          <div
+            className="image-preview-content"
+            onClick={e => e.stopPropagation()}
+          >
+            <img src={previewImage} alt="preview" />
+            <button
+              className="image-preview-close"
+              onClick={() => setPreviewImage(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
