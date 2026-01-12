@@ -13,11 +13,14 @@ type DiscountStatus =
 
 const toDate = (v?: string | null) => (v ? new Date(v) : null);
 
+
 const getStatus = (d: Discount, now: Date): DiscountStatus => {
   if (d.active === false) return "INACTIVE";
 
   const start = toDate(d.startAt);
   const end = toDate(d.endAt);
+
+
 
   if (start && now < start) return "UPCOMING";
   if (end && now > end) return "EXPIRED";
@@ -32,6 +35,7 @@ const getStatus = (d: Discount, now: Date): DiscountStatus => {
 const DiscountsPage = () => {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [keyword, setKeyword] = useState("");
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     DiscountService.getAll().then(setDiscounts);
@@ -67,9 +71,8 @@ const DiscountsPage = () => {
           return (
             <article
               key={d.id}
-              className={`user-discount-card ${
-                disabled ? "user-discount-card--disabled" : ""
-              }`}
+              className={`user-discount-card ${disabled ? "user-discount-card--disabled" : ""
+                }`}
             >
               <div className="user-discount-card-header">
                 <span className="user-discount-code">{d.code}</span>
@@ -81,7 +84,7 @@ const DiscountsPage = () => {
               </div>
 
               <div className="user-discount-value">
-                {d.type === "PERCENT" ? `${d.value}%` : d.value.toLocaleString()} 
+                {d.type === "PERCENT" ? `${d.value}%` : d.value.toLocaleString()}
               </div>
 
               <div className="user-discount-meta">
@@ -101,13 +104,19 @@ const DiscountsPage = () => {
               </div>
 
               <button
-                className="user-discount-copy-btn"
+                className={`user-discount-copy-btn ${copiedCode === d.code ? "copied" : ""
+                  }`}
                 disabled={disabled}
-                onClick={() =>
-                  navigator.clipboard.writeText(d.code)
-                }
+                onClick={async () => {
+                  await navigator.clipboard.writeText(d.code);
+                  setCopiedCode(d.code);
+
+                  setTimeout(() => {
+                    setCopiedCode(null);
+                  }, 1800);
+                }}
               >
-                Copy mã
+                {copiedCode === d.code ? "Đã copy" : "Copy mã"}
               </button>
 
               {disabled && (
