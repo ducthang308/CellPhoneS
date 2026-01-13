@@ -11,7 +11,7 @@ import type { IProduct } from "../../services/Interface";
 
 interface CartItem extends IProduct {
   quantity: number;
-  cartDetailsId: number;
+  cartDetailsIds: number[];
 }
 
 const CartPage: React.FC = () => {
@@ -40,11 +40,25 @@ const CartPage: React.FC = () => {
       try {
         const details = await cartDetailService.getByCartId(user.cartId);
 
-        const items: CartItem[] = details.map((detail) => ({
-          ...detail.product,
-          quantity: 1,
-          cartDetailsId: detail.cartDetailsId,
-        }));
+        const items: CartItem[] = Object.values(
+          details.reduce((acc: any, detail: any) => {
+            const pid = detail.product.productId;
+
+            if (!acc[pid]) {
+              acc[pid] = {
+                ...detail.product,
+                quantity: 1,
+                cartDetailsIds: [detail.cartDetailsId], // 👈 RẤT QUAN TRỌNG
+              };
+            } else {
+              acc[pid].quantity += 1;
+              acc[pid].cartDetailsIds.push(detail.cartDetailsId);
+            }
+
+            return acc;
+          }, {})
+        );
+
 
         setCartItems(items);
       } catch (err) {
@@ -59,16 +73,16 @@ const CartPage: React.FC = () => {
   }, [user?.cartId]);
 
   const syncCartBadge = (items: CartItem[]) => {
-    const total = items.reduce((sum, i) => sum + i.quantity, 0);
+  const payload = items.map(item => ({
+    productId: item.productId,
+    quantity: item.quantity,
+  }));
 
-    localStorage.setItem(
-      "cart_count",
-      total.toString()
-    );
+  localStorage.setItem("cart_items", JSON.stringify(payload));
 
-    // báo cho Header biết
-    window.dispatchEvent(new Event("cart-updated"));
-  };
+  window.dispatchEvent(new Event("cart-updated"));
+};
+
 
   // /* ================= UPDATE QTY ================= */
   // const updateQuantity = (productId: number, delta: number) => {
@@ -92,37 +106,58 @@ const CartPage: React.FC = () => {
   //     alert("Không thể xoá sản phẩm");
   //   }
   // };
-  const updateQuantity = (productId: number, delta: number) => {
+  const updateQuantity = async (productId: number, delta: number) => {
     setCartItems(prev => {
-      const updated = prev.map(item =>
-        item.productId === productId
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      );
+      const updated = prev.map(item => {
+        if (item.productId !== productId) return item;
+
+        if (delta > 0) {
+          return {
+            ...item,
+            quantity: item.quantity + 1,
+            cartDetailsIds: [...item.cartDetailsIds, -1], // tạm
+          };
+        }
+
+        if (delta < 0 && item.quantity > 1) {
+          return {
+            ...item,
+            quantity: item.quantity - 1,
+            cartDetailsIds: item.cartDetailsIds.slice(1),
+          };
+        }
+
+        return item;
+      });
 
       syncCartBadge(updated);
       return updated;
     });
   };
 
+
   /* ================= REMOVE ITEM ================= */
-  const removeItem = async (cartDetailsId: number) => {
-    try {
-      await cartDetailService.delete(cartDetailsId);
+  const removeItem = async (item: CartItem) => {
+  try {
+    await Promise.all(
+      item.cartDetailsIds.map(id =>
+        cartDetailService.delete(id)
+      )
+    );
 
-      setCartItems(prev => {
-        const updated = prev.filter(
-          item => item.cartDetailsId !== cartDetailsId
-        );
+    setCartItems(prev => {
+      const updated = prev.filter(
+        p => p.productId !== item.productId
+      );
 
-        syncCartBadge(updated);
-        return updated;
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Không thể xoá sản phẩm");
-    }
-  };
+      syncCartBadge(updated); 
+      return updated;
+    });
+  } catch (err) {
+    console.error(err);
+    alert("Không thể xoá sản phẩm");
+  }
+};
 
   /* ================= CONFIRM ORDER ================= */
   const handleConfirmOrder = async () => {
@@ -155,7 +190,7 @@ const CartPage: React.FC = () => {
       if (user?.cartId) {
         await cartDetailService.deleteByCartId(user.cartId);
       }
-      localStorage.setItem("cart_count", "0");
+
       window.dispatchEvent(new Event("cart-updated"));
       setCartItems([]);
       navigate(`/order/${order.orderID}`);
@@ -166,6 +201,57 @@ const CartPage: React.FC = () => {
       setIsPlacingOrder(false);
     }
   };
+
+  const increaseOne = async (item: CartItem) => {
+    if (!user?.cartId || !item.productId) return;
+
+    const newDetail = await cartDetailService.addToCart({
+      cartId: user.cartId,
+      productId: item.productId,
+    });
+
+    setCartItems(prev => {
+      const updated = prev.map(p =>
+        p.productId === item.productId
+          ? {
+            ...p,
+            quantity: p.quantity + 1,
+            cartDetailsIds: [
+              ...p.cartDetailsIds,
+              newDetail.cartDetailsId,
+            ],
+          }
+          : p
+      );
+
+      syncCartBadge(updated);
+      return updated;
+    });
+  };
+
+
+  const decreaseOne = async (item: CartItem) => {
+    if (item.cartDetailsIds.length <= 1) return;
+
+    const removeId = item.cartDetailsIds[0];
+    await cartDetailService.delete(removeId);
+
+    setCartItems(prev => {
+      const updated = prev.map(p =>
+        p.productId === item.productId
+          ? {
+            ...p,
+            quantity: p.quantity - 1,
+            cartDetailsIds: p.cartDetailsIds.slice(1),
+          }
+          : p
+      );
+
+      syncCartBadge(updated);
+      return updated;
+    });
+  };
+
 
   /* ================= TOTAL ================= */
   const totalPrice = useMemo(
@@ -197,7 +283,7 @@ const CartPage: React.FC = () => {
           )}
 
           {cartItems.map((item) => (
-            <div key={item.cartDetailsId} className="cart-item">
+            <div key={item.productId} className="cart-item">
               <img
                 className="item-img"
                 src={item.productImages?.[0]?.url || "/no-image.png"}
@@ -209,14 +295,11 @@ const CartPage: React.FC = () => {
 
                 <div className="quantity-and-price">
                   <div className="quantity-box">
-                    <button onClick={() => updateQuantity(item.productId ?? 0, -1)}>
-                      -
-                    </button>
+                    <button onClick={() => decreaseOne(item)}>-</button>
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.productId ?? 0, 1)}>
-                      +
-                    </button>
+                    <button onClick={() => increaseOne(item)}>+</button>
                   </div>
+
 
                   <div className="price-wrapper">
                     <span className="current-price">
@@ -233,9 +316,9 @@ const CartPage: React.FC = () => {
 
               <button
                 className="remove-item-btn fa-solid fa-trash"
-                onClick={() => removeItem(item.cartDetailsId)}
-                title="Xóa sản phẩm"
+                onClick={() => removeItem(item)}
               />
+
             </div>
           ))}
 

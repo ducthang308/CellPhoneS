@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { UserCog, ShoppingCart, History, LogOut, Bell, Search, Filter, Menu, X } from 'lucide-react';
+import { UserCog, ShoppingCart, History, LogOut, Bell, Search, Filter, Menu, X, BadgePercent } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import CategoryService from "../../services/CategoryService";
@@ -57,7 +57,7 @@ const Header = () => {
     loadUnreadCount();
   }, [location.pathname, user]);
 
-    useEffect(() => {
+  useEffect(() => {
     const syncUnread = () => loadUnreadCount();
 
     window.addEventListener("focus", syncUnread);
@@ -79,45 +79,40 @@ const Header = () => {
     [user]
   );
 
-  const loadCartCount = () => {
+  const syncCartCount = () => {
     try {
       const raw = localStorage.getItem("cart_items");
       const cart = raw ? JSON.parse(raw) : [];
 
       const total = cart.reduce(
-        (sum: number, item: { quantity: number }) =>
+        (sum: number, item: { quantity?: number }) =>
           sum + (item.quantity || 0),
         0
       );
 
       setCartCount(total);
     } catch (e) {
-      console.error("Load cart failed", e);
+      console.error("Sync cart failed", e);
       setCartCount(0);
     }
   };
-  
+
   useEffect(() => {
-    const loadCartCount = () => {
-      const count = Number(localStorage.getItem("cart_count") || 0);
-      setCartCount(count);
-    };
-
     // load lần đầu
-    loadCartCount();
+    syncCartCount();
 
-    // sync khi add/remove/update cart
-    window.addEventListener("cart-updated", loadCartCount);
+    // khi add/remove/update cart
+    window.addEventListener("cart-updated", syncCartCount);
 
-    // sync khi quay lại tab / đổi route
-    window.addEventListener("focus", loadCartCount);
+    // khi quay lại tab
+    window.addEventListener("focus", syncCartCount);
 
     return () => {
-      window.removeEventListener("cart-updated", loadCartCount);
-      window.removeEventListener("focus", loadCartCount);
+      window.removeEventListener("cart-updated", syncCartCount);
+      window.removeEventListener("focus", syncCartCount);
     };
   }, []);
-  
+
   useEffect(() => {
     CategoryService.getCategories()
       .then(setCategories)
@@ -223,17 +218,17 @@ const Header = () => {
             {/* Search Bar */}
             <div className="header-search" ref={searchRef}>
               <div className="search-wrapper">
-                  <input
-                    type="text"
-                    name="email"
-                    autoComplete="username"
-                    style={{
-                      position: "absolute",
-                      opacity: 0,
-                      pointerEvents: "none",
-                      height: 0,
-                    }}
-                  />
+                <input
+                  type="text"
+                  name="email"
+                  autoComplete="username"
+                  style={{
+                    position: "absolute",
+                    opacity: 0,
+                    pointerEvents: "none",
+                    height: 0,
+                  }}
+                />
                 <Search className="search-icon" size={20} />
                 <input
                   type="text"
@@ -382,6 +377,20 @@ const Header = () => {
                               <p className="item-title">Giỏ hàng & Thanh toán</p>
                             </div>
                           </button>
+
+                          <div
+                            className="dropdown-item"
+                            onClick={() => {
+                              navigate('/discount');
+                              setDropdownOpen(false);
+                            }}
+                          >
+                            <BadgePercent size={20} />
+                            <div>
+                              <p className="title">Mã giảm giá</p>
+                            </div>
+                          </div>
+
 
                           <button className="dropdown-item" onClick={() => { navigate('/historyOrder'); setDropdownOpen(false); }}>
                             <History size={20} />
