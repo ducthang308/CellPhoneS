@@ -133,6 +133,102 @@
   background-color: #e5e7eb;
 }
 
+/* ===== DIVIDER ===== */
+.divider {
+  margin: 28px 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #e5e7eb,
+    transparent
+  );
+}
+
+/* ===== PASSWORD SECTION ===== */
+.passwordSection {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    #fff7f7,
+    #fff
+  );
+  border: 1px solid #fee2e2;
+}
+
+/* ===== PASSWORD TITLE ===== */
+.passwordTitle {
+  margin-bottom: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #b91c1c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passwordTitle::before {
+  content: "🔒";
+}
+
+/* ===== INPUT ===== */
+.passwordSection input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #fecaca;
+  outline: none;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.passwordSection input:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+/* ===== WARNING TEXT ===== */
+.passwordHint {
+  font-size: 13px;
+  color: #9f1239;
+  margin-bottom: 12px;
+}
+
+/* ===== GOOGLE NOTE ===== */
+.googleNote {
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-left: 4px solid #3b82f6;
+  border-radius: 10px;
+  color: #1e40af;
+  font-size: 14px;
+}
+
+/* ===== ACTION BUTTON ===== */
+.saveDanger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.saveDanger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 25px rgba(239, 68, 68, 0.35);
+}
+
+.saveDanger:active {
+  transform: scale(0.97);
+}
+
 /* ================= ANIMATION ================= */
 @keyframes fadeIn {
   from {
