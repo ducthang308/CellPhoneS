@@ -3,6 +3,7 @@ package com.example.MobileStorageManagement.Service;
 import com.example.MobileStorageManagement.DTO.*;
 import com.example.MobileStorageManagement.Entity.*;
 import com.example.MobileStorageManagement.Repository.BatchRepository;
+import com.example.MobileStorageManagement.Repository.ProductRepository;
 import com.example.MobileStorageManagement.Repository.StockOutRepository;
 import com.example.MobileStorageManagement.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class StockOutService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     /* =========================
        GET
@@ -45,19 +49,29 @@ public class StockOutService {
        CREATE
        ========================= */
 
-    public StockOut create(StockOutRequest stockOutRequest) throws IOException {
+    public StockOut create(StockOutRequest req) {
+
         StockOut entity = new StockOut();
-        entity.setQuantity(stockOutRequest.getQuantity());
-        entity.setDate(stockOutRequest.getDate());
-        entity.setNote(stockOutRequest.getNote());
+        entity.setQuantity(req.getQuantity());
+        entity.setDate(req.getDate());
+        entity.setNote(req.getNote());
         entity.setUser(getCurrentUser());
 
-        if (stockOutRequest.getBatchID() != null) {
-            Batch batch = batchRepository.findById(stockOutRequest.getBatchID())
-                    .orElseThrow(() -> new RuntimeException("Lô hàng không tồn tại"));
-            entity.setBatch(batch);
+        Batch batch = batchRepository.findById(req.getBatchID())
+                .orElseThrow(() -> new RuntimeException("Lô hàng không tồn tại"));
+
+        Product product = batch.getProduct();
+
+        if (product.getStockQuantity() < req.getQuantity()) {
+            throw new RuntimeException("Không đủ tồn kho");
         }
 
+        product.setStockQuantity(
+                product.getStockQuantity() - req.getQuantity()
+        );
+        productRepository.save(product);
+
+        entity.setBatch(batch);
         return stockOutRepository.save(entity);
     }
 
