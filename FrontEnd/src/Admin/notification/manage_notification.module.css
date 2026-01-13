@@ -1,223 +1,187 @@
-/* ================= LAYOUT ================= */
-.main-content {
-  padding: 24px;
-  background: #f5f7fb;
+/* PAGE */
+.ntfPage {
+  padding: 32px;
+  background: #f5f6fa;
   min-height: 100vh;
 }
 
-.content-header {
+/* HEADER */
+.ntfHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-.content-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1e293b;
+.ntfHeader h1 {
+  font-size: 22px;
+  font-weight: 700;
 }
 
-/* ================= SEARCH ================= */
-.search-bar input {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  outline: none;
-  width: 260px;
-  transition: 0.2s;
-}
-
-.search-bar input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-}
-
-/* ================= CONTAINER ================= */
-.container {
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-}
-
-/* ================= NOTIFICATION CARD ================= */
-.notification-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 16px;
-  cursor: pointer;
-  transition: 0.2s ease;
-  background: #fff;
-}
-
-.notification-card:hover {
-  border-color: #2563eb;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.12);
-  transform: translateY(-2px);
-}
-
-.notification-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.notification-header span {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-/* ================= CONTENT ================= */
-.notification-content h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #111827;
-}
-
-.notification-content p {
-  font-size: 14px;
-  color: #4b5563;
-  line-height: 1.6;
-}
-
-/* ================= DELETE ================= */
-.delete-btn {
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.15s;
-}
-
-.delete-btn:hover {
-  color: #b91c1c;
-}
-
-/* ================= PAGINATION ================= */
-.pagination-area {
-  margin-top: 16px;
-  text-align: center;
+.ntfHeader p {
   color: #6b7280;
   font-size: 14px;
 }
 
-/* ================= CREATE BUTTON ================= */
-.create-notification-btn {
-  margin-top: 20px;
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 14px 22px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.create-notification-btn:hover {
-  background: #1d4ed8;
-}
-
-/* ================= MODAL ================= */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+.ntfActions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
+  gap: 12px;
 }
 
-.modal-content {
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 16px;
-  width: 600px;
-  max-width: 90%;
-  animation: scaleIn 0.2s ease;
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.modal-content h2 {
-  margin-bottom: 20px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #111827;
-}
-
-/* ================= FORM ================= */
-.modal-content form input,
-.modal-content form textarea,
-.modal-content form select {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 10px;
+.ntfSearch {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
-  margin-bottom: 16px;
-  font-size: 15px;
-  transition: 0.2s;
 }
 
-.modal-content form input:focus,
-.modal-content form textarea:focus,
-.modal-content form select:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-}
-
-.modal-content textarea {
-  min-height: 140px;
-  resize: vertical;
-}
-
-/* ================= SUBMIT BUTTON ================= */
-.modal-content form button {
-  width: 100%;
+.ntfCreateBtn {
   background: #2563eb;
   color: white;
-  padding: 14px;
   border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-.modal-content form button:hover {
-  background: #1d4ed8;
+/* LIST */
+.ntfList {
+  display: grid;
+  gap: 16px;
 }
 
-/* ================= TOAST ================= */
-.success-toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #16a34a;
-  color: #fff;
-  padding: 14px 20px;
+.ntfCard {
+  background: white;
   border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  cursor: pointer;
+}
+
+.ntfCardHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ntfType {
+  font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  color: #2563eb;
+}
+
+.ntfDelete {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ntfCard h3 {
+  margin: 6px 0;
+}
+
+.ntfCard p {
+  color: #374151;
+  font-size: 14px;
+}
+
+/* PAGINATION */
+.ntfPagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 24px;
+}
+
+.ntfPagination button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+}
+
+.ntfPageActive {
+  background: #2563eb !important;
+  color: white;
+}
+
+/* MODAL */
+.ntfModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.ntfModal {
+  width: 420px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+
+.ntfModal h2 {
+  margin-bottom: 16px;
+}
+
+.ntfForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ntfField label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ntfField input,
+.ntfField textarea,
+.ntfField select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+.ntfModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.ntfModalActions button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.ntfModalActions button:first-child {
+  background: #2563eb;
+  color: white;
+}
+
+.ntfModalActions button:last-child {
+  background: #e5e7eb;
+}
+
+/* TOAST */
+.ntfToast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #16a34a;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
 }

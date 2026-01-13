@@ -1,36 +1,28 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import Logo from "../../assets/img/logo.png";
-import "./header.css";
-import { Tabs } from 'antd';
-import type { TabsProps } from 'antd';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { UserCog, ShoppingCart, History, LogOut, Bell, Search, Filter, Menu, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { UserCog, ShoppingCart, History, LogOut, BadgePercent } from 'lucide-react';
 import CategoryService from "../../services/CategoryService";
-import NotificationBell from '../Badge/NotificationBell';
+import productService from "../../services/ProductService";
+import type { ICategory, IProduct } from "../../services/Interface";
 import { notificationService } from "../../services/NotificationService";
-import type { ICategory } from "../../services/Interface";
-
-const getReadStorageKey = (userId: number) =>
-  `read_notification_keys_user_${userId}`;
-
-const buildBaseKey = (n: any) =>
-  `${n.notificationType}|${n.title}|${n.content}`;
-
-interface TabItem {
-  key: string;
-  label: string;
-  route: string;
-}
+import './header.css'
+import Logo from "../../assets/img/logo.png"
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [categories, setCategories] = useState<ICategory[]>([]);
   const [keyword, setKeyword] = useState("");
+  const [categories, setCategories] = useState<ICategory[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<IProduct[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
+  const [cartCount, setCartCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadUnreadCount = async () => {
@@ -57,7 +49,7 @@ const Header = () => {
 
       setUnreadCount(unread);
     } catch (err) {
-      console.error("Load unread count failed", err);
+      console.error("Load unread notification count failed", err);
     }
   };
 
@@ -65,7 +57,7 @@ const Header = () => {
     loadUnreadCount();
   }, [location.pathname, user]);
 
-  useEffect(() => {
+    useEffect(() => {
     const syncUnread = () => loadUnreadCount();
 
     window.addEventListener("focus", syncUnread);
@@ -82,148 +74,114 @@ const Header = () => {
     [user]
   );
 
-  const avatarText = useMemo(
-    () => displayName.slice(-3).toUpperCase(),
-    [displayName]
+  const avatarUrl = useMemo(
+    () => user?.avatar || "src/assets/img/default-avatar.png",
+    [user]
   );
 
-  // useEffect(() => {
-  // if (!user?.userId) {
-  //   setUnreadCount(0);
-  //   return;
-  // }
+  const loadCartCount = () => {
+    try {
+      const raw = localStorage.getItem("cart_items");
+      const cart = raw ? JSON.parse(raw) : [];
 
-  // const fetchUnreadCount = async () => {
-  //     try {
-  //       const data = await notificationService.getUserNotifications(user.userId);
+      const total = cart.reduce(
+        (sum: number, item: { quantity: number }) =>
+          sum + (item.quantity || 0),
+        0
+      );
 
-  //       const readKeys: string[] = JSON.parse(
-  //         localStorage.getItem(getReadStorageKey(user.userId)) || "[]"
-  //       );
+      setCartCount(total);
+    } catch (e) {
+      console.error("Load cart failed", e);
+      setCartCount(0);
+    }
+  };
+  
+  useEffect(() => {
+    const loadCartCount = () => {
+      const count = Number(localStorage.getItem("cart_count") || 0);
+      setCartCount(count);
+    };
 
-  //       const buildBaseKey = (n: any) =>
-  //         `${n.notificationType}|${n.title}|${n.content}`;
+    // load lần đầu
+    loadCartCount();
 
-  //       const unread = data.filter(
-  //         n => !readKeys.includes(buildBaseKey(n))
-  //       ).length;
+    // sync khi add/remove/update cart
+    window.addEventListener("cart-updated", loadCartCount);
 
-  //       setUnreadCount(unread);
-  //     } catch (err) {
-  //       console.error("Load unread notification count failed", err);
-  //     }
-  //   };
+    // sync khi quay lại tab / đổi route
+    window.addEventListener("focus", loadCartCount);
 
-  //   fetchUnreadCount();
-  // }, [user]);
-
+    return () => {
+      window.removeEventListener("cart-updated", loadCartCount);
+      window.removeEventListener("focus", loadCartCount);
+    };
+  }, []);
+  
   useEffect(() => {
     CategoryService.getCategories()
       .then(setCategories)
       .catch(err => console.error("GetCategory error:", err.message));
   }, []);
 
+  // Search suggestions with debounce
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const params = new URLSearchParams(location.search);
+    if (!keyword.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
 
-      if (keyword.trim()) {
-        params.set("keyword", keyword.trim());
-      } else {
-        params.delete("keyword");
+    setIsSearching(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const results = await productService.getAllProducts(keyword.trim());
+        setSearchSuggestions(results.slice(0, 4)); // Lấy 4 sản phẩm đầu
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error("Search error:", error);
+        setSearchSuggestions([]);
+      } finally {
+        setIsSearching(false);
       }
-
-      navigate(`/products?${params.toString()}`, { replace: true });
-    }, 400);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, [keyword]);
 
-
-  const categoryTabs: TabItem[] = useMemo(
-    () =>
-      categories.map(c => ({
-        key: `cat-${c.categoryId}`,
-        label: c.description ?? c.categoryName,
-        route: `/products`,
-      })),
-    [categories]
-  );
-
-  const allProductsTab: TabItem = {
-    key: "all",
-    label: "Tất cả",
-    route: "/products",
-  };
-
-  const staticTabs: TabItem[] = [
-    { key: "blog", label: "Blog về chúng tôi", route: "/about" },
-    { key: "history", label: "Lịch sử mua hàng", route: "/historyOrder" },
-  ];
-
-  const allTabs: TabItem[] = [
-    allProductsTab,
-    ...categoryTabs,
-    ...staticTabs,
-  ];
-
-
-  const activeKey = useMemo(() => {
-    if (categories.length === 0) return undefined;
-
-    const params = new URLSearchParams(location.search);
-    const categoryId =
-      params.get("categoryId") || params.get("category_id");
-
-    if (location.pathname === "/products" && !categoryId) {
-      return "all";
-    }
-
-    if (categoryId) return `cat-${categoryId}`;
-
-    const staticTab = staticTabs.find(t =>
-      location.pathname.startsWith(t.route)
-    );
-
-    return staticTab?.key;
-  }, [categories.length, location.pathname, location.search]);
-
-
-
-  const handleTabChange = (key: string) => {
-    const tab = allTabs.find(t => t.key === key);
-    if (!tab) return;
-
-    if (key === "all") {
-      navigate("/products");
-    }
-
-    else if (key.startsWith("cat-")) {
-      const categoryId = key.replace("cat-", "");
-      const params = new URLSearchParams();
-
-      params.set("categoryId", categoryId);
-
-      if (keyword.trim()) {
-        params.set("keyword", keyword.trim());
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
       }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const params = new URLSearchParams();
+      if (keyword.trim()) params.set("keyword", keyword.trim());
       navigate(`/products?${params.toString()}`);
+      setShowSuggestions(false);
     }
-    else {
-      navigate(tab.route);
-    }
-
-    setDropdownOpen(false);
   };
 
+  const handleSearchClick = () => {
+    const params = new URLSearchParams();
+    if (keyword.trim()) params.set("keyword", keyword.trim());
+    navigate(`/products?${params.toString()}`);
+    setShowSuggestions(false);
+  };
 
-
-  const items: TabsProps["items"] = allTabs.map(tab => ({
-    key: tab.key,
-    label: tab.label,
-  }));
-
+  const handleSuggestionClick = (productId: number) => {
+    navigate(`/product-detail/${productId}`);
+    setShowSuggestions(false);
+    setKeyword("");
+  };
 
   const handleLogout = () => {
     logout();
@@ -232,173 +190,280 @@ const Header = () => {
   };
 
   return (
-    <div className="header">
-      <div className="navbar-top">
-        <div className="top-left">
-          <div className="logo" onClick={() => navigate('/')}>
-            <img className="logo-link-img" src={Logo} alt="Logo" />
-          </div>
-
-          <div className="navbar-filter">
-            <div className="search-wrapper">
-              <i className="fa-solid fa-location-dot search-icon"></i>
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Tìm kiếm sản phẩm"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const params = new URLSearchParams();
-
-                    if (keyword.trim()) params.set("keyword", keyword.trim());
-
-                    navigate(`/products?${params.toString()}`);
-                  }
-                }}
-              />
+    <header className="modern-header">
+      {/* Top Bar */}
+      <div className="header-top-bar">
+        <div className="header-container">
+          <div className="top-bar-content">
+            <div className="top-bar-left">
+              <span className="top-bar-item">
+                <i className="fas fa-phone"></i> +0702-500-230
+              </span>
+              <span className="top-bar-item">
+                <i className="fas fa-envelope"></i> thanh261220@gmail.com
+              </span>
+              <span className="top-bar-item">
+                <i className="fas fa-map-marker-alt"></i> 48 Cao Thắng, TP. Đà Nẵng
+              </span>
             </div>
-            <div className="filter-wrapper">
-              <i className="fa-solid fa-filter"></i>
-              <span className="filter-text">Bộ lọc</span>
-            </div>
+
           </div>
         </div>
+      </div>
 
-        <div className="top-right-wrapper">
-          <ul className="list-user-actions">
-            <li
-              className="list-user-item notification-item"
-              onClick={() => navigate('/notification')}
-            >
-              <div className="bell-wrapper">
-                <i className="fa-solid fa-bell"></i>
+      {/* Main Header */}
+      <div className="header-main">
+        <div className="header-container">
+          <div className="header-content">
+            {/* Logo */}
+            <div className="header-logo" onClick={() => navigate('/')}>
+              <img src={Logo} alt="CellphoneS" className="logo-img" />
+            </div>
+
+            {/* Search Bar */}
+            <div className="header-search" ref={searchRef}>
+              <div className="search-wrapper">
+                  <input
+                    type="text"
+                    name="email"
+                    autoComplete="username"
+                    style={{
+                      position: "absolute",
+                      opacity: 0,
+                      pointerEvents: "none",
+                      height: 0,
+                    }}
+                  />
+                <Search className="search-icon" size={20} />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Bạn cần tìm gì?"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={handleSearch}
+                  onFocus={() => {
+                    if (searchSuggestions.length > 0) {
+                      setShowSuggestions(true);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="search-btn"
+                  onClick={handleSearchClick}
+                >
+                  <Search size={18} />
+                </button>
+              </div>
+
+              {/* Search Suggestions Dropdown */}
+              {keyword.trim() && (
+                <div className="search-dropdown">
+                  {isSearching ? (
+                    <div className="search-loading">
+                      Đang tìm kiếm...
+                    </div>
+                  ) : showSuggestions && searchSuggestions.length > 0 ? (
+                    <>
+                      <div className="search-dropdown-header">
+                        <span>Gợi ý sản phẩm</span>
+                      </div>
+                      <div className="search-dropdown-list">
+                        {searchSuggestions.map((product) => (
+                          <div
+                            key={product.productId}
+                            className="search-dropdown-item"
+                            onClick={() => handleSuggestionClick(product.productId!)}
+                          >
+                            <img
+                              src={product.productImages?.[0]?.url || Logo}
+                              alt={product.name}
+                              className="search-item-img"
+                            />
+                            <div className="search-item-info">
+                              <p className="search-item-name">{product.name}</p>
+                              <p className="search-item-price">
+                                {product.price?.toLocaleString('vi-VN')}đ
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="search-dropdown-footer">
+                        <button
+                          className="search-view-all"
+                          onClick={handleSearchClick}
+                        >
+                          Xem tất cả kết quả cho "{keyword}"
+                        </button>
+                      </div>
+                    </>
+                  ) : showSuggestions && searchSuggestions.length === 0 ? (
+                    <div className="search-loading">
+                      Không tìm thấy sản phẩm
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Hotline */}
+            <div className="hotline">
+              <i className="fas fa-headset"></i> Hotline: 19001599
+            </div>
+
+            {/* Actions */}
+            <div className="header-actions">
+              <button
+                className="action-btn"
+                title="Thông báo"
+                onClick={() => navigate('/notification')}
+              >
+                <Bell size={20} />
 
                 {unreadCount > 0 && (
-                  <span className="notification-badge">
+                  <span className="action-badge">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
-              </div>
-              <p className="list-user-item-text">Thông báo</p>
-            </li>
+              </button>
 
-
-            <li className="list-user-item" onClick={() => navigate('/cartShop')}>
-              <i className="fa-solid fa-cart-shopping"></i>
-              <p className="list-user-item-text">Giỏ hàng</p>
-            </li>
-
-            {user ? (
-              <li className="list-user-item user-avatar-item">
-                <div
-                  className="user-avatar-trigger"
-                  onClick={() => setDropdownOpen(v => !v)}
-                >
-                  <div className="avatar-circle">{avatarText}</div>
-                  <div className="user-info">
-                    <p className="greeting">Xin chào</p>
-                    <p className="phone">{displayName}</p>
-                  </div>
-                  <svg
-                    className={`arrow ${dropdownOpen ? 'rotated' : ''}`}
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M7 10l5 5 5-5z" />
-                  </svg>
-                </div>
-              </li>
-            ) : (
-              <li
-                className="list-user-item login-btn"
-                onClick={() => navigate('/login')}
+              <button
+                className="action-btn"
+                title="Giỏ hàng"
+                onClick={() => navigate('/cartShop')}
               >
-                <i className="fa-solid fa-right-to-bracket"></i>
-                <p className="list-user-item-text">Đăng nhập</p>
-              </li>
-            )}
-          </ul>
+                <ShoppingCart size={20} />
 
-          {user && dropdownOpen && (
-            <>
-              <div
-                className="dropdown-overlay"
-                onClick={() => setDropdownOpen(false)}
-              />
-              <div className="user-dropdown">
-                <div className="dropdown-header">
-                  <p>Tài khoản của tôi</p>
-                  <p className="phone-big">{displayName}</p>
+                {cartCount > 0 && (
+                  <span className="action-badge">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
+              </button>
+
+
+              {user ? (
+                <div className="user-menu">
+                  <button
+                    className="user-trigger"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    <div className="user-avatar">
+                      <img src={avatarUrl} alt={displayName} />
+                    </div>
+                  </button>
+
+                  {dropdownOpen && (
+                    <>
+                      <div
+                        className="dropdown-overlay"
+                        onClick={() => setDropdownOpen(false)}
+                      />
+                      <div className="user-dropdown">
+                        <div className="dropdown-header">
+                          <p className="dropdown-greeting">Tài khoản của tôi</p>
+                          <p className="dropdown-name">{displayName}</p>
+                        </div>
+
+                        <div className="dropdown-menu">
+                          <button className="dropdown-item" onClick={() => { navigate('/account'); setDropdownOpen(false); }}>
+                            <UserCog size={20} />
+                            <div>
+                              <p className="item-title">Quản lý hồ sơ</p>
+                              <p className="item-desc">Thông tin cá nhân, đổi mật khẩu</p>
+                            </div>
+                          </button>
+
+                          <button className="dropdown-item" onClick={() => { navigate('/cartShop'); setDropdownOpen(false); }}>
+                            <ShoppingCart size={20} />
+                            <div>
+                              <p className="item-title">Giỏ hàng & Thanh toán</p>
+                            </div>
+                          </button>
+
+                          <button className="dropdown-item" onClick={() => { navigate('/historyOrder'); setDropdownOpen(false); }}>
+                            <History size={20} />
+                            <div>
+                              <p className="item-title">Lịch sử mua hàng</p>
+                            </div>
+                          </button>
+
+                          <hr className="dropdown-divider" />
+
+                          <button
+                            className="dropdown-item logout"
+                            onClick={handleLogout}
+                          >
+                            <LogOut size={20} />
+                            <span>Đăng xuất</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-
-                <div className="dropdown-body">
-                  <div
-                    className="dropdown-item"
-                    onClick={() => { navigate('/account'); setDropdownOpen(false); }}
-                  >
-                    <UserCog size={20} />
-                    <div>
-                      <p className="title">Quản lý hồ sơ</p>
-                      <p className="desc">Thông tin cá nhân, đổi mật khẩu</p>
-                    </div>
-                  </div>
-
-                  <div
-                    className="dropdown-item"
-                    onClick={() => { navigate('/cartShop'); setDropdownOpen(false); }}
-                  >
-                    <ShoppingCart size={20} />
-                    <div>
-                      <p className="title">Giỏ hàng & Thanh toán</p>
-                    </div>
-                  </div>
-
-                  <div
-                    className="dropdown-item"
-                    onClick={() => { navigate('/discount'); setDropdownOpen(false); }}
-                  >
-                    <BadgePercent size={20} />
-                    <div>
-                      <p className="title">Mã giảm giá</p>
-                    </div>
-                  </div>
-
-                  <div
-                    className="dropdown-item"
-                    onClick={() => { navigate('/historyOrder'); setDropdownOpen(false); }}
-                  >
-                    <History size={20} />
-                    <div>
-                      <p className="title">Lịch sử mua hàng</p>
-                    </div>
-                  </div>
-
-                  <hr />
-
-                  <div className="dropdown-item logout" onClick={handleLogout}>
-                    <LogOut size={20} />
-                    <span>Đăng xuất</span>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
+              ) : (
+                <button className="action-btn" title="Tài khoản" onClick={() => navigate('/login')}>
+                  <i className="fas fa-user"></i>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="navbar-bot">
-        {categories.length > 0 && (
-          <Tabs
-            className="list-category"
-            activeKey={activeKey}
-            items={items}
-            onChange={handleTabChange}
-          />
-        )}
-      </div>
+      {/* Navigation Tabs */}
+      <div className="header-nav">
+        <div className="header-container">
+          <div className="nav-content">
+            <div
+              className="nav-menu-left"
+              onClick={() => setShowCategoryMenu(v => !v)}
+            >
+              <i className="fa fa-bars"></i>
+              <span>Tất cả danh mục</span>
+            </div>
+            {showCategoryMenu && (
+              <div className="category-dropdown">
+                {categories.map(cat => (
+                  <div
+                    key={cat.categoryId}
+                    className="category-item"
+                    onClick={() => {
+                      navigate(`/products?categoryId=${cat.categoryId}`);
+                      setShowCategoryMenu(false);
+                    }}
+                  >
+                    {cat.description}
+                  </div>
+                ))}
+              </div>
+            )}
 
-    </div>
+
+            <div className="nav-tabs">
+              <button className="nav-tab" onClick={() => navigate('/')}>
+                Trang chủ
+              </button>
+
+              <button className="nav-tab" onClick={() => navigate('/about')}>
+                Giới thiệu
+              </button>
+
+              <button className="nav-tab" onClick={() => navigate('/products')}>
+                Sản phẩm
+              </button>
+
+              <button className="nav-tab" onClick={() => navigate('/historyOrder')}>
+                Lịch sử
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 };
 

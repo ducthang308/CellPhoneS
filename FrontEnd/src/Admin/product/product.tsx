@@ -118,7 +118,7 @@ const SanPhamPage: React.FC = () => {
         <table className={styles["productPage-table"]}>
           <thead>
             <tr>
-              <th>ID</th>
+              {/* <th>ID</th> */}
               <th>Ảnh</th>
               <th>Tên sản phẩm</th>
               <th>Số lượng</th>
@@ -134,7 +134,7 @@ const SanPhamPage: React.FC = () => {
                   key={item.productId}
                   onClick={() => handleEdit(item.productId!)}
                 >
-                  <td>{item.productId}</td>
+                  {/* <td>{item.productId}</td> */}
                   <td>
                     <img
                       src={getProductImage(item.productImages)}

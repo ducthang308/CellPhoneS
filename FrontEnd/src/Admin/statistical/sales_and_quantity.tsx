@@ -9,12 +9,13 @@ import type {
   SalesAndQuantityResponse
 } from "../../services/Interface";
 
+
 const Sales_And_Quantity = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
-
+  
   /* ===== SEO ===== */
   useEffect(() => {
     document.title = "Thống kê doanh thu & đơn hàng | Admin";
@@ -97,19 +98,37 @@ const Sales_And_Quantity = () => {
   const chartData = useMemo(() => {
     if (mode === "month") {
       return Array.from({ length: 12 }, (_, i) => {
-        const found = data.find(d => d.month === i + 1);
+        const month = i + 1;
+
+        const itemsInMonth = data.filter(
+          d => d.month === month
+        );
+
+        const totalOrders = itemsInMonth.reduce(
+          (sum, d) => sum + (d.totalOrders ?? 0),
+          0
+        );
+
+        const totalRevenue = itemsInMonth.reduce(
+          (sum, d) => sum + (d.revenue ?? 0),
+          0
+        );
+
         return {
-          label: `Tháng ${i + 1}`,
-          orders: found?.totalOrders ?? 0,
-          revenue: found?.revenue ?? 0
+          label: `Tháng ${month}`,
+          orders: totalOrders,     // ✅ 8 đơn đúng
+          revenue: totalRevenue
         };
       });
     }
 
+    // ===== MODE DAY (GIỮ NGUYÊN) =====
     return Array.from({ length: 31 }, (_, i) => {
-      const found = data.find(d => d.day === i + 1);
+      const day = i + 1;
+      const found = data.find(d => d.day === day);
+
       return {
-        label: `Ngày ${i + 1}`,
+        label: `Ngày ${day}`,
         orders: found?.totalOrders ?? 0,
         revenue: found?.revenue ?? 0
       };
@@ -165,6 +184,7 @@ const Sales_And_Quantity = () => {
           y: {
             beginAtZero: true,
             ticks: {
+              stepSize: 1,
               callback: v =>
                 `${Number(v).toLocaleString("vi-VN")} đơn`
             }
@@ -190,11 +210,17 @@ const Sales_And_Quantity = () => {
 
       <section className={styles.grid}>
         <aside className={styles.filtersCard}>
-          <label>
+         <label>
             Năm
             <select
               value={year}
-              onChange={e => setYear(+e.target.value)}
+              onChange={e => {
+                const y = +e.target.value;
+                setYear(y);
+
+                setMonth(""); // ✅ reset tháng
+                setDay("");   // ✅ reset ngày
+              }}
             >
               {(years.length
                 ? years
@@ -206,6 +232,7 @@ const Sales_And_Quantity = () => {
               ))}
             </select>
           </label>
+
 
           <label>
             Tháng

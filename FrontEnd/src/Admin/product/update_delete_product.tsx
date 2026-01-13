@@ -69,7 +69,19 @@ const UpdateDeleteProduct: React.FC = () => {
           : value
     });
   };
-
+  /* PRICE INPUT - chỉ cho phép nhập số */
+  const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Chỉ cho phép số, loại bỏ ký tự không phải số
+    const numericValue = value.replace(/[^0-9]/g, "");
+    setProduct(p => 
+      p ? {
+        ...p,
+        price: numericValue === "" ? 0 : Number(numericValue)
+      } : p
+    );
+  };
+  
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!product) return;
     setProduct({ ...product, [e.target.name]: Number(e.target.value) });
@@ -133,7 +145,14 @@ const UpdateDeleteProduct: React.FC = () => {
           <div className={styles.pdEdit__row}>
             <div className={styles.pdEdit__field}>
               <label>Giá</label>
-              <input type="number" name="price" value={product.price} onChange={handleChange} />
+              <input
+                type="text"
+                name="price"
+                value={product.price === 0 ? "" : product.price}
+                onChange={handlePriceInput}
+                placeholder="Nhập giá sản phẩm"
+                inputMode="numeric"
+              />
             </div>
             <div className={styles.pdEdit__field}>
               <label>Số lượng</label>
