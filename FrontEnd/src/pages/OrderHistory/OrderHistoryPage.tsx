@@ -7,6 +7,18 @@ import "./OrderHistoryPage.css";
 const PLACEHOLDER_IMG =
   "https://via.placeholder.com/100x100?text=No+Image";
 
+const ORDER_STATUS_LABEL: Record<string, string> = {
+  PENDING: "Chờ xử lý",
+  APPROVED: "Hoàn thành",
+  CANCELLED: "Đã huỷ",
+};
+
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  UNPAID: "Chưa thanh toán",
+  PAID: "Đã thanh toán",
+  REFUNDED: "Hoàn tiền",
+};
+
 /* ================= STATUS TABS ================= */
 const STATUS_TABS = [
   { key: "ALL", label: "Tất cả" },
@@ -153,11 +165,10 @@ const OrderHistoryPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <span
-                      className={`badge ${getStatusClass(order.status)}`}
-                    >
-                      {order.status}
+                    <span className={`badge ${getStatusClass(order.status)}`}>
+                      {ORDER_STATUS_LABEL[order.status] || order.status}
                     </span>
+
                   </div>
 
                   <div className="ohp-preview">
@@ -192,16 +203,15 @@ const OrderHistoryPage: React.FC = () => {
 
                   <div className="ohp-meta">
                     <span>{formatDate(selectedOrder.orderDate)}</span>
-                    <span
-                      className={`badge ${getStatusClass(
-                        selectedOrder.status
-                      )}`}
-                    >
-                      {selectedOrder.status}
+                    <span className={`badge ${getStatusClass(selectedOrder.status)}`}>
+                      {ORDER_STATUS_LABEL[selectedOrder.status] || selectedOrder.status}
                     </span>
+
                     <span className="badge gray">
-                      {selectedOrder.paymentStatus}
+                      {PAYMENT_STATUS_LABEL[selectedOrder.paymentStatus] ||
+                        selectedOrder.paymentStatus}
                     </span>
+
                   </div>
 
                   <div className="ohp-products">
@@ -233,16 +243,33 @@ const OrderHistoryPage: React.FC = () => {
                   </div>
 
                   <div className="ohp-summary">
-                    <div>
-                      <span>Tổng thanh toán</span>
-                      <strong>
-                        {selectedOrder.totalAmount.toLocaleString(
-                          "vi-VN"
-                        )}{" "}
-                        ₫
-                      </strong>
-                    </div>
-                  </div>
+  {selectedOrder.subTotal != null && (
+    <div className="summary-row">
+      <span>Tạm tính</span>
+      <span>
+        {selectedOrder.subTotal.toLocaleString("vi-VN")} ₫
+      </span>
+    </div>
+  )}
+
+  {selectedOrder.discountAmount != null &&
+    selectedOrder.discountAmount > 0 && (
+      <div className="summary-row discount">
+        <span>Giảm giá</span>
+        <span>
+          -{selectedOrder.discountAmount.toLocaleString("vi-VN")} ₫
+        </span>
+      </div>
+    )}
+
+  <div className="summary-row total">
+    <span>Tổng thanh toán</span>
+    <strong>
+      {selectedOrder.totalAmount.toLocaleString("vi-VN")} ₫
+    </strong>
+  </div>
+</div>
+
                 </>
               ) : (
                 <div className="ohp-empty">
