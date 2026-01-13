@@ -138,13 +138,13 @@
 
 .product-stock span { color: #00a650; font-weight: 600; }
 
-.product-info::after {
+/* .product-info::after {
   content: "4.9 ★★★★★";
   display: block;
   margin-top: 8px;
   color: #ffa800;
   font-weight: 500;
-}
+} */
 
 .product-actions {
   display: flex;

@@ -230,10 +230,10 @@ export default function ProductDetail() {
           {product.name} | Chính hãng VN/A
         </h1>
 
-        <div className="rating-row">
+        {/* <div className="rating-row">
           {"★".repeat(5)}
           <span>4.9 (15 đánh giá)</span>
-        </div>
+        </div> */}
 
         <div className="product-grid">
           <div className="image-box">
