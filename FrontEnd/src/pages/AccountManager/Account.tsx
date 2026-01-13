@@ -250,7 +250,7 @@ const AccountPage: React.FC = () => {
           </div>
 
           {/* Thông tin đăng nhập giữ nguyên */}
-          <div className="info-card">
+          {/* <div className="info-card">
             <div className="card-header">
               <h3>Thông tin đăng nhập</h3>
             </div>
@@ -264,7 +264,7 @@ const AccountPage: React.FC = () => {
                 <p>{user.role === 1 ? 'Quản trị viên' : 'Khách hàng'}</p>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {!user.googleId && (
             <div className="info-card change-password">
