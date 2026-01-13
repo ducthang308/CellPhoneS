@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import type { OrderFullResponse } from "../../services/Interface";
 import orderService from "../../services/OrderService";
 import "./OrderHistoryPage.css";
+import OrderService from "../../services/StatusService";
+
 
 const PLACEHOLDER_IMG =
   "https://via.placeholder.com/100x100?text=No+Image";
@@ -243,32 +245,86 @@ const OrderHistoryPage: React.FC = () => {
                   </div>
 
                   <div className="ohp-summary">
-  {selectedOrder.subTotal != null && (
-    <div className="summary-row">
-      <span>Tạm tính</span>
-      <span>
-        {selectedOrder.subTotal.toLocaleString("vi-VN")} ₫
-      </span>
-    </div>
-  )}
+                    {selectedOrder.subTotal != null && (
+                      <div className="summary-row">
+                        <span>Tạm tính</span>
+                        <span>
+                          {selectedOrder.subTotal.toLocaleString("vi-VN")} ₫
+                        </span>
+                      </div>
+                    )}
 
-  {selectedOrder.discountAmount != null &&
-    selectedOrder.discountAmount > 0 && (
-      <div className="summary-row discount">
-        <span>Giảm giá</span>
-        <span>
-          -{selectedOrder.discountAmount.toLocaleString("vi-VN")} ₫
-        </span>
-      </div>
-    )}
+                    {selectedOrder.discountAmount != null &&
+                      selectedOrder.discountAmount > 0 && (
+                        <div className="summary-row discount">
+                          <span>Giảm giá</span>
+                          <span>
+                            -{selectedOrder.discountAmount.toLocaleString("vi-VN")} ₫
+                          </span>
+                        </div>
+                      )}
 
-  <div className="summary-row total">
-    <span>Tổng thanh toán</span>
-    <strong>
-      {selectedOrder.totalAmount.toLocaleString("vi-VN")} ₫
-    </strong>
-  </div>
-</div>
+                    <div className="summary-row total">
+                      <span>Tổng thanh toán</span>
+                      <strong>
+                        {selectedOrder.totalAmount.toLocaleString("vi-VN")} ₫
+                      </strong>
+                    </div>
+                  </div>
+
+                  {selectedOrder.status === "PENDING" &&
+                    selectedOrder.paymentStatus === "UNPAID" && (
+                      <div className="ohp-actions">
+                        {/* ===== THANH TOÁN ===== */}
+                        <button
+                          className="ohp-btn pay"
+                          onClick={() =>
+                            navigate(`/order/${selectedOrder.orderID}`)
+                          }
+                        >
+                          💳 Thanh toán
+                        </button>
+
+                        {/* ===== HỦY ĐƠN ===== */}
+                        <button
+                          className="ohp-btn cancel"
+                          onClick={async () => {
+                            const ok = window.confirm(
+                              "Bạn có chắc muốn hủy đơn hàng này?"
+                            );
+                            if (!ok) return;
+
+                            try {
+                              await OrderService.updateStatus(
+                                selectedOrder.orderID,
+                                "CANCELLED"
+                              );
+
+                              // cập nhật UI ngay
+                              setOrders(prev =>
+                                prev.map(o =>
+                                  o.orderID === selectedOrder.orderID
+                                    ? { ...o, status: "CANCELLED" }
+                                    : o
+                                )
+                              );
+
+                              setSelectedOrder(prev =>
+                                prev ? { ...prev, status: "CANCELLED" } : prev
+                              );
+
+                              alert("Đã hủy đơn hàng");
+                            } catch (e) {
+                              console.error(e);
+                              alert("Hủy đơn thất bại");
+                            }
+                          }}
+                        >
+                          ❌ Hủy đơn
+                        </button>
+                      </div>
+                    )}
+
 
                 </>
               ) : (
