@@ -73,15 +73,15 @@ const CartPage: React.FC = () => {
   }, [user?.cartId]);
 
   const syncCartBadge = (items: CartItem[]) => {
-  const payload = items.map(item => ({
-    productId: item.productId,
-    quantity: item.quantity,
-  }));
+    const payload = items.map(item => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
 
-  localStorage.setItem("cart_items", JSON.stringify(payload));
+    localStorage.setItem("cart_items", JSON.stringify(payload));
 
-  window.dispatchEvent(new Event("cart-updated"));
-};
+    window.dispatchEvent(new Event("cart-updated"));
+  };
 
 
   // /* ================= UPDATE QTY ================= */
@@ -138,26 +138,26 @@ const CartPage: React.FC = () => {
 
   /* ================= REMOVE ITEM ================= */
   const removeItem = async (item: CartItem) => {
-  try {
-    await Promise.all(
-      item.cartDetailsIds.map(id =>
-        cartDetailService.delete(id)
-      )
-    );
-
-    setCartItems(prev => {
-      const updated = prev.filter(
-        p => p.productId !== item.productId
+    try {
+      await Promise.all(
+        item.cartDetailsIds.map(id =>
+          cartDetailService.delete(id)
+        )
       );
 
-      syncCartBadge(updated); 
-      return updated;
-    });
-  } catch (err) {
-    console.error(err);
-    alert("Không thể xoá sản phẩm");
-  }
-};
+      setCartItems(prev => {
+        const updated = prev.filter(
+          p => p.productId !== item.productId
+        );
+
+        syncCartBadge(updated);
+        return updated;
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Không thể xoá sản phẩm");
+    }
+  };
 
   /* ================= CONFIRM ORDER ================= */
   const handleConfirmOrder = async () => {
@@ -179,7 +179,7 @@ const CartPage: React.FC = () => {
 
       const orderPayload = {
         userID: user.userId,
-        items: cartItems.map((item) => ({
+        items: cartItems.map(item => ({
           productId: item.productId!,
           quantity: item.quantity,
         })),
@@ -191,8 +191,13 @@ const CartPage: React.FC = () => {
         await cartDetailService.deleteByCartId(user.cartId);
       }
 
+      localStorage.removeItem("cart_items");
+      localStorage.removeItem("cart_count"); 
+
       window.dispatchEvent(new Event("cart-updated"));
+
       setCartItems([]);
+
       navigate(`/order/${order.orderID}`);
     } catch (err) {
       console.error(err);
