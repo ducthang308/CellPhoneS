@@ -4,11 +4,18 @@ import { useAuth } from '../../context/AuthContext';
 import type { IUser } from '../../services/Interface';
 import { userService } from '../../services/UserService';
 
+
 const AccountPage: React.FC = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<IUser | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [sdt, setSdt] = useState('');
+
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -31,6 +38,7 @@ const AccountPage: React.FC = () => {
     setEmail(authUser.email || '');
     setAddress(authUser.address || '');
     setAvatarPreview(authUser.avatar || null);
+    setSdt(authUser.sdt || '');
   }, [authUser]);
 
   const handleAvatarClick = () => {
@@ -60,26 +68,48 @@ const AccountPage: React.FC = () => {
         fullName?: string;
         email?: string;
         address?: string;
+        sdt?: string;
       } = {};
 
-      // Chỉ thêm field nếu người dùng thay đổi so với giá trị gốc
       if (fullName.trim() !== (user.fullName || '')) {
-        dto.fullName = fullName.trim() || undefined;
+        dto.fullName = fullName.trim();
       }
       if (email.trim() !== (user.email || '')) {
-        dto.email = email.trim() || undefined;
+        dto.email = email.trim();
       }
       if (address.trim() !== (user.address || '')) {
-        dto.address = address.trim() || undefined;
+        dto.address = address.trim();
+      }
+      if (sdt.trim() !== (user.sdt || '')) {
+        dto.sdt = sdt.trim();
       }
 
-      const updatedUser = await userService.updateUser(userId, dto, avatarFile || undefined);
 
+      const updatedUser = await userService.updateUser(
+        userId,
+        dto,
+        avatarFile || undefined
+      );
+
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...parsedUser,
+            ...updatedUser,
+          })
+        );
+      }
       setUser(updatedUser);
+
+      window.dispatchEvent(new Event("auth-changed"));
+
       setAvatarPreview(updatedUser.avatar || null);
       setAvatarFile(null);
 
-      alert('Cập nhật thông tin thành công!');
+      alert("Cập nhật thông tin thành công!");
       setIsEditing(false);
     } catch (err: any) {
       console.error('Lỗi cập nhật:', err);
@@ -88,6 +118,7 @@ const AccountPage: React.FC = () => {
       setSaving(false);
     }
   };
+
 
   if (authLoading || !user) {
     return (
@@ -139,11 +170,12 @@ const AccountPage: React.FC = () => {
           />
 
           {/* Phần form thông tin cá nhân */}
-          <div className="info-card">
+          <div className="info-card change-password">
             <div className="card-header">
               <h3>Thông tin cá nhân</h3>
               {!isEditing ? (
-                <button className="edit-btn" onClick={() => setIsEditing(true)}>
+                <button className="account-btn" onClick={() => setIsEditing(true)}>
+                  <i className="fa-solid fa-pen"></i>
                   Chỉnh sửa
                 </button>
               ) : (
@@ -170,7 +202,26 @@ const AccountPage: React.FC = () => {
 
               <div className="info-item">
                 <label>Số điện thoại</label>
-                <p className="readonly-text">{user.sdt}</p>
+
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      value={sdt}
+                      onChange={(e) => setSdt(e.target.value)}
+                      disabled={!!user.googleId}
+                      placeholder="Nhập số điện thoại"
+                    />
+
+                    {user.googleId && (
+                      <small className="hint">
+                        Tài khoản Google không thể đổi số điện thoại
+                      </small>
+                    )}
+                  </>
+                ) : (
+                  <p>{sdt}</p>
+                )}
               </div>
 
               <div className="info-item">
@@ -210,10 +261,79 @@ const AccountPage: React.FC = () => {
               </div>
               <div className="info-item">
                 <label>Vai trò</label>
-                <p>{user.role === 1 ? 'Khách hàng' : 'Quản trị viên'}</p>
+                <p>{user.role === 1 ? 'Quản trị viên' : 'Khách hàng'}</p>
               </div>
             </div>
           </div>
+
+          {!user.googleId && (
+            <div className="info-card change-password">
+              <div className="card-header">
+                <h3>Đổi mật khẩu</h3>
+              </div>
+
+              <div className="info-grid">
+                <div className="info-item full-width">
+                  <label>Mật khẩu hiện tại</label>
+                  <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="info-item">
+                  <label>Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="info-item">
+                  <label>Xác nhận mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+
+                <div className="info-item full-width">
+                  <button
+                    className="save-btn"
+                    disabled={changingPassword}
+                    onClick={async () => {
+                      if (newPassword !== confirmPassword) {
+                        alert("Mật khẩu xác nhận không khớp");
+                        return;
+                      }
+
+                      try {
+                        setChangingPassword(true);
+                        await userService.changePassword(userId!, {
+                          oldPassword,
+                          newPassword,
+                        });
+                        alert("Đổi mật khẩu thành công");
+                        setOldPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      } catch (e: any) {
+                        alert(e.response?.data || "Đổi mật khẩu thất bại");
+                      } finally {
+                        setChangingPassword(false);
+                      }
+                    }}
+                  >
+                    {changingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
     </div>

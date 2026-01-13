@@ -29,6 +29,8 @@ const OrderPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [discountCode, setDiscountCode] = useState("");
   const [applying, setApplying] = useState(false);
+  const [paying, setPaying] = useState(false);
+
 
   // 🔔 TOAST
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -68,20 +70,26 @@ const OrderPage: React.FC = () => {
   /* ================= PAYPAL ================= */
 
   const handlePayPalPayment = async () => {
-    if (!orderId) return;
+  if (!orderId || paying) return;
 
-    try {
-      const res = await paymentService.createPayPalPayment(Number(orderId));
-      if (res.approvalUrl) {
-        window.location.href = res.approvalUrl;
-      } else {
-        alert("Không lấy được link PayPal");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Thanh toán thất bại");
+  try {
+    setPaying(true);
+
+    const res = await paymentService.createPayPalPayment(Number(orderId));
+
+    if (res.approvalUrl) {
+      window.location.href = res.approvalUrl;
+    } else {
+      alert("Không lấy được link PayPal");
+      setPaying(false);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Thanh toán thất bại");
+    setPaying(false);
+  }
+};
+
 
   /* ================= DISCOUNT ================= */
 
@@ -208,9 +216,14 @@ const OrderPage: React.FC = () => {
 
         {order.paymentStatus === "UNPAID" && (
           <div className="final-action">
-            <button className="continue-button" onClick={handlePayPalPayment}>
-              Thanh toán
-            </button>
+            <button
+  className="continue-button"
+  onClick={handlePayPalPayment}
+  disabled={paying}
+>
+  {paying ? "Đang chuyển đến PayPal..." : "Thanh toán"}
+</button>
+
           </div>
         )}
       </div>
@@ -287,6 +300,15 @@ const OrderPage: React.FC = () => {
       )}
 
       {toastMessage && <div className="toast-success">{toastMessage}</div>}
+      {paying && (
+  <div className="payment-loading-overlay">
+    <div className="payment-loading-box">
+      <div className="spinner"></div>
+      <p>Đang chuyển đến PayPal, vui lòng chờ...</p>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

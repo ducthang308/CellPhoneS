@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./account_create.module.css";
 import { register } from "../../services/UserService";
+import { useNavigate } from "react-router-dom";
 
 type RegisterFormProps = {
   onSuccess?: (sdt: string) => void;
@@ -12,7 +13,8 @@ type RegisterFormData = {
   email: string;
   diaChi: string;
   matKhau: string;
-  role: string; // 👈 STRING
+  reMatKhau: string; // FE only
+  role: string;
 };
 
 const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
@@ -22,36 +24,61 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
     email: "",
     diaChi: "",
     matKhau: "",
-    role: "1", // 👈 mặc định user
+    reMatKhau: "",
+    role: "1",
   });
+
+  const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  /* ===== CHẶN AUTOFILL KHI MOUNT ===== */
+  useEffect(() => {
+    setFormData({
+      sdt: "",
+      hoVaTen: "",
+      email: "",
+      diaChi: "",
+      matKhau: "",
+      reMatKhau: "",
+      role: "1",
+    });
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const isMismatch =
+    formData.reMatKhau.length > 0 &&
+    formData.matKhau !== formData.reMatKhau;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("SUBMIT DATA:", formData);
-    console.log("ROLE TYPE:", typeof formData.role); // string
-    console.log("ROLE VALUE:", formData.role);       // "1" hoặc "2"
+    if (formData.matKhau.length < 6) {
+      alert("Mật khẩu phải tối thiểu 6 ký tự");
+      return;
+    }
+
+    if (isMismatch) {
+      alert("Mật khẩu nhập lại không khớp");
+      return;
+    }
 
     try {
-      // 👇 ÉP KIỂU TẠI VIEW – TS IM LẶNG – PAYLOAD GIỮ STRING
-      await register(formData as any);
+      const { reMatKhau, ...payload } = formData;
+      await register(payload as any);
 
-      alert("Đăng ký thành công! Vui lòng đăng nhập");
+      alert("Tạo tài khoản thành công");
+       navigate(-1);
       onSuccess?.(formData.sdt);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Đăng ký thất bại");
+      alert(err.message || "Tạo tài khoản thất bại");
     }
   };
 
@@ -59,19 +86,101 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
     <div className={styles["account-create-container"]}>
       <h2 className={styles.title}>Tạo tài khoản</h2>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <input name="sdt" placeholder="Số điện thoại" value={formData.sdt} onChange={handleChange} required />
-        <input name="hoVaTen" placeholder="Họ và tên" value={formData.hoVaTen} onChange={handleChange} required />
-        <input name="email" type="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input name="diaChi" placeholder="Địa chỉ" value={formData.diaChi} onChange={handleChange} required />
-        <input name="matKhau" type="password" placeholder="Mật khẩu" value={formData.matKhau} onChange={handleChange} required />
+      <form
+        className={styles.form}
+        onSubmit={handleSubmit}
+        autoComplete="off"
+      >
+        <input
+          name="sdt"
+          placeholder="Số điện thoại"
+          value={formData.sdt}
+          onChange={handleChange}
+          autoComplete="new-password"
+          required
+        />
 
-        <select name="role" value={formData.role} onChange={handleChange}>
-          <option value="1">Người dùng</option>
-          <option value="2">Admin</option>
-        </select>
+        <input
+          name="hoVaTen"
+          placeholder="Họ và tên"
+          value={formData.hoVaTen}
+          onChange={handleChange}
+          autoComplete="off"
+          required
+        />
 
-        <button type="submit" className={styles["submit-btn"]}>
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          autoComplete="off"
+          required
+        />
+
+        <input
+          name="diaChi"
+          placeholder="Địa chỉ"
+          value={formData.diaChi}
+          onChange={handleChange}
+          autoComplete="off"
+          required
+        />
+
+        {/* ===== PASSWORD ===== */}
+        <div className={styles.passwordBlock}>
+          <div className={styles.passwordField}>
+            <input
+              name="matKhau"
+              type={showPassword ? "text" : "password"}
+              placeholder="Mật khẩu"
+              value={formData.matKhau}
+              onChange={handleChange}
+              autoComplete="new-password"
+              required
+            />
+            <button
+              type="button"
+              className={styles.toggleBtn}
+              onClick={() => setShowPassword(v => !v)}
+            >
+              {showPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
+
+          <div className={styles.passwordField}>
+            <input
+              name="reMatKhau"
+              type={showPassword ? "text" : "password"}
+              placeholder="Nhập lại mật khẩu"
+              value={formData.reMatKhau}
+              onChange={handleChange}
+              autoComplete="new-password"
+              className={isMismatch ? styles.inputError : ""}
+              required
+            />
+          </div>
+
+          {isMismatch && (
+            <p className={styles.errorText}>
+              Mật khẩu nhập lại không khớp
+            </p>
+          )}
+        </div>
+
+        <input
+          type="text"
+          value="Người dùng"
+          disabled
+          className="readonly-input"
+        />
+
+        <button
+          type="submit"
+          className={styles["submit-btn"]}
+          disabled={isMismatch}
+        >
           Tạo tài khoản
         </button>
       </form>

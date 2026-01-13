@@ -95,6 +95,15 @@ export default function ProductReviewPage() {
             >
                 {loading ? "Đang gửi..." : "Gửi đánh giá"}
             </button>
+            {loading && (
+                <div className="prd-review-loading-overlay">
+                    <div className="prd-review-loading-box">
+                        <div className="prd-review-spinner"></div>
+                        <p>Đang gửi đánh giá, vui lòng chờ...</p>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

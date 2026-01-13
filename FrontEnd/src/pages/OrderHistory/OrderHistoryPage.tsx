@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import type { OrderFullResponse } from "../../services/Interface";
 import orderService from "../../services/OrderService";
 import "./OrderHistoryPage.css";
@@ -16,16 +16,28 @@ const STATUS_TABS = [
 ];
 
 const OrderHistoryPage: React.FC = () => {
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
+
   const navigate = useNavigate();
+  const location = useLocation();
 
   const rawUser = localStorage.getItem("user");
   const userId = rawUser ? JSON.parse(rawUser).userId : null;
 
   const [orders, setOrders] = useState<OrderFullResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] =
-    useState<OrderFullResponse | null>(null);
-  const [activeStatus, setActiveStatus] = useState<string>("ALL");
+  const [selectedOrder, setSelectedOrder] = useState<OrderFullResponse | null>(null);
+
+  const params = new URLSearchParams(location.search);
+  const defaultTab = params.get("tab") || "ALL";
+
+  const [activeStatus, setActiveStatus] = useState<string>(defaultTab);
+
 
   const safeArray = <T,>(arr?: T[] | null): T[] => arr ?? [];
 
@@ -55,6 +67,14 @@ const OrderHistoryPage: React.FC = () => {
         return "gray";
     }
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab") || "ALL";
+
+    setActiveStatus(tab);
+    setSelectedOrder(null);
+  }, [location.search]);
 
   /* ================= LOAD ORDERS ================= */
   useEffect(() => {
@@ -113,8 +133,8 @@ const OrderHistoryPage: React.FC = () => {
                 <div
                   key={order.orderID}
                   className={`ohp-card ${selectedOrder?.orderID === order.orderID
-                      ? "ohp-active"
-                      : ""
+                    ? "ohp-active"
+                    : ""
                     }`}
                   onClick={() =>
                     setSelectedOrder({

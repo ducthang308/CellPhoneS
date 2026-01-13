@@ -8,6 +8,7 @@ import SupplierService from "../../services/supplierService";
 import type { ISupplier } from "../../services/Interface";
 import styles from "./update_delete_product.module.css";
 
+
 const UpdateDeleteProduct: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const UpdateDeleteProduct: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletedImageIds, setDeletedImageIds] = useState<number[]>([]);
 
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -67,7 +69,19 @@ const UpdateDeleteProduct: React.FC = () => {
           : value
     });
   };
-
+  /* PRICE INPUT - chỉ cho phép nhập số */
+  const handlePriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Chỉ cho phép số, loại bỏ ký tự không phải số
+    const numericValue = value.replace(/[^0-9]/g, "");
+    setProduct(p => 
+      p ? {
+        ...p,
+        price: numericValue === "" ? 0 : Number(numericValue)
+      } : p
+    );
+  };
+  
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!product) return;
     setProduct({ ...product, [e.target.name]: Number(e.target.value) });
@@ -131,7 +145,14 @@ const UpdateDeleteProduct: React.FC = () => {
           <div className={styles.pdEdit__row}>
             <div className={styles.pdEdit__field}>
               <label>Giá</label>
-              <input type="number" name="price" value={product.price} onChange={handleChange} />
+              <input
+                type="text"
+                name="price"
+                value={product.price === 0 ? "" : product.price}
+                onChange={handlePriceInput}
+                placeholder="Nhập giá sản phẩm"
+                inputMode="numeric"
+              />
             </div>
             <div className={styles.pdEdit__field}>
               <label>Số lượng</label>
@@ -160,11 +181,18 @@ const UpdateDeleteProduct: React.FC = () => {
           </div>
           <div className={styles.pdEdit__field}>
             <label>Nhà cung cấp</label>
-            <select name="supplierId" value={product.supplierId} onChange={handleSelect}>
-              {suppliers.map(s => (
-                <option key={s.supplierId} value={s.supplierId}>{s.supplierName}</option>
-              ))}
-            </select>
+              <select
+                name="supplierId"
+                value={product.supplierId ?? ""}
+                onChange={handleSelect}
+              >
+                <option value="">-- Chọn nhà cung cấp --</option>
+                {suppliers.map(s => (
+                  <option key={s.supplierId} value={s.supplierId}>
+                    {s.supplierName}
+                  </option>
+                ))}
+              </select>
           </div>
           <div className={styles.pdEdit__field}>
             <label>Mô tả</label>
@@ -180,10 +208,30 @@ const UpdateDeleteProduct: React.FC = () => {
           </div>
 
           {/* IMAGES */}
-          <label>Ảnh hiện tại</label>
           <div className={styles.pdEdit__imageList}>
             {product.productImages?.map(img => (
-              <img key={img.id} src={img.url} alt="" />
+              <div key={img.id} className={styles.pdEdit__imageWrap}>
+                <img src={img.url} alt="" />
+                <button
+                  type="button"
+                  className={styles.pdEdit__removeImg}
+                  onClick={() => {
+                    setDeletedImageIds(prev => [...prev, img.id]);
+
+                    setProduct(prev =>
+                      prev
+                        ? {
+                            ...prev,
+                            productImages: prev.productImages?.filter(i => i.id !== img.id)
+                          }
+                        : prev
+                    );
+                  }}
+                >
+                  ✕
+                </button>
+
+              </div>
             ))}
           </div>
 
