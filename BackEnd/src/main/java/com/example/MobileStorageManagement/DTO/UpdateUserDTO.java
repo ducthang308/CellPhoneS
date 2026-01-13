@@ -10,6 +10,7 @@ public class UpdateUserDTO {
     private String address;
     private String avatar;
     private String googleId;
+    private String oldPassword;
     private String newPassword;
 }
 

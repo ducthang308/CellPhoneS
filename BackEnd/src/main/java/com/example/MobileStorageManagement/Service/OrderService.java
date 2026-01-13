@@ -54,8 +54,28 @@ public class OrderService {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product không tồn tại"));
 
+        /* ===============================
+           ✅ TRỪ KHO THEO PRODUCT (ĐÚNG LUẬT MỚI)
+           =============================== */
+
+            if (product.getStockQuantity() < item.getQuantity()) {
+                throw new RuntimeException(
+                        "Không đủ hàng cho sản phẩm: " + product.getName()
+                );
+            }
+
+            // ✅ TRỪ TỒN KHO THỰC
+            product.setStockQuantity(
+                    product.getStockQuantity() - item.getQuantity()
+            );
+            productRepository.save(product);
+
+        /* ===============================
+           🔥 LOGIC CŨ – GIỮ NGUYÊN
+           =============================== */
+
             OrderDetail detail = OrderDetail.builder()
-                    .order(order) // chưa cần OrderID
+                    .order(order)
                     .product(product)
                     .quantity(item.getQuantity())
                     .unitPrice(product.getPrice())
@@ -65,7 +85,7 @@ public class OrderService {
             orderDetails.add(detail);
         }
 
-        // 3️⃣ Discount
+        // 3️⃣ Discount (GIỮ NGUYÊN)
         double discountAmount = 0;
 
         if (dto.getDiscountCode() != null && !dto.getDiscountCode().isBlank()) {
@@ -80,15 +100,15 @@ public class OrderService {
             discountService.markUsed(discount);
         }
 
-        // 4️⃣ Set tiền (QUAN TRỌNG)
+        // 4️⃣ Set tiền
         order.setSubTotal(subTotal);
         order.setTotalAmount(subTotal - discountAmount);
         order.setOrderDetails(orderDetails);
 
-        // 5️⃣ LƯU 1 LẦN DUY NHẤT
+        // 5️⃣ Save order
         Order savedOrder = orderRepository.save(order);
 
-        // 6️⃣ Save details (nếu không dùng cascade)
+        // 6️⃣ Save details
         orderDetailRepository.saveAll(orderDetails);
 
         return savedOrder;
