@@ -3,7 +3,7 @@ import "./Register.css";
 import { register } from "../../services/UserService";
 
 type RegisterFormProps = {
-    onSuccess: (sdt: string) => void;
+    onSuccess: (email: string) => void;
 };
 
 
@@ -37,7 +37,7 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             });
 
             alert("Đăng ký thành công! Vui lòng đăng nhập");
-            onSuccess(formData.sdt);
+            onSuccess(formData.email);
         } catch (err: any) {
             alert(err.message || "Đăng ký thất bại");
             console.error(err);
@@ -46,11 +46,12 @@ const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
 
     return (
         <form onSubmit={handleSubmit}>
+            <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
+            <input name="matKhau" type="password" placeholder="Mật khẩu" value={formData.matKhau} onChange={handleChange} required />
             <input name="sdt" placeholder="Số điện thoại" value={formData.sdt} onChange={handleChange} required />
             <input name="hoVaTen" placeholder="Họ và tên" value={formData.hoVaTen} onChange={handleChange} required />
-            <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
             <input name="diaChi" placeholder="Địa chỉ" value={formData.diaChi} onChange={handleChange} required />
-            <input name="matKhau" type="password" placeholder="Mật khẩu" value={formData.matKhau} onChange={handleChange} required />
+
 
             <button type="submit" className="login-btn">Tạo tài khoản</button>
 

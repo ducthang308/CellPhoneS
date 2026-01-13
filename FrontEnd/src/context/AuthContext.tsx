@@ -11,51 +11,53 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const getStoredUser = (): IUser | null => {
-  const raw = localStorage.getItem("user");
-  return raw ? JSON.parse(raw) : null;
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<IUser | null>(getStoredUser);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
-    // 🔥 QUAN TRỌNG: lấy user từ localStorage
+  const syncUserFromStorage = () => {
     const rawUser = localStorage.getItem("user");
-
     if (rawUser) {
       try {
-        const storedUser: IUser = JSON.parse(rawUser);
-        setUser(storedUser); // ✅ có role, userId, cartId
+        setUser(JSON.parse(rawUser));
       } catch {
         setUser(null);
       }
     } else {
-      // có token nhưng không có user → coi như chưa login
       setUser(null);
     }
+  };
+
+  useEffect(() => {
+    syncUserFromStorage();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "user" || e.key === "accessToken") {
+        syncUserFromStorage();
+      }
+    };
+
+    const handleAuthChanged = () => {
+      syncUserFromStorage();
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("auth-changed", handleAuthChanged);
 
     setLoading(false);
-  }, []);
 
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("auth-changed", handleAuthChanged);
+    };
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("role");
-    localStorage.removeItem("cartId");
 
+    // 🔥 báo cho toàn app
+    window.dispatchEvent(new Event("auth-changed"));
     setUser(null);
   };
 

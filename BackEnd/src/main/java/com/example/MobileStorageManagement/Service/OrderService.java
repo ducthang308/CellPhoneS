@@ -54,8 +54,28 @@ public class OrderService {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product không tồn tại"));
 
+        /* ===============================
+           ✅ TRỪ KHO THEO PRODUCT (ĐÚNG LUẬT MỚI)
+           =============================== */
+
+            if (product.getStockQuantity() < item.getQuantity()) {
+                throw new RuntimeException(
+                        "Không đủ hàng cho sản phẩm: " + product.getName()
+                );
+            }
+
+            // ✅ TRỪ TỒN KHO THỰC
+            product.setStockQuantity(
+                    product.getStockQuantity() - item.getQuantity()
+            );
+            productRepository.save(product);
+
+        /* ===============================
+           🔥 LOGIC CŨ – GIỮ NGUYÊN
+           =============================== */
+
             OrderDetail detail = OrderDetail.builder()
-                    .order(order) // chưa cần OrderID
+                    .order(order)
                     .product(product)
                     .quantity(item.getQuantity())
                     .unitPrice(product.getPrice())
@@ -65,7 +85,7 @@ public class OrderService {
             orderDetails.add(detail);
         }
 
-        // 3️⃣ Discount
+        // 3️⃣ Discount (GIỮ NGUYÊN)
         double discountAmount = 0;
 
         if (dto.getDiscountCode() != null && !dto.getDiscountCode().isBlank()) {
@@ -80,15 +100,15 @@ public class OrderService {
             discountService.markUsed(discount);
         }
 
-        // 4️⃣ Set tiền (QUAN TRỌNG)
+        // 4️⃣ Set tiền
         order.setSubTotal(subTotal);
         order.setTotalAmount(subTotal - discountAmount);
         order.setOrderDetails(orderDetails);
 
-        // 5️⃣ LƯU 1 LẦN DUY NHẤT
+        // 5️⃣ Save order
         Order savedOrder = orderRepository.save(order);
 
-        // 6️⃣ Save details (nếu không dùng cascade)
+        // 6️⃣ Save details
         orderDetailRepository.saveAll(orderDetails);
 
         return savedOrder;
@@ -218,41 +238,49 @@ public class OrderService {
     }
 
 
-    public DoanhThuDonHangResponse getDoanhThuDonHang(int year) {
+    public DoanhThuDonHangResponse getDoanhThuDonHang(
+            Integer year,
+            Integer month,
+            Integer day
+    ) {
 
-        // 1️⃣ Doanh thu theo tháng
-        List<Object[]> rows = orderRepository.getMonthlyRevenue(year);
+        // 1️⃣ Detail data
+        List<Object[]> rows = orderRepository.getRevenueStatistic(year, month, day);
 
-        List<MonthlyRevenueDTO> data = rows.stream()
-                .map(r -> new MonthlyRevenueDTO(
-                        ((Number) r[0]).intValue(),     // tháng
-                        ((Number) r[1]).longValue(),   // số đơn
-                        ((Number) r[2]).doubleValue()  // doanh thu
+        List<RevenueStatisticDTO> data = rows.stream()
+                .map(r -> new RevenueStatisticDTO(
+                        (Integer) r[0],
+                        (Integer) r[1],
+                        (Integer) r[2],
+                        ((Number) r[3]).longValue(),
+                        r[4] != null ? ((Number) r[4]).doubleValue() : 0
                 ))
                 .toList();
 
-        // 2️⃣ Tổng doanh thu + tổng đơn
-        List<Object[]> totalRows = orderRepository.getTotalRevenue(year);
+        // 2️⃣ Tổng
+        List<Object[]> totalrows =
+                orderRepository.getTotalRevenueWithFilter(year, month, day);
 
         long tongDonHang = 0;
         double tongDoanhThu = 0;
 
-        if (!totalRows.isEmpty()) {
-            Object[] row = totalRows.get(0);
+        if (!totalrows.isEmpty()) {
+            Object[] row = totalrows.get(0);
 
-            Number totalOrders = (Number) row[0];
-            Number totalRevenue = (Number) row[1];
-
-            tongDonHang = totalOrders != null ? totalOrders.longValue() : 0;
-            tongDoanhThu = totalRevenue != null ? totalRevenue.doubleValue() : 0;
+            tongDonHang = row[0] != null ? ((Number) row[0]).longValue() : 0;
+            tongDoanhThu = row[1] != null ? ((Number) row[1]).doubleValue() : 0;
         }
 
-        // 3️⃣ Build response
+        // 3️⃣ Response
         DoanhThuDonHangResponse res = new DoanhThuDonHangResponse();
         res.setData(data);
         res.setTongDonHang(tongDonHang);
         res.setTongDoanhThu(tongDoanhThu);
         res.setYears(orderRepository.getAvailableYears());
+
+        res.setSelectedYear(year);
+        res.setSelectedMonth(month);
+        res.setSelectedDay(day);
 
         return res;
     }

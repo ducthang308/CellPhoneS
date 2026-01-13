@@ -11,11 +11,33 @@ const ProductList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const SORT_OPTIONS = [
+    { value: "price-asc", label: "Giá tăng dần" },
+    { value: "price-desc", label: "Giá giảm dần" },
+  ];
 
   const location = useLocation();
+  const sortedProducts = useMemo(() => {
+    if (!sortBy) return products;
+
+    const arr = [...products];
+
+    if (sortBy === "price-asc") {
+      arr.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    }
+
+    if (sortBy === "price-desc") {
+      arr.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    }
+
+    return arr;
+  }, [products, sortBy]);
 
   const query = useMemo(() => {
     const params = new URLSearchParams(location.search);
+
     return {
       keyword: params.get("keyword") || "",
       categoryId:
@@ -75,24 +97,43 @@ const ProductList: React.FC = () => {
   return (
     <div className="product-list-page">
       <div className="product-container">
-<div className="page-header">
-  <h1 className="page-title">Tất cả sản phẩm</h1>
-  <span className="product-count">{products.length} sản phẩm</span>
-</div>
-
+        <div className="page-header">
+          <h1 className="page-title">Tất cả sản phẩm</h1>
+          <span className="product-count">{products.length} sản phẩm</span>
+        </div>
 
         <div className="filter-bar">
-          <select value={sortBy} onChange={handleSortChange}>
-            <option value="" disabled>
-              Sắp xếp theo
-            </option>
-            <option value="price-asc">Giá tăng dần</option>
-            <option value="price-desc">Giá giảm dần</option>
-          </select>
+          <div
+            className={`fake-select ${open ? "open" : ""}`}
+            onClick={() => setOpen(v => !v)}
+          >
+            <span>
+              {SORT_OPTIONS.find(o => o.value === sortBy)?.label || "Sắp xếp theo"}
+            </span>
+            <i className="arrow" />
+
+            {open && (
+              <div className="fake-options">
+                {SORT_OPTIONS.map(o => (
+                  <div
+                    key={o.value}
+                    className={`fake-option ${sortBy === o.value ? "active" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSortBy(o.value);
+                      setOpen(false);
+                    }}
+                  >
+                    {o.label}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="product-grid-inner">
-          {products.map((product) => (
+          {sortedProducts.map((product) => (
             <ProductCard key={product.productId} product={product} />
           ))}
         </div>

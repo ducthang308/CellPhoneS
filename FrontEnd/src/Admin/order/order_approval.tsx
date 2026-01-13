@@ -12,10 +12,10 @@ const mapTrangThai = (status: string) => {
       return "Chưa duyệt";
     case "APPROVED":
       return "Đã duyệt";
-    case "REJECTED":
-      return "Đã từ chối";
     case "CANCELLED":
-      return "Đã hủy";
+      return "Đã huỷ";
+    case "REJECTED":
+      return "Từ chối";
     default:
       return status;
   }
@@ -46,6 +46,11 @@ const OrderApproval = () => {
   /* ===== SEARCH ===== */
   const [keyword, setKeyword] = useState("");
 
+  /* ===== TAB ===== */
+  const [activeTab, setActiveTab] = useState<
+    "PENDING" | "APPROVED" | "CANCELLED"
+  >("PENDING");
+
   /* ===== PAGINATION ===== */
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -59,23 +64,21 @@ const OrderApproval = () => {
         const raw: OrderWithUserResponse[] =
           await OrderService.getOrdersWithUser();
 
-        const rows: OrderRowVM[] = raw
-          .filter(o => o.status === "PENDING")
-          .map(o => ({
-            orderId: o.orderId,
-            orderDate: o.orderDate,
-            status: o.status,
-            paymentStatus: o.paymentStatus,
-            totalAmount: o.totalAmount,
-            customerName: o.user?.fullName ?? "—",
-            phone: o.user?.phone ?? "—",
-            address: o.user?.address ?? "—"
-          }));
+        const rows: OrderRowVM[] = raw.map(o => ({
+          orderId: o.orderId,
+          orderDate: o.orderDate,
+          status: o.status,
+          paymentStatus: o.paymentStatus,
+          totalAmount: o.totalAmount,
+          customerName: o.user?.fullName ?? "—",
+          phone: o.user?.phone ?? "—",
+          address: o.user?.address ?? "—"
+        }));
 
         setOrders(rows);
       } catch (err) {
         console.error(err);
-        alert("Không tải được danh sách đơn cần duyệt");
+        alert("Không tải được danh sách đơn hàng");
       } finally {
         setLoading(false);
       }
@@ -84,18 +87,22 @@ const OrderApproval = () => {
     fetchOrders();
   }, []);
 
-  /* ================= SEARCH FILTER ================= */
+  /* ================= FILTER + SEARCH ================= */
   const filteredOrders = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
 
-    if (!kw) return orders;
+    return orders.filter(o => {
+      const matchTab = o.status === activeTab;
 
-    return orders.filter(o =>
-      o.orderId.toString().includes(kw) ||
-      o.customerName.toLowerCase().includes(kw) ||
-      o.phone.toLowerCase().includes(kw)
-    );
-  }, [orders, keyword]);
+      const matchKeyword =
+        !kw ||
+        o.orderId.toString().includes(kw) ||
+        o.customerName.toLowerCase().includes(kw) ||
+        o.phone.toLowerCase().includes(kw);
+
+      return matchTab && matchKeyword;
+    });
+  }, [orders, keyword, activeTab]);
 
   /* ================= PAGINATION ================= */
   const totalPages = Math.ceil(filteredOrders.length / pageSize);
@@ -105,26 +112,51 @@ const OrderApproval = () => {
     return filteredOrders.slice(start, start + pageSize);
   }, [filteredOrders, currentPage]);
 
-  /* reset page khi search */
+  /* reset page khi đổi tab / search */
   useEffect(() => {
     setCurrentPage(1);
-  }, [keyword]);
+  }, [keyword, activeTab]);
 
   /* ================= RENDER ================= */
   return (
     <div className={styles.oa_container}>
+      {/* ===== HEADER ===== */}
       <div className={styles.oa_header}>
-        <h1 className={styles.oa_title}>Danh sách đơn cần duyệt</h1>
+        <h1 className={styles.oa_title}>Quản lý đơn hàng</h1>
 
-        {/* ===== SEARCH BOX ===== */}
         <input
           className={styles.oa_search}
-          placeholder="🔍 Tìm theo mã đơn, tên khách, SĐT..."
+          placeholder="🔍 Mã đơn / Tên khách / SĐT..."
           value={keyword}
           onChange={e => setKeyword(e.target.value)}
         />
       </div>
 
+      {/* ===== TABS ===== */}
+      <div className={styles.oa_tabs}>
+        <button
+          className={activeTab === "PENDING" ? styles.active : ""}
+          onClick={() => setActiveTab("PENDING")}
+        >
+          Chưa duyệt
+        </button>
+
+        <button
+          className={activeTab === "APPROVED" ? styles.active : ""}
+          onClick={() => setActiveTab("APPROVED")}
+        >
+          Đã duyệt / Đã giao
+        </button>
+
+        <button
+          className={activeTab === "CANCELLED" ? styles.active : ""}
+          onClick={() => setActiveTab("CANCELLED")}
+        >
+          Đã huỷ
+        </button>
+      </div>
+
+      {/* ===== CONTENT ===== */}
       {loading ? (
         <div className={styles.oa_loading}>Đang tải dữ liệu...</div>
       ) : (
@@ -155,14 +187,12 @@ const OrderApproval = () => {
                     <td>{formatDate(o.orderDate)}</td>
                     <td>{o.customerName}</td>
                     <td>{o.phone}</td>
-                    <td className={styles.oa_address}>
-                      {o.address}
-                    </td>
+                    <td className={styles.oa_address}>{o.address}</td>
                     <td>
                       {o.totalAmount.toLocaleString("vi-VN")} ₫
                     </td>
                     <td>
-                      <span className={styles.oa_statusPending}>
+                      <span className={styles[`status_${o.status}`]}>
                         {mapTrangThai(o.status)}
                       </span>
                     </td>
@@ -171,7 +201,7 @@ const OrderApproval = () => {
               ) : (
                 <tr>
                   <td colSpan={7} className={styles.oa_noData}>
-                    Không tìm thấy đơn phù hợp
+                    Không có đơn phù hợp
                   </td>
                 </tr>
               )}

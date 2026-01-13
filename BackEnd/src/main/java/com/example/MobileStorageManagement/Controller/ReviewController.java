@@ -6,6 +6,7 @@ import com.example.MobileStorageManagement.Entity.Review;
 import com.example.MobileStorageManagement.Entity.User;
 import com.example.MobileStorageManagement.Service.ReviewService;
 
+import com.example.MobileStorageManagement.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,8 +22,8 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final UserService userService;
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<ReviewResponse> createReview(
             @RequestParam Integer productID,
@@ -34,7 +35,10 @@ public class ReviewController {
             Authentication authentication
     ) {
 
-        User user = (User) authentication.getPrincipal();
+        String username = authentication.getName();
+
+        User user = userService.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));;
 
         ReviewRequest req = ReviewRequest.builder()
                 .productID(productID)
@@ -61,7 +65,6 @@ public class ReviewController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<ReviewResponse> updateReview(
             @PathVariable Long id,
@@ -75,13 +78,11 @@ public class ReviewController {
                 .photo(photo)
                 .video(video)
                 .build();
-
         Review updated = reviewService.updateReview(id, req);
 
         return ResponseEntity.ok(reviewService.toResponse(updated));
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ReviewResponse> getReview(@PathVariable Long id) {
         return reviewService.findById(id)
@@ -90,7 +91,6 @@ public class ReviewController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping("/order/{orderId}")
     public ResponseEntity<List<ReviewResponse>> getByOrder(@PathVariable Long orderId) {
         return ResponseEntity.ok(
@@ -101,7 +101,6 @@ public class ReviewController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping
     public ResponseEntity<List<ReviewResponse>> getAll() {
         return ResponseEntity.ok(
@@ -112,7 +111,6 @@ public class ReviewController {
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         reviewService.deleteReview(id);

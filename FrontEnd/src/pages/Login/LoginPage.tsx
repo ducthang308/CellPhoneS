@@ -8,9 +8,11 @@ import { GoogleLogin } from "@react-oauth/google";
 import { loginWithGoogle } from "../../services/UserService";
 
 const LoginPage = () => {
-    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+    const [loading, setLoading] = useState(false);
+
 
     const { setUser } = useAuth();
     const navigate = useNavigate();
@@ -18,8 +20,10 @@ const LoginPage = () => {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
+
         try {
-            const data = await login(phone, password);
+            const data = await login(email, password);
 
             if (!data?.token) {
                 throw new Error("Token không hợp lệ");
@@ -31,7 +35,6 @@ const LoginPage = () => {
 
             const { token, ...userInfo } = data;
             localStorage.setItem("user", JSON.stringify(userInfo));
-
             setUser(userInfo);
 
             const redirectTo =
@@ -43,17 +46,23 @@ const LoginPage = () => {
         } catch (err: any) {
             console.error("Lỗi đăng nhập:", err);
             alert(err.message || "Đăng nhập thất bại");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleRegisterSuccess = (registeredPhone: string) => {
+    const handleRegisterSuccess = (registeredEmail: string) => {
         setActiveTab("login");
-        setPhone(registeredPhone);
+        setEmail(registeredEmail);
         setPassword("");
     };
 
     const handleGoogleLogin = async (credential: string) => {
+        if (loading) return;
+
         try {
+            setLoading(true);
+
             const data = await loginWithGoogle(credential);
 
             localStorage.setItem("accessToken", data.token);
@@ -73,6 +82,8 @@ const LoginPage = () => {
         } catch (err) {
             console.error("Google login failed", err);
             alert("Đăng nhập Google thất bại");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -99,9 +110,9 @@ const LoginPage = () => {
                     <form onSubmit={handleLogin}>
                         <input
                             type="text"
-                            placeholder="Số điện thoại"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Nhập Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                         <input
@@ -111,9 +122,17 @@ const LoginPage = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
-                        <button type="submit" className="login-btn">
-                            Đăng nhập
+                        <button type="submit" className="login-btn" disabled={loading}>
+                            {loading ? (
+                                <span className="btn-loading">
+                                    <span className="spinner-sm"></span>
+                                    Đang đăng nhập...
+                                </span>
+                            ) : (
+                                "Đăng nhập"
+                            )}
                         </button>
+
                         {/* ===== GOOGLE LOGIN ===== */}
                         <div style={{ marginTop: 16, textAlign: "center" }}>
                             <GoogleLogin
@@ -132,6 +151,15 @@ const LoginPage = () => {
                     <Register onSuccess={handleRegisterSuccess} />
                 )}
             </div>
+            {loading && (
+                <div className="login-loading-overlay">
+                    <div className="login-loading-box">
+                        <div className="spinner"></div>
+                        <p>Đang xác thực, vui lòng chờ...</p>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

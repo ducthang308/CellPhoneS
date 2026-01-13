@@ -12,7 +12,7 @@ type OrderApprovalVM = {
   tenNguoiNhan: string;
   sdtNguoiNhan: string;
   diaChiNhan: string;
-  trangThai: string;
+  status: "PENDING" | "APPROVED" | "CANCELLED";
   paymentStatus: string;
   tongTien: number;
 };
@@ -24,14 +24,12 @@ const formatVND = (n?: number | null) =>
 const formatDate = (d?: string | null) =>
   d ? d.slice(0, 10).split("-").reverse().join("/") : "—";
 
-const mapTrangThai = (s: string) => {
+const mapTrangThaiLabel = (s: string) => {
   switch (s) {
     case "PENDING":
       return "Chưa duyệt";
     case "APPROVED":
       return "Đã duyệt";
-    case "REJECTED":
-      return "Đã từ chối";
     case "CANCELLED":
       return "Đã hủy";
     default:
@@ -47,10 +45,10 @@ const OrderApprovalDetailPage = () => {
   const [order, setOrder] = useState<OrderApprovalVM | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /* ===== confirm modal ===== */
-  const [confirmType, setConfirmType] =
-    useState<"APPROVE" | "CANCELLED" | null>(null);
-  const [confirmLoading, setConfirmLoading] = useState(false);
+  /* ===== STATUS CONTROL ===== */
+  const [selectedStatus, setSelectedStatus] =
+    useState<"PENDING" | "APPROVED" | "CANCELLED">("PENDING");
+  const [saving, setSaving] = useState(false);
 
   /* ================= LOAD DATA ================= */
   useEffect(() => {
@@ -63,9 +61,7 @@ const OrderApprovalDetailPage = () => {
         const orders: OrderWithUserResponse[] =
           await OrderService.getOrdersWithUser();
 
-        const found = orders.find(
-          o => o.orderId === Number(id)
-        );
+        const found = orders.find(o => o.orderId === Number(id));
 
         if (!found) {
           alert("Không tìm thấy đơn hàng");
@@ -79,10 +75,12 @@ const OrderApprovalDetailPage = () => {
           tenNguoiNhan: found.user?.fullName ?? "—",
           sdtNguoiNhan: found.user?.phone ?? "—",
           diaChiNhan: found.user?.address ?? "—",
-          trangThai: mapTrangThai(found.status),
+          status: found.status as any,
           paymentStatus: found.paymentStatus,
           tongTien: found.totalAmount,
         });
+
+        setSelectedStatus(found.status as any);
       } catch (e) {
         console.error(e);
         alert("Không tải được đơn hàng");
@@ -94,40 +92,25 @@ const OrderApprovalDetailPage = () => {
     load();
   }, [id, navigate]);
 
-  /* ================= ACTION ================= */
-  const canApproveReject = useMemo(
-    () => order?.trangThai === "Chưa duyệt",
-    [order]
-  );
-
-  const handleConfirm = async () => {
-    if (!order || !confirmType) return;
+  /* ================= SAVE STATUS ================= */
+  const handleSaveStatus = async () => {
+    if (!order || saving) return;
+    if (selectedStatus === order.status) return;
 
     try {
-      setConfirmLoading(true);
+      setSaving(true);
 
-      await OrderService.updateStatus(
-        order.idDon,
-        confirmType === "APPROVE" ? "APPROVED" : "CANCELLED"
-      );
+      await OrderService.updateStatus(order.idDon, selectedStatus);
 
       setOrder(prev =>
-        prev
-          ? {
-              ...prev,
-              trangThai:
-                confirmType === "APPROVE"
-                  ? "Đã duyệt"
-                  : "Đã từ chối",
-            }
-          : prev
+        prev ? { ...prev, status: selectedStatus } : prev
       );
 
-      setConfirmType(null);
+      alert("Cập nhật trạng thái thành công");
     } catch {
       alert("Cập nhật trạng thái thất bại");
     } finally {
-      setConfirmLoading(false);
+      setSaving(false);
     }
   };
 
@@ -138,102 +121,59 @@ const OrderApprovalDetailPage = () => {
   if (!order) return null;
 
   return (
-    <>
-      <div className={styles.oad_container}>
-        <button
-          className={styles.oad_backBtn}
-          onClick={() => navigate("/admin/order_approval")}
-        >
-          ← Quay lại
-        </button>
+    <div className={styles.oad_container}>
+      <button
+        className={styles.oad_backBtn}
+        onClick={() => navigate("/admin/order_approval")}
+      >
+        ← Quay lại
+      </button>
 
-        <h2 className={styles.oad_title}>
-          Đơn hàng #{order.idDon}
-        </h2>
+      <h2 className={styles.oad_title}>
+        Đơn hàng #{order.idDon}
+      </h2>
 
-        <div className={styles.oad_infoBox}>
-          <p><strong>Ngày đặt:</strong> {formatDate(order.ngayDat)}</p>
-          <p><strong>Người nhận:</strong> {order.tenNguoiNhan}</p>
-          <p><strong>SĐT:</strong> {order.sdtNguoiNhan}</p>
-          <p><strong>Địa chỉ:</strong> {order.diaChiNhan}</p>
-          <p><strong>Thanh toán:</strong> {order.paymentStatus}</p>
-          <p>
-            <strong>Trạng thái:</strong>{" "}
-            <span className={styles.oad_statusPending}>
-              {order.trangThai}
-            </span>
-          </p>
+      <div className={styles.oad_infoBox}>
+        <p><strong>Ngày đặt:</strong> {formatDate(order.ngayDat)}</p>
+        <p><strong>Người nhận:</strong> {order.tenNguoiNhan}</p>
+        <p><strong>SĐT:</strong> {order.sdtNguoiNhan}</p>
+        <p><strong>Địa chỉ:</strong> {order.diaChiNhan}</p>
+        <p><strong>Thanh toán:</strong> {order.paymentStatus}</p>
+
+        {/* ===== STATUS SELECT ===== */}
+        <div className={styles.oad_statusRow}>
+          <strong>Trạng thái:</strong>
+          <select
+            className={styles.oad_statusSelect}
+            value={selectedStatus}
+            onChange={e =>
+              setSelectedStatus(e.target.value as any)
+            }
+            disabled={saving}
+          >
+            <option value="PENDING">Chưa duyệt</option>
+            <option value="APPROVED">Duyệt</option>
+            <option value="CANCELLED">Hủy</option>
+          </select>
         </div>
-
-        <div className={styles.oad_total}>
-          Tổng tiền: {formatVND(order.tongTien)}
-        </div>
-
-        {canApproveReject && (
-          <div className={styles.oad_actions}>
-            <button
-              className={styles.oad_btnApprove}
-              onClick={() => setConfirmType("APPROVE")}
-            >
-              ✔ Duyệt
-            </button>
-            <button
-              className={styles.oad_btnReject}
-              onClick={() => setConfirmType("CANCELLED")}
-            >
-              ✖ Từ chối
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* ================= MODAL CONFIRM ================= */}
-      {confirmType && (
-        <div className={styles.oad_modalOverlay}>
-          <div className={styles.oad_modal}>
-            <h3
-              className={
-                confirmType === "APPROVE"
-                  ? styles.oad_modalTitleApprove
-                  : styles.oad_modalTitleReject
-              }
-            >
-              {confirmType === "APPROVE"
-                ? "Xác nhận duyệt đơn hàng"
-                : "Xác nhận từ chối đơn hàng"}
-            </h3>
+      <div className={styles.oad_total}>
+        Tổng tiền: {formatVND(order.tongTien)}
+      </div>
 
-            <p className={styles.oad_modalText}>
-              {confirmType === "APPROVE"
-                ? "Bạn có chắc chắn muốn duyệt đơn hàng này không?"
-                : "Bạn có chắc chắn muốn từ chối đơn hàng này không?"}
-            </p>
-
-            <div className={styles.oad_modalActions}>
-              <button
-                className={styles.oad_modalCancel}
-                onClick={() => setConfirmType(null)}
-                disabled={confirmLoading}
-              >
-                Hủy
-              </button>
-
-              <button
-                className={
-                  confirmType === "APPROVE"
-                    ? styles.oad_modalConfirmApprove
-                    : styles.oad_modalConfirmReject
-                }
-                onClick={handleConfirm}
-                disabled={confirmLoading}
-              >
-                {confirmLoading ? "Đang xử lý…" : "Xác nhận"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      <div className={styles.oad_actions}>
+        <button
+          className={styles.oad_btnSave}
+          onClick={handleSaveStatus}
+          disabled={
+            saving || selectedStatus === order.status
+          }
+        >
+          {saving ? "Đang lưu…" : "💾 Cập nhật trạng thái"}
+        </button>
+      </div>
+    </div>
   );
 };
 

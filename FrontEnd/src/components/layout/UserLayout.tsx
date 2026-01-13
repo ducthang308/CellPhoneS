@@ -1,15 +1,17 @@
 import { Outlet } from "react-router-dom";
 import Header from "../HeaderComponent/header";
 import Footer from "../FooterComponent/footer";
+import Chatbot from "../Chat";
 
 const UserLayout = () => {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header />
-      <main style={{ flex: 1, width: "100%", paddingTop: 150 }}>
+      <main style={{ flex: 1, width: "100%", paddingTop: 175 }}>
         <Outlet />
       </main>
       <Footer />
+      <Chatbot />
     </div>
   );
 };

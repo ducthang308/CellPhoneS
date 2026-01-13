@@ -1,193 +1,380 @@
-.ohp-page {
+/* ================= RESET NHẸ ================= */
+* {
+  box-sizing: border-box;
+}
+
+body {
   background: #f8fafc;
+}
+
+/* ================= PAGE ================= */
+.ohp-page {
   min-height: 100vh;
+  padding-bottom: 60px;
 }
 
 .ohp-container {
-  max-width: 1200px;
-  margin: auto;
+  max-width: 1240px;
+  margin: 0 auto;
   padding: 24px;
+}
+
+/* ================= HEADER ================= */
+.ohp-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.header-review-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+}
+
+.header-review-btn:hover {
+  transform: translateY(-1px);
 }
 
 .ohp-back-btn {
   border: none;
-  background: none;
+  background: transparent;
   color: #2563eb;
   cursor: pointer;
-  margin-bottom: 12px;
-  font-size: 14px;
+  margin-bottom: 8px;
 }
 
 .ohp-title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  color: #0f172a;
 }
 
-/* ===== TABS ===== */
+/* ================= TAB CONTAINER ================= */
 .ohp-tabs {
   display: flex;
-  gap: 12px;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 28px;
+
+  padding: 10px 12px;
+  border-radius: 22px;
+
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.7),
+      rgba(248, 250, 252, 0.95));
 }
 
+/* ================= TAB GLASS ================= */
 .ohp-tab {
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  cursor: pointer;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.25s;
-}
 
-.ohp-tab:hover {
-  background: #f1f5f9;
-}
-
-.ohp-tab.active {
-  background: linear-gradient(135deg, #2563eb, #4f46e5);
-  color: white;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
-}
-
-.ohp-tab-count {
-  background: #e5e7eb;
-  padding: 2px 8px;
+  padding: 10px 20px;
   border-radius: 999px;
-  font-size: 12px;
+
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    0 8px 22px rgba(15, 23, 42, 0.08);
+
+  transition: all 0.25s ease;
 }
 
+/* ================= HOVER ================= */
+.ohp-tab:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    0 12px 30px rgba(15, 23, 42, 0.15);
+}
+
+/* ================= ACTIVE ================= */
+.ohp-tab.active {
+  background: linear-gradient(135deg,
+      rgba(37, 99, 235, 0.96),
+      rgba(79, 70, 229, 0.96));
+
+  color: #ffffff;
+
+  border: 1px solid rgba(255, 255, 255, 0.5);
+
+  box-shadow:
+    0 16px 40px rgba(37, 99, 235, 0.45);
+}
+
+/* ================= COUNT BADGE ================= */
+.ohp-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 24px;
+  height: 22px;
+
+  padding: 0 8px;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  color: inherit;
+}
+
+/* ================= ACTIVE COUNT ================= */
 .ohp-tab.active .ohp-tab-count {
   background: rgba(255, 255, 255, 0.25);
-  color: white;
 }
 
-/* ===== GRID ===== */
+
+/* ================= GRID ================= */
 .ohp-grid {
   display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 24px;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
+  align-items: start;
 }
 
+/* ================= LEFT LIST ================= */
 .ohp-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .ohp-card {
   background: white;
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 16px;
   cursor: pointer;
-  border: 1px solid #e5e7eb;
-  transition: all 0.25s;
+  border: 2px solid transparent;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
 }
 
 .ohp-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
-.ohp-active {
+.ohp-card.ohp-active {
   border-color: #2563eb;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
 }
 
 .ohp-card-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
 }
 
 .ohp-order-id {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 4px;
 }
 
 .ohp-order-date {
   font-size: 13px;
-  color: #6b7280;
+  color: #64748b;
 }
 
 .ohp-preview {
-  font-size: 13px;
-  color: #6b7280;
-  margin-top: 6px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #475569;
 }
 
-/* ===== DETAIL ===== */
+/* ================= BADGES ================= */
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge.green {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.badge.orange {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.badge.red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.badge.gray {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ================= RIGHT DETAIL ================= */
 .ohp-detail {
   background: white;
-  border-radius: 18px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
 }
 
 .ohp-detail-title {
-  font-size: 20px;
-  margin-bottom: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 6px;
 }
 
-.ohp-meta p {
-  margin: 6px 0;
+.ohp-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 24px;
+  color: #475569;
 }
 
+/* ================= PRODUCTS ================= */
 .ohp-products {
-  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.ohp-product {
+.od-product {
   display: grid;
   grid-template-columns: 80px 1fr auto;
-  gap: 12px;
-  padding: 12px 0;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 0;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.ohp-product-img {
-  width: 80px;
-  height: 80px;
+.od-product:last-child {
+  border-bottom: none;
+}
+
+.od-product img {
+  width: 72px;
+  height: 72px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 14px;
+  background: #f1f5f9;
 }
 
-.ohp-product-info h3 {
-  margin: 0;
-  font-size: 15px;
+.od-info h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
 }
 
-.ohp-product-price {
+.od-info span {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.od-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.od-price {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* ================= REVIEW BUTTON ================= */
+.review-btn {
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: white;
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
   font-weight: 600;
+  transition: all 0.25s ease;
 }
 
-/* ===== SUMMARY ===== */
+.review-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.45);
+}
+
+/* ================= SUMMARY ================= */
 .ohp-summary {
-  margin-top: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px dashed #e5e7eb;
 }
 
 .ohp-summary div {
   display: flex;
   justify-content: space-between;
-  margin: 6px 0;
+  font-size: 16px;
 }
 
-.ohp-discount {
-  color: #dc2626;
-}
-
-.ohp-final {
+.ohp-summary strong {
   font-size: 18px;
-  margin-top: 10px;
+  color: #0f172a;
 }
 
-/* ===== EMPTY ===== */
+/* ================= EMPTY ================= */
 .ohp-empty {
   padding: 40px;
   text-align: center;
-  color: #6b7280;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 16px;
 }
 
-.ohp-loading {
-  padding: 40px;
-  text-align: center;
+.ohp-summary {
+  margin-top: 16px;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #374151;
+}
+
+.summary-row.discount {
+  color: #dc2626;
+}
+
+.summary-row.total {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
 }

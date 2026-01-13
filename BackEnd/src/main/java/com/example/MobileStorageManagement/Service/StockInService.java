@@ -3,6 +3,7 @@ package com.example.MobileStorageManagement.Service;
 import com.example.MobileStorageManagement.DTO.*;
 import com.example.MobileStorageManagement.Entity.*;
 import com.example.MobileStorageManagement.Repository.BatchRepository;
+import com.example.MobileStorageManagement.Repository.ProductRepository;
 import com.example.MobileStorageManagement.Repository.StockInRepository;
 import com.example.MobileStorageManagement.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class StockInService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     /* =========================
        GET
@@ -45,21 +49,28 @@ public class StockInService {
        CREATE
        ========================= */
 
-    public StockIn create(StockInRequest stockInRequest) throws IOException {
+    public StockIn create(StockInRequest req) {
+
         StockIn entity = new StockIn();
-        entity.setQuantity(stockInRequest.getQuantity());
-        entity.setDate(stockInRequest.getDate());
-        entity.setNote(stockInRequest.getNote());
+        entity.setQuantity(req.getQuantity());
+        entity.setDate(req.getDate());
+        entity.setNote(req.getNote());
         entity.setUser(getCurrentUser());
 
-        if (stockInRequest.getBatchId() != null) {
-            Batch batch = batchRepository.findById(stockInRequest.getBatchId())
-                    .orElseThrow(() -> new RuntimeException("Lô hàng không tồn tại"));
-            entity.setBatch(batch);
-        }
+        Batch batch = batchRepository.findById(req.getBatchId())
+                .orElseThrow(() -> new RuntimeException("Lô hàng không tồn tại"));
 
+        Product product = batch.getProduct();
+
+        product.setStockQuantity(
+                product.getStockQuantity() + req.getQuantity()
+        );
+        productRepository.save(product);
+
+        entity.setBatch(batch);
         return stockInRepository.save(entity);
     }
+
 
     /* =========================
        UPDATE
