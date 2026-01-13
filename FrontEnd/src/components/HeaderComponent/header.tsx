@@ -192,10 +192,10 @@ const Header = () => {
           <div className="top-bar-content">
             <div className="top-bar-left">
               <span className="top-bar-item">
-                <i className="fas fa-phone"></i> +0702-500-230
+                <i className="fas fa-phone"></i> +84 325 043 590
               </span>
               <span className="top-bar-item">
-                <i className="fas fa-envelope"></i> thanh261220@gmail.com
+                <i className="fas fa-envelope"></i> cskh.phone.2t2h@gmail.com
               </span>
               <span className="top-bar-item">
                 <i className="fas fa-map-marker-alt"></i> 48 Cao Thắng, TP. Đà Nẵng

@@ -15,6 +15,8 @@ export default function ProductReviewPage() {
     const [photo, setPhoto] = useState<File | null>(null);
     const [video, setVideo] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
     const handleSubmit = async () => {
         if (!productId || !orderId) {
@@ -42,6 +44,11 @@ export default function ProductReviewPage() {
             alert("Không thể gửi đánh giá");
         } finally {
             setLoading(false);
+            setPhoto(null);
+            setVideo(null);
+            setPhotoPreview(null);
+            setVideoPreview(null);
+
         }
     };
 
@@ -74,7 +81,11 @@ export default function ProductReviewPage() {
                     <input
                         type="file"
                         accept="image/*"
-                        onChange={e => setPhoto(e.target.files?.[0] || null)}
+                        onChange={e => {
+                            const file = e.target.files?.[0] || null;
+                            setPhoto(file);
+                            setPhotoPreview(file ? URL.createObjectURL(file) : null);
+                        }}
                     />
                 </label>
 
@@ -83,8 +94,13 @@ export default function ProductReviewPage() {
                     <input
                         type="file"
                         accept="video/*"
-                        onChange={e => setVideo(e.target.files?.[0] || null)}
+                        onChange={e => {
+                            const file = e.target.files?.[0] || null;
+                            setVideo(file);
+                            setVideoPreview(file ? URL.createObjectURL(file) : null);
+                        }}
                     />
+
                 </label>
             </div>
 
@@ -103,6 +119,19 @@ export default function ProductReviewPage() {
                     </div>
                 </div>
             )}
+            <div className="prd-review-preview">
+                {photoPreview && (
+                    <div className="preview-item">
+                        <img src={photoPreview} alt="Preview" />
+                    </div>
+                )}
+
+                {videoPreview && (
+                    <div className="preview-item">
+                        <video src={videoPreview} controls />
+                    </div>
+                )}
+            </div>
 
         </div>
     );

@@ -230,10 +230,10 @@ export default function ProductDetail() {
           {product.name} | Chính hãng VN/A
         </h1>
 
-        <div className="rating-row">
+        {/* <div className="rating-row">
           {"★".repeat(5)}
           <span>4.9 (15 đánh giá)</span>
-        </div>
+        </div> */}
 
         <div className="product-grid">
           <div className="image-box">
@@ -305,11 +305,11 @@ export default function ProductDetail() {
           {reviews.map(r => (
             <div key={r.reviewID} className="review-item">
               <div className="review-header">
-                <strong>{r.userName}</strong>
-                <span className="review-stars">
-                  {"★".repeat(r.rating)}
-                </span>
-              </div>
+  <strong className="review-username">{r.userName}</strong>
+  <div className="review-stars">
+    {"★".repeat(r.rating)}
+  </div>
+</div>
 
               <p className="review-comment">{r.comment}</p>
 
@@ -329,12 +329,15 @@ export default function ProductDetail() {
               )}
 
               {r.videoUrl && (
-                <video
-                  src={r.videoUrl}
-                  controls
-                  className="review-video"
-                />
+                <div className="review-video-wrapper">
+                  <video
+                    src={r.videoUrl}
+                    controls
+                    className="review-video"
+                  />
+                </div>
               )}
+
             </div>
           ))}
 
