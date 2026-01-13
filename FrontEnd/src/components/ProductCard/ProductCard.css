@@ -19,19 +19,34 @@
 
 /* Tag Giảm giá */
 .product-card-wrapper::before {
-  content: "Giảm 13%";
+  content: "🔥 HOT";
   position: absolute;
   top: 12px;
   left: 12px;
+
   background: linear-gradient(135deg, #ff3b30, #ff9500);
-  color: white;
+  color: #fff;
+
   font-size: 13px;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 8px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+
+  padding: 6px 12px;
+  border-radius: 999px;
+
   z-index: 10;
-  box-shadow: 0 3px 8px rgba(255,59,48,0.4);
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.45);
+
+  animation: hotPulse 1.6s infinite;
 }
+
+/* Nhẹ nhàng nhưng có lực */
+@keyframes hotPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
 
 /* Tag Trả góp 0% */
 .product-card-wrapper::after {
