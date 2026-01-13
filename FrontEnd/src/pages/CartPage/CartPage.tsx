@@ -58,25 +58,68 @@ const CartPage: React.FC = () => {
     loadCart();
   }, [user?.cartId]);
 
-  /* ================= UPDATE QTY ================= */
+  const syncCartBadge = (items: CartItem[]) => {
+    const total = items.reduce((sum, i) => sum + i.quantity, 0);
+
+    localStorage.setItem(
+      "cart_count",
+      total.toString()
+    );
+
+    // báo cho Header biết
+    window.dispatchEvent(new Event("cart-updated"));
+  };
+
+  // /* ================= UPDATE QTY ================= */
+  // const updateQuantity = (productId: number, delta: number) => {
+  //   setCartItems((prev) =>
+  //     prev.map((item) =>
+  //       item.productId === productId
+  //         ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+  //         : item
+  //     )
+  //   );
+  // };
+
+  // /* ================= REMOVE ITEM ================= */
+  // const removeItem = async (cartDetailsId: number) => {
+  //   try {
+  //     await cartDetailService.delete(cartDetailsId);
+  //     setCartItems((prev) =>
+  //       prev.filter((item) => item.cartDetailsId !== cartDetailsId)
+  //     );
+  //   } catch {
+  //     alert("Không thể xoá sản phẩm");
+  //   }
+  // };
   const updateQuantity = (productId: number, delta: number) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
+    setCartItems(prev => {
+      const updated = prev.map(item =>
         item.productId === productId
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item
-      )
-    );
+      );
+
+      syncCartBadge(updated);
+      return updated;
+    });
   };
 
   /* ================= REMOVE ITEM ================= */
   const removeItem = async (cartDetailsId: number) => {
     try {
       await cartDetailService.delete(cartDetailsId);
-      setCartItems((prev) =>
-        prev.filter((item) => item.cartDetailsId !== cartDetailsId)
-      );
-    } catch {
+
+      setCartItems(prev => {
+        const updated = prev.filter(
+          item => item.cartDetailsId !== cartDetailsId
+        );
+
+        syncCartBadge(updated);
+        return updated;
+      });
+    } catch (err) {
+      console.error(err);
       alert("Không thể xoá sản phẩm");
     }
   };
@@ -112,7 +155,8 @@ const CartPage: React.FC = () => {
       if (user?.cartId) {
         await cartDetailService.deleteByCartId(user.cartId);
       }
-
+      localStorage.setItem("cart_count", "0");
+      window.dispatchEvent(new Event("cart-updated"));
       setCartItems([]);
       navigate(`/order/${order.orderID}`);
     } catch (err) {
